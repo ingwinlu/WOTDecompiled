@@ -1,6 +1,10 @@
 WOTDecompiled
 =============
 
+The instructions below did not work for upgrading to 0.9.15.1.1.
+A full 're-dycompyle' was needed because too much changed.
+Also uncomyple6 was used instead of uncompyle2.
+
 
 Upgrade
 =======
