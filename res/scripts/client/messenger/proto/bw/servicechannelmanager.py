@@ -1,21 +1,25 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/messenger/proto/bw/ServiceChannelManager.py
 from collections import deque
-import BigWorld
 from chat_shared import CHAT_ACTIONS
 from constants import IS_DEVELOPMENT
 from debug_utils import *
-from messenger import formatters
-from messenger.m_constants import SCH_MSGS_MAX_LENGTH, MESSENGER_SCOPE
+from ids_generators import SequenceIDGenerator
+from messenger.formatters import collections_by_type
+from messenger.m_constants import MESSENGER_SCOPE, SCH_MSGS_MAX_LENGTH
+from messenger.m_constants import SCH_CLIENT_MSG_TYPE
 from messenger.proto.bw.ChatActionsListener import ChatActionsListener
 from messenger.proto.bw.wrappers import ServiceChannelMessage
 from messenger.proto.events import g_messengerEvents
 from adisp import process
 
 class ServiceChannelManager(ChatActionsListener):
-    __messages = deque([], SCH_MSGS_MAX_LENGTH)
 
     def __init__(self):
         ChatActionsListener.__init__(self)
-        self.__unreadMessageCount = 0
+        self.__idGenerator = SequenceIDGenerator()
+        self.__messages = deque([], SCH_MSGS_MAX_LENGTH)
+        self.__unreadMessagesCount = 0
 
     def addListeners(self):
         self.addListener(self.onReceiveSysMessage, CHAT_ACTIONS.sysMessage)
@@ -23,66 +27,11 @@ class ServiceChannelManager(ChatActionsListener):
 
     def clear(self):
         self.__messages.clear()
+        self.__unreadMessagesCount = 0
 
     def switch(self, scope):
         if scope is MESSENGER_SCOPE.LOBBY:
             self.requestLastServiceMessages()
-
-    @process
-    def __addServerMessage(self, message):
-        yield lambda callback: callback(True)
-        formatter = formatters.SCH_SERVER_FORMATTERS_DICT.get(message.type)
-        if formatter:
-            try:
-                notify = formatter.notify()
-                isAsync = formatter.isAsync()
-                if isAsync:
-                    formatted = yield formatter.format(message)
-                else:
-                    formatted = formatter.format(message)
-                if formatted is not None:
-                    formatted.update({'msgTypeId': message.type})
-            except:
-                LOG_CURRENT_EXCEPTION()
-                return
-
-            if formatted:
-                priority = message.isHighImportance and message.active
-                self.__messages.append((formatted,
-                 True,
-                 priority,
-                 notify,
-                 []))
-                self.__unreadMessageCount += 1
-                g_messengerEvents.serviceChannel.onServerMessageReceived(formatted.copy(), message.isHighImportance and message.active, notify, [])
-            elif IS_DEVELOPMENT:
-                LOG_WARNING('Not enough data to format. Action data : ', message)
-        elif IS_DEVELOPMENT:
-            LOG_WARNING('Formatter not found. Action data : ', message)
-        return
-
-    def __addClientMessage(self, message, msgType, isPriority = False, auxData = None):
-        if auxData is None:
-            auxData = []
-        formatter = formatters.SCH_CLIENT_FORMATTERS_DICT.get(msgType)
-        if formatter:
-            try:
-                formatted = formatter.format(message, auxData)
-                notify = formatter.notify()
-            except:
-                LOG_CURRENT_EXCEPTION()
-                return
-
-            self.__messages.append((formatted,
-             False,
-             isPriority,
-             notify,
-             auxData))
-            self.__unreadMessageCount += 1
-            g_messengerEvents.serviceChannel.onClientMessageReceived(formatted.copy(), isPriority, notify, auxData[:])
-        elif IS_DEVELOPMENT:
-            LOG_WARNING('Formatter not found:', msgType, message)
-        return
 
     def requestLastServiceMessages(self):
         BigWorld.player().requestLastSysMessages()
@@ -95,46 +44,97 @@ class ServiceChannelManager(ChatActionsListener):
         message = ServiceChannelMessage.fromChatAction(chatAction, personal=True)
         self.__addServerMessage(message)
 
-    def pushClientSysMessage(self, message, msgType, isPriority = False):
-        self.__addClientMessage(message, formatters.SCH_CLIENT_MSG_TYPE.SYS_MSG_TYPE, isPriority=isPriority, auxData=[msgType.name()])
+    def pushClientSysMessage(self, message, msgType, isAlert=False, priority=None):
+        return self.__addClientMessage(message, SCH_CLIENT_MSG_TYPE.SYS_MSG_TYPE, isAlert=isAlert, auxData=[msgType.name(), priority])
 
-    def pushClientMessage(self, message, msgType, isPriority = False, auxData = None):
-        self.__addClientMessage(message, msgType, isPriority=isPriority, auxData=auxData)
+    def pushClientMessage(self, message, msgType, isAlert=False, auxData=None):
+        return self.__addClientMessage(message, msgType, isAlert=isAlert, auxData=auxData)
 
-    def getServiceMessagesCount(self):
-        return len(self.__messages)
+    def getReadMessages(self):
+        if self.__unreadMessagesCount > 0:
+            messages = list(self.__messages)[:-self.__unreadMessagesCount]
+        else:
+            messages = self.__messages
+        for clientID, message in messages:
+            yield (clientID, message)
 
-    def getServiceMessages(self):
-        return map(lambda item: item[0], self.__messages)
+    def getMessage(self, clientID):
+        mapping = dict(self.__messages)
+        message = (False, None, None)
+        if clientID in mapping:
+            message = mapping[clientID]
+        return message
 
-    def getServiceMessagesFullData(self):
-        result = []
-        for message, isServerMsg, flag, notify, auxData in self.__messages:
-            result.append((message.copy(),
-             isServerMsg,
-             flag,
-             notify,
-             auxData[:]))
-
-        return result
-
-    def fireReceiveMessageEvents(self):
-        if not self.__unreadMessageCount:
-            return
-        unreadMessages = list(self.__messages)[-self.__unreadMessageCount:]
-        serviceChannel = g_messengerEvents.serviceChannel
-        onServerMessageReceived = serviceChannel.onServerMessageReceived
-        onClientMessageReceived = serviceChannel.onClientMessageReceived
-        for message, isServerMsg, flag, notify, auxData in unreadMessages:
-            if isServerMsg:
-                onServerMessageReceived(message.copy(), flag, notify, auxData[:])
-            else:
-                onClientMessageReceived(message.copy(), flag, notify, auxData[:])
+    def getUnreadCount(self):
+        return self.__unreadMessagesCount
 
     def resetUnreadCount(self):
-        self.__unreadMessageCount = 0
+        self.__unreadMessagesCount = 0
 
-    def decrementUnreadCount(self):
-        self.__unreadMessageCount -= 1
-        if self.__unreadMessageCount < 0:
-            LOG_WARNING('Unread messages count could not be less then 0! Check it!')
+    def handleUnreadMessages(self):
+        if not self.__unreadMessagesCount:
+            return
+        unread = list(self.__messages)[-self.__unreadMessagesCount:]
+        serviceChannel = g_messengerEvents.serviceChannel
+        for clientID, (isServerMsg, formatted, settings) in unread:
+            if isServerMsg:
+                serviceChannel.onServerMessageReceived(clientID, formatted, settings)
+            else:
+                serviceChannel.onClientMessageReceived(clientID, formatted, settings)
+
+    @process
+    def __addServerMessage(self, message):
+        yield lambda callback: callback(True)
+        formatter = collections_by_type.SERVER_FORMATTERS.get(message.type)
+        serviceChannel = g_messengerEvents.serviceChannel
+        serviceChannel.onChatMessageReceived(self.__idGenerator.next(), message)
+        LOG_DEBUG('Server message received', message, formatter)
+        if formatter:
+            try:
+                if formatter.isAsync():
+                    formatted, settings = yield formatter.format(message)
+                else:
+                    formatted, settings = formatter.format(message)
+            except:
+                LOG_CURRENT_EXCEPTION()
+                return
+
+            if formatted:
+                clientID = self.__idGenerator.next()
+                self.__messages.append((clientID, (True, formatted, settings)))
+                self.__unreadMessagesCount += 1
+                serviceChannel.onServerMessageReceived(clientID, formatted, settings)
+                customEvent = settings.getCustomEvent()
+                if customEvent is not None:
+                    serviceChannel.onCustomMessageDataReceived(clientID, customEvent)
+            elif IS_DEVELOPMENT:
+                LOG_WARNING('Not enough data to format. Action data : ', message)
+        elif IS_DEVELOPMENT:
+            LOG_WARNING('Formatter not found. Action data : ', message)
+        return
+
+    def __addClientMessage(self, message, msgType, isAlert=False, auxData=None):
+        if auxData is None:
+            auxData = []
+        clientID = 0
+        formatter = collections_by_type.CLIENT_FORMATTERS.get(msgType)
+        if formatter:
+            try:
+                formatted, settings = formatter.format(message, auxData)
+            except:
+                LOG_CURRENT_EXCEPTION()
+                return
+
+            if formatted:
+                clientID = self.__idGenerator.next()
+                if not settings.isAlert:
+                    settings.isAlert = isAlert
+                self.__messages.append((clientID, (False, formatted, settings)))
+                self.__unreadMessagesCount += 1
+                g_messengerEvents.serviceChannel.onClientMessageReceived(clientID, formatted, settings)
+            elif IS_DEVELOPMENT:
+                LOG_WARNING('Not enough data to format. Action data : ', message)
+        elif IS_DEVELOPMENT:
+            LOG_WARNING('Formatter not found:', msgType, message)
+        return clientID
+# okay decompiling ./res/scripts/client/messenger/proto/bw/servicechannelmanager.pyc

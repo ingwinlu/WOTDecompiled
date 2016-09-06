@@ -1,15 +1,31 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/LobbyMenu.py
 from adisp import process
-from gui import DialogsInterface
-from gui.shared import events, g_eventBus, EVENT_BUS_SCOPE
-from gui.Scaleform.framework import AppRef
-from gui.Scaleform.framework.entities.View import View
+from helpers import i18n, getClientVersion
+from gui import DialogsInterface, game_control
+from gui.app_loader import g_appLoader
+from gui.shared import event_dispatcher
+from gui.Scaleform.locale.MENU import MENU
+from gui.Scaleform.daapi.view.dialogs import DIALOG_BUTTON_ID
 from gui.Scaleform.daapi.view.meta.LobbyMenuMeta import LobbyMenuMeta
-from gui.Scaleform.daapi.view.meta.WindowViewMeta import WindowViewMeta
+from gui.shared.formatters import text_styles
+from gui.Scaleform.locale.TOOLTIPS import TOOLTIPS
 
-class LobbyMenu(View, LobbyMenuMeta, WindowViewMeta, AppRef):
+def _getVersionMessage():
+    return {'message': '{0} {1}'.format(text_styles.main(i18n.makeString(MENU.PROMO_PATCH_MESSAGE)), text_styles.stats(getClientVersion())),
+     'label': i18n.makeString(MENU.PROMO_TOARCHIVE),
+     'promoEnabel': game_control.g_instance.promo.isPatchPromoAvailable(),
+     'tooltip': TOOLTIPS.LOBBYMENU_VERSIONINFOBUTTON}
+
+
+class LobbyMenu(LobbyMenuMeta):
+
+    def versionInfoClick(self):
+        game_control.g_instance.promo.showVersionsPatchPromo()
+        self.destroy()
 
     def settingsClick(self):
-        self.fireEvent(events.ShowWindowEvent(events.ShowWindowEvent.SHOW_SETTINGS_WINDOW, {'redefinedKeyMode': False}))
+        event_dispatcher.showSettingsWindow(redefinedKeyMode=False)
 
     def onWindowClose(self):
         self.destroy()
@@ -21,19 +37,24 @@ class LobbyMenu(View, LobbyMenuMeta, WindowViewMeta, AppRef):
     def refuseTraining(self):
         isOk = yield DialogsInterface.showI18nConfirmDialog('refuseTraining')
         if isOk:
-            g_eventBus.handleEvent(events.TutorialEvent(events.TutorialEvent.REFUSE), scope=EVENT_BUS_SCOPE.GLOBAL)
+            event_dispatcher.stopTutorial()
         self.destroy()
 
     @process
     def logoffClick(self):
-        isOk = yield DialogsInterface.showI18nConfirmDialog('disconnect', focusedID=DialogsInterface.DIALOG_BUTTON_ID.CLOSE)
+        isOk = yield DialogsInterface.showI18nConfirmDialog('disconnect', focusedID=DIALOG_BUTTON_ID.CLOSE)
         if isOk:
             self.destroy()
-            self.app.logoff()
+            g_appLoader.goToLoginByRQ()
 
     @process
     def quitClick(self):
-        isOk = yield DialogsInterface.showI18nConfirmDialog('quit', focusedID=DialogsInterface.DIALOG_BUTTON_ID.CLOSE)
+        isOk = yield DialogsInterface.showI18nConfirmDialog('quit', focusedID=DIALOG_BUTTON_ID.CLOSE)
         if isOk:
             self.destroy()
-            self.app.quit()
+            g_appLoader.quitFromGame()
+
+    def _populate(self):
+        super(LobbyMenu, self)._populate()
+        self.as_setVersionMessageS(_getVersionMessage())
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/lobbymenu.pyc

@@ -1,15 +1,15 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/DemonstratorWindow.py
 import ArenaType
 from gui.Scaleform.daapi.view.meta.DemonstratorWindowMeta import DemonstratorWindowMeta
-from gui.Scaleform.daapi.view.meta.WindowViewMeta import WindowViewMeta
-from gui.Scaleform.framework.entities.View import View
 from gui.prb_control.context import PrebattleAction
 from gui.prb_control.dispatcher import g_prbLoader
 
-class DemonstratorWindow(View, WindowViewMeta, DemonstratorWindowMeta):
+class DemonstratorWindow(DemonstratorWindowMeta):
 
     def _populate(self):
         super(DemonstratorWindow, self)._populate()
-        maps = dict(ctf=[], assault=[], domination=[])
+        maps = dict(ctf=[], assault=[], domination=[], nations=[])
         for arenaTypeID, arenaType in ArenaType.g_cache.iteritems():
             if arenaType.explicitRequestOnly:
                 continue
@@ -21,7 +21,8 @@ class DemonstratorWindow(View, WindowViewMeta, DemonstratorWindowMeta):
         sorting = lambda item: item['name']
         self.as_setDataS({'standard': sorted(maps['ctf'], key=sorting),
          'assault': sorted(maps['assault'], key=sorting),
-         'encounter': sorted(maps['domination'], key=sorting)})
+         'encounter': sorted(maps['domination'], key=sorting),
+         'nations': sorted(maps['nations'], key=sorting)})
 
     def onMapSelected(self, mapID):
         dispatcher = g_prbLoader.getDispatcher()
@@ -32,3 +33,4 @@ class DemonstratorWindow(View, WindowViewMeta, DemonstratorWindowMeta):
 
     def onWindowClose(self):
         self.destroy()
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/demonstratorwindow.pyc

@@ -1,20 +1,23 @@
-# 2013.11.15 11:26:28 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/framework/entities/View.py
 from debug_utils import LOG_DEBUG, LOG_ERROR
+from gui.Scaleform.framework.entities.abstract.AbstractViewMeta import AbstractViewMeta
+from gui.doc_loaders import hints_layout
+from gui.shared.events import FocusEvent
 __author__ = 'd_trofimov'
-from gui.Scaleform.framework.entities.DAAPIModule import DAAPIModule
 
-class View(DAAPIModule):
+class View(AbstractViewMeta):
 
-    def __init__(self):
+    def __init__(self, ctx=None):
         super(View, self).__init__()
-        self.__token = None
         self.__settings = None
         self.__uniqueName = None
-        self.__canViewSkip = True
-        from gui.Scaleform.framework import VIEW_SCOPE
-        self.__scope = VIEW_SCOPE.DEFAULT
+        from gui.Scaleform.framework import ScopeTemplates
+        self.__scope = ScopeTemplates.DEFAULT_SCOPE
         return
+
+    def onFocusIn(self, alias):
+        self.fireEvent(FocusEvent(FocusEvent.COMPONENT_FOCUSED))
 
     def __del__(self):
         LOG_DEBUG('View deleted:', self)
@@ -28,16 +31,16 @@ class View(DAAPIModule):
         return None
 
     def setCurrentScope(self, scope):
-        from gui.Scaleform.framework import VIEW_SCOPE
+        from gui.Scaleform.framework import ScopeTemplates
         FOR_ALIAS = 'for ' + self.settings.alias + ' view.'
         if self.__settings is not None:
-            if self.__settings.scope == VIEW_SCOPE.DYNAMIC:
-                if scope != VIEW_SCOPE.DYNAMIC:
+            if self.__settings.scope == ScopeTemplates.DYNAMIC_SCOPE:
+                if scope != ScopeTemplates.DYNAMIC_SCOPE:
                     self.__scope = scope
                 else:
-                    raise Exception('View.__scope can`t be a VIEW_SCOPE.DYNAMIC value. This value might have only ' + 'settings.scope ' + FOR_ALIAS)
+                    raise Exception('View.__scope can`t be a ScopeTemplates.DYNAMIC value. This value might have only ' + 'settings.scope ' + FOR_ALIAS)
             else:
-                raise Exception('You can not change a non-dynamic scope. Declare VIEW_SCOPE.DYNAMIC in settings ' + FOR_ALIAS)
+                raise Exception('You can not change a non-dynamic scope. Declare ScopeTemplates.DYNAMIC in settings ' + FOR_ALIAS)
         else:
             LOG_ERROR('You can not change a current scope, until unimplemented __settings ')
         return
@@ -46,31 +49,14 @@ class View(DAAPIModule):
         return self.__scope
 
     @property
-    def token(self):
-        return self.__token
-
-    def setCanViewSkip(self, canViewSkip):
-        self.__canViewSkip = canViewSkip
-
-    def isCanViewSkip(self):
-        return self.__canViewSkip
-
-    def setToken(self, token):
-        if token is not None:
-            self.__token = token
-        else:
-            LOG_DEBUG('token can`t be None!')
-        return
-
-    @property
     def settings(self):
         return self.__settings
 
     def setSettings(self, settings):
-        from gui.Scaleform.framework import VIEW_SCOPE
+        from gui.Scaleform.framework import ScopeTemplates
         if settings is not None:
             self.__settings = settings
-            if self.__settings.scope != VIEW_SCOPE.DYNAMIC:
+            if self.__settings.scope != ScopeTemplates.DYNAMIC_SCOPE:
                 self.__scope = self.__settings.scope
         else:
             LOG_DEBUG('settings can`t be None!')
@@ -84,6 +70,9 @@ class View(DAAPIModule):
     def uniqueName(self):
         return self.__uniqueName
 
+    def getUniqueName(self):
+        return self.uniqueName or self.alias
+
     def setUniqueName(self, name):
         if name is not None:
             self.__uniqueName = name
@@ -91,8 +80,16 @@ class View(DAAPIModule):
             LOG_DEBUG('uniqueName can`t be None!')
         return
 
+    def setupContextHints(self, hintID):
+        if hintID is not None:
+            hintsData = dict(hints_layout.getLayout(hintID))
+            if hintsData is not None:
+                builder = hintsData.pop('builderLnk', '')
+                self.as_setupContextHintBuilderS(builder, hintsData)
+            else:
+                LOG_ERROR('Hint layout is nor defined', hintID)
+        return
+
     def _dispose(self):
         super(View, self)._dispose()
-# okay decompyling res/scripts/client/gui/scaleform/framework/entities/view.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:28 EST
+# okay decompiling ./res/scripts/client/gui/scaleform/framework/entities/view.pyc

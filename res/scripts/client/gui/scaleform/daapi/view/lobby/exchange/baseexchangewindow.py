@@ -1,14 +1,12 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/exchange/BaseExchangeWindow.py
 from gui.ClientUpdateManager import g_clientUpdateManager
 from gui.Scaleform.daapi.view.meta.BaseExchangeWindowMeta import BaseExchangeWindowMeta
-from gui.Scaleform.daapi.view.meta.WindowViewMeta import WindowViewMeta
-from gui.Scaleform.framework.entities.View import View
-from gui.shared.utils.requesters import ItemsRequester
-from adisp import process
 
-class BaseExchangeWindow(View, BaseExchangeWindowMeta, WindowViewMeta):
+class BaseExchangeWindow(BaseExchangeWindowMeta):
 
-    def __init__(self):
-        View.__init__(self)
+    def __init__(self, ctx=None):
+        super(BaseExchangeWindow, self).__init__(self)
 
     def _populate(self):
         super(BaseExchangeWindow, self)._populate()
@@ -23,3 +21,4 @@ class BaseExchangeWindow(View, BaseExchangeWindowMeta, WindowViewMeta):
     def _dispose(self):
         g_clientUpdateManager.removeObjectCallbacks(self)
         super(BaseExchangeWindow, self)._dispose()
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/exchange/baseexchangewindow.pyc

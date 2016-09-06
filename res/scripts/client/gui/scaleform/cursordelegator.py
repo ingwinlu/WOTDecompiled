@@ -1,5 +1,7 @@
-import BigWorld, GUI
-from debug_utils import LOG_DEBUG
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/CursorDelegator.py
+import BigWorld
+import GUI
 
 class CursorDelegator(object):
     RESIZE = 'RESIZE'
@@ -31,7 +33,7 @@ class CursorDelegator(object):
             self.__activated = False
         return
 
-    def syncMousePosition(self, flash, flashX = None, flashY = None, customCall = False):
+    def syncMousePosition(self, flash, flashX=None, flashY=None, customCall=False):
         screenWidth, screenHeight = GUI.screenResolution()
         mouseLeft, mouseTop = GUI.mcursor().position
         if not customCall:
@@ -43,7 +45,7 @@ class CursorDelegator(object):
         flash.call('Cursor.SetPosition', [x, y])
         return
 
-    def setForcedCursor(self, flash, forcedCursor = None):
+    def setForcedCursor(self, flash, forcedCursor=None):
         flash.call('Cursor.SetForcedCursorType', [forcedCursor])
 
     def restoreMousePosition(self):
@@ -54,8 +56,9 @@ class CursorDelegator(object):
 
     def setForcedGuiControlMode(self, flash, hold):
         flash.call('Cursor.Hold', [hold])
-        if hasattr(BigWorld.player(), 'setForcedGuiControlMode'):
-            BigWorld.player().setForcedGuiControlMode(hold)
+        from gui.battle_control import avatar_getter
+        avatar_getter.setForcedGuiControlMode(hold)
 
 
 g_cursorDelegator = CursorDelegator()
+# okay decompiling ./res/scripts/client/gui/scaleform/cursordelegator.pyc

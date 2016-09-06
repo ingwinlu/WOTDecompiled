@@ -1,124 +1,111 @@
-# 2013.11.15 11:26:17 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/techtree/data.py
-import BigWorld
 from AccountCommands import LOCK_REASON
 from CurrentVehicle import g_currentVehicle
 from debug_utils import LOG_CURRENT_EXCEPTION, LOG_ERROR, LOG_DEBUG
-from gui.Scaleform.daapi.view.lobby.techtree import custom_items
+from gui.prb_control.prb_helpers import prbDispatcherProperty
+from gui.shared.utils.requesters import REQ_CRITERIA
+from gui.shared import g_itemsCache
+from gui.shared.gui_items import GUI_ITEM_TYPE
 from items import vehicles, getTypeOfCompactDescr, ITEM_TYPE_NAMES
-from gui.Scaleform.daapi.view.lobby.techtree import _RESEARCH_ITEMS, _VEHICLE, _TURRET, _GUN, NODE_STATE, makeDefUnlockProps, UnlockProps, MAX_PATH_LIMIT
+from gui.Scaleform.daapi.view.lobby.techtree.settings import NODE_STATE, MAX_PATH_LIMIT
+from gui.Scaleform.daapi.view.lobby.techtree.settings import RESEARCH_ITEMS
+from gui.Scaleform.daapi.view.lobby.techtree.settings import makeDefUnlockProps
+from gui.Scaleform.daapi.view.lobby.techtree.settings import UnlockProps, UnlockStats
 from gui.Scaleform.daapi.view.lobby.techtree.dumpers import _BaseDumper
 from gui.Scaleform.daapi.view.lobby.techtree.techtree_dp import g_techTreeDP
 __all__ = ['ResearchItemsData', 'NationTreeData']
 
 class _ItemsData(object):
 
-    def __init__(self):
+    def __init__(self, dumper):
         super(_ItemsData, self).__init__()
+        if dumper is not None and isinstance(dumper, _BaseDumper):
+            self._dumper = dumper
+        else:
+            raise Exception('Dumper is invalid.')
         self._nodes = []
         self._nodesIdx = {}
-        self._invItems = {}
-        self._shopPrices = {}
-        self._accFreeXP = 0
-        self._accCredits = 0
-        self._accGold = 0
-        self._unlocks = set()
-        self._xps = {}
-        self._elite = set()
-        self._wereInBattle = set()
-        self._dumper = _BaseDumper()
+        self._items = g_itemsCache.items
+        self._stats = g_itemsCache.items.stats
+        self._wereInBattle = self._getNodesWereInBattle()
+        return
+
+    def _isVehicleCanBeChanged(self):
+        vehicleCanBeChanged = False
+        if self.prbDispatcher is not None:
+            permission = self.prbDispatcher.getGUIPermissions()
+            if permission is not None:
+                vehicleCanBeChanged = permission.canChangeVehicle()
+        return vehicleCanBeChanged
+
+    def _checkMoneyForRentOrBuy(self, state, nodeCD):
+        state = NODE_STATE.removeIfHas(state, NODE_STATE.ENOUGH_MONEY)
+        if self._canRentOrBuy(nodeCD):
+            state |= NODE_STATE.ENOUGH_MONEY
+        return state
+
+    def _checkExpiredRent(self, state, item):
+        state = NODE_STATE.addIfNot(state, NODE_STATE.VEHICLE_IN_RENT)
+        if item.rentalIsOver:
+            state = NODE_STATE.removeIfHas(state, NODE_STATE.IN_INVENTORY)
+            state = NODE_STATE.removeIfHas(state, NODE_STATE.VEHICLE_IN_RENT)
+            state |= NODE_STATE.VEHICLE_RENTAL_IS_OVER
+        return state
+
+    @prbDispatcherProperty
+    def prbDispatcher(self):
+        return None
 
     def __del__(self):
         LOG_DEBUG('Data deleted:', self)
 
-    def clear(self):
+    def clear(self, full=False):
         while len(self._nodes):
             self._nodes.pop().clear()
 
         self._nodesIdx.clear()
-        self._invItems.clear()
-        self._shopPrices.clear()
-        if self._dumper is not None:
-            self._dumper.clear(full=True)
-            self._dumper = None
+        if full:
+            self._items = None
+            self._stats = None
+            self._wereInBattle.clear()
+            if self._dumper is not None:
+                self._dumper.clear(full=True)
+                self._dumper = None
         return
-
-    def setInvItem(self, itemCD, item):
-        self._invItems[itemCD] = item
-
-    def getInvItem(self, itemCD):
-        return self._invItems.get(itemCD)
 
     def getItem(self, itemCD):
-        if itemCD in self._invItems:
-            item = self._invItems[itemCD]
-        else:
-            item = custom_items._ResearchItem(itemCD)
-        return item
+        return self._items.getItemByCD(itemCD)
 
-    def hasInvItem(self, itemCD):
-        return itemCD in self._invItems.keys()
+    def getRootItem(self):
+        raise NotImplementedError('Must be overridden in subclass')
 
-    def removeInvItem(self, itemCD = 0, invID = -1):
-        if invID > -1:
-            for cd, item in self._invItems.iteritems():
-                if item.inventoryId == invID:
-                    itemCD = cd
-                    break
+    def getInventoryVehicles(self):
+        nodeCDs = map(lambda node: node['id'], self._getNodesToInvalidate())
+        LOG_DEBUG('getInventoryVehicles', nodeCDs)
+        vehicles = self._items.getVehicles(REQ_CRITERIA.INVENTORY | REQ_CRITERIA.IN_CD_LIST(nodeCDs))
+        return dict(map(lambda item: (item.inventoryID, item), vehicles.itervalues()))
 
-        if itemCD > 0:
-            if self._invItems.pop(itemCD, None) is None:
-                itemCD = 0
-        return itemCD
-
-    def getInvMapping(self):
-        return dict(map(lambda item: (item[1].inventoryId, item[0]), self._invItems.iteritems()))
-
-    def getInventoryItemsCDs(self):
-        return self._invItems.keys()
-
-    def setShopPrice(self, itemCD, price):
-        self._shopPrices[itemCD] = price
-
-    def getShopPrice(self, itemCD):
-        return self._shopPrices.get(itemCD, (0, 0))
-
-    def getVehXP(self, vehCD):
-        return self._xps.get(vehCD, 0)
-
-    def isNext2Unlock(self, itemCD):
-        raise NotImplementedError, 'Must be overridden in subclass'
-
-    def isUnlocked(self, itemCD):
-        return itemCD in self._unlocks
-
-    def setDumper(self, dumper):
-        if dumper is not None and isinstance(dumper, _BaseDumper):
-            self._dumper = dumper
-        return
+    def getUnlockStats(self):
+        return UnlockStats(self._stats.unlocks, self._stats.vehiclesXPs, self._stats.freeXP)
 
     def dump(self):
         return self._dumper.dump(self)
 
-    def invalidateCredits(self, accCredits):
-        self._accCredits = accCredits
+    def invalidateCredits(self):
         return self._invalidateMoney(filter(lambda item: NODE_STATE.isBuyForCredits(item['state']), self._getNodesToInvalidate()))
 
-    def invalidateGold(self, gold):
-        self._accGold = gold
+    def invalidateGold(self):
         return self._invalidateMoney(filter(lambda item: NODE_STATE.isBuyForGold(item['state']), self._getNodesToInvalidate()))
 
-    def invalidateFreeXP(self, freeXP):
-        self._accFreeXP = freeXP
+    def invalidateFreeXP(self):
         return self._invalidateXP(filter(lambda item: NODE_STATE.NEXT_2_UNLOCK & item['state'], self._getNodesToInvalidate()))
 
-    def invalidateVTypeXP(self, xps):
-        self._xps.update(xps)
+    def invalidateVTypeXP(self):
         filtered = filter(lambda item: NODE_STATE.NEXT_2_UNLOCK & item['state'], self._getNodesToInvalidate())
         return self._invalidateXP(filtered)
 
     def invalidateElites(self, elites):
-        self._elite |= elites
         return self._addStateFlag(filter(lambda node: node['id'] in elites, self._getNodesToInvalidate()), NODE_STATE.ELITE)
 
     def invalidateInventory(self, nodeCDs):
@@ -127,30 +114,80 @@ class _ItemsData(object):
         for node in nodes:
             nodeCD = node['id']
             state = node['state']
-            if self.hasInvItem(nodeCD):
-                state = NODE_STATE.addIfNot(state, NODE_STATE.IN_INVENTORY)
+            item = self.getItem(nodeCD)
+            if item.isInInventory:
                 state = NODE_STATE.removeIfHas(state, NODE_STATE.ENOUGH_MONEY)
+                state = NODE_STATE.addIfNot(state, NODE_STATE.IN_INVENTORY)
+                state = NODE_STATE.removeIfHas(state, NODE_STATE.VEHICLE_IN_RENT)
+                if item.isRented and not item.isPremiumIGR:
+                    state = self._checkExpiredRent(state, item)
+                    state = self._checkMoneyForRentOrBuy(state, nodeCD)
                 if self._canSell(nodeCD):
                     state = NODE_STATE.addIfNot(state, NODE_STATE.CAN_SELL)
                 else:
                     state = NODE_STATE.removeIfHas(state, NODE_STATE.CAN_SELL)
             else:
                 state = NODE_STATE.removeIfHas(state, NODE_STATE.IN_INVENTORY)
+                state = NODE_STATE.removeIfHas(state, NODE_STATE.VEHICLE_IN_RENT)
                 state = NODE_STATE.removeIfHas(state, NODE_STATE.CAN_SELL)
                 state = NODE_STATE.removeIfHas(state, NODE_STATE.SELECTED)
-                if self._canBuy(nodeCD):
-                    state = NODE_STATE.addIfNot(state, NODE_STATE.ENOUGH_MONEY)
-                else:
-                    state = NODE_STATE.removeIfHas(state, NODE_STATE.ENOUGH_MONEY)
+                state = self._checkMoneyForRentOrBuy(state, nodeCD)
             node['state'] = state
-            result.append((nodeCD, state, self.getItem(nodeCD).pack()))
+            result.append((nodeCD, state))
 
         return result
+
+    def invalidateLocks(self, locks):
+        result = False
+        inventory = self.getInventoryVehicles()
+        for invID, lock in locks.iteritems():
+            if invID in inventory.keys():
+                result = True
+                break
+
+        return result
+
+    def invalidatePrbState(self):
+        nodes = self._getNodesToInvalidate()
+        canChanged = self._isVehicleCanBeChanged()
+        result = []
+        for node in nodes:
+            nodeCD = node['id']
+            state = node['state']
+            if getTypeOfCompactDescr(nodeCD) == GUI_ITEM_TYPE.VEHICLE:
+                item = self.getItem(nodeCD)
+                if not item.isInInventory:
+                    continue
+                if canChanged:
+                    state = NODE_STATE.addIfNot(state, NODE_STATE.VEHICLE_CAN_BE_CHANGED)
+                else:
+                    state = NODE_STATE.removeIfHas(state, NODE_STATE.VEHICLE_CAN_BE_CHANGED)
+                if state > -1:
+                    node['state'] = state
+                    result.append((nodeCD, state))
+
+        return result
+
+    def isHasVehicles(self):
+        return bool(len(self.getInventoryVehicles()) > 0)
+
+    def _addNode(self, nodeCD, node):
+        index = len(self._nodes)
+        self._nodesIdx[nodeCD] = index
+        self._nodes.append(node)
+        return index
+
+    def _getNodesWereInBattle(self):
+        accDossier = self._items.getAccountDossier(None)
+        if accDossier:
+            return set(accDossier.getTotalStats().getVehicles().keys())
+        else:
+            return set()
 
     def _getNodesToInvalidate(self):
         return self._nodes
 
-    def _addStateFlag(self, nodes, stateFlag, exclude = None):
+    def _addStateFlag(self, nodes, stateFlag, exclude=None):
         result = []
         for node in nodes:
             nodeCD = node['id']
@@ -179,12 +216,15 @@ class _ItemsData(object):
         return state
 
     def _canBuy(self, nodeCD):
-        gameCredits, gold = self.getShopPrice(nodeCD)
-        itemTypeID, _, _ = vehicles.parseIntCompactDescr(nodeCD)
-        canBuy = True
-        if itemTypeID == _VEHICLE:
-            canBuy = not getattr(BigWorld.player(), 'isLongDisconnectedFromCenter', False)
-        return canBuy and self._accCredits >= gameCredits and self._accGold >= gold
+        item = self.getItem(nodeCD)
+        canBuy, reason = item.mayPurchase(self._stats.money)
+        result = canBuy or reason == 'credits_error' and item.mayPurchaseWithExchange(self._stats.money, self._items.shop.exchangeRate)
+        return result
+
+    def _canRentOrBuy(self, nodeCD):
+        item = self.getItem(nodeCD)
+        money = self._stats.money
+        return item.isPurchaseEnabled(money, self._items.shop.exchangeRate)
 
     def _canSell(self, nodeCD):
         raise NotImplementedError
@@ -193,25 +233,24 @@ class _ItemsData(object):
         result = []
         for node in nodes:
             state = node['state']
-            if self._canBuy(node['id']):
+            nodeID = node['id']
+            if self._canRentOrBuy(nodeID):
                 state = NODE_STATE.add(state, NODE_STATE.ENOUGH_MONEY)
             else:
                 state = NODE_STATE.remove(state, NODE_STATE.ENOUGH_MONEY)
             if state > -1:
                 node['state'] = state
-                result.append((node['id'], state))
+                result.append((nodeID, state))
 
         return result
 
     def _invalidateXP(self, nodes):
         result = []
-        xpGetter = self._xps.get
-        freeXP = max(self._accFreeXP, 0)
+        stats = self.getUnlockStats()
         for node in nodes:
             state = node['state']
             props = node['unlockProps']
-            xp = xpGetter(props.parentID, 0)
-            if freeXP + xp >= props.xpCost:
+            if g_techTreeDP.getAllVehiclePossibleXP(props.parentID, stats) >= props.xpCost:
                 state = NODE_STATE.add(state, NODE_STATE.ENOUGH_XP)
             else:
                 state = NODE_STATE.remove(state, NODE_STATE.ENOUGH_XP)
@@ -225,8 +264,8 @@ class _ItemsData(object):
 class ResearchItemsData(_ItemsData):
     _rootCD = None
 
-    def __init__(self):
-        super(ResearchItemsData, self).__init__()
+    def __init__(self, dumper):
+        super(ResearchItemsData, self).__init__(dumper)
         self._autoGunCD = -1
         self._autoTurretCD = -1
         self._topLevel = []
@@ -234,208 +273,12 @@ class ResearchItemsData(_ItemsData):
         self._installed = []
         self._enableInstallItems = False
 
-    def __loadRoot(self, rootCD):
-        item = self.__loadInstalledItems(rootCD)
-        node = self._getNodeData(rootCD, self._earnedXP, makeDefUnlockProps(), set(), renderer='root', topLevel=True)
-        if item is not None:
-            if g_currentVehicle.isPresent() and g_currentVehicle.invID == item.inventoryId:
-                node['state'] |= NODE_STATE.SELECTED
-        self._nodesIdx[rootCD] = 0
-        self._nodes.append(node)
-        self.__loadInstalledItems(rootCD)
-        return
-
-    def __loadInstalledItems(self, rootCD):
-        item = self.getInvItem(rootCD)
-        if item is not None:
-            self._installed = item.descriptor.getDevices()[1][:]
-            self._enableInstallItems = not item.lock and not item.repairCost
-        else:
-            self._installed = []
-            self._enableInstallItems = False
-        return item
-
-    def __loadAutoUnlockItems(self, rootCD, autoUnlocks, hasFakeTurrets = False):
-        autoUnlocked = dict(map(lambda nodeCD: (vehicles.getDictDescr(nodeCD).get('itemTypeName'), nodeCD), autoUnlocks))
-        self._autoGunCD = -1
-        self._autoTurretCD = -1
-        for itemType in _RESEARCH_ITEMS:
-            if itemType > len(ITEM_TYPE_NAMES) - 1:
-                continue
-            nodeCD = autoUnlocked[ITEM_TYPE_NAMES[itemType]]
-            if itemType == _TURRET:
-                self._autoTurretCD = nodeCD
-                if hasFakeTurrets:
-                    continue
-            elif itemType == _GUN:
-                self._autoGunCD = nodeCD
-            node = self._getNodeData(nodeCD, 0, makeDefUnlockProps(), set([rootCD]))
-            node['state'] |= NODE_STATE.AUTO_UNLOCKED
-            self._nodesIdx[nodeCD] = len(self._nodes)
-            self._nodes.append(node)
-
-    def __fixPath(self, itemTypeID, path):
-        if self._autoGunCD in path and self._autoTurretCD in path:
-            if itemTypeID == _TURRET:
-                path.remove(self._autoGunCD)
-            elif itemTypeID == _GUN:
-                path.remove(self._autoTurretCD)
-            elif itemTypeID == _VEHICLE:
-                path.remove(self._autoGunCD)
-                path.remove(self._autoTurretCD)
-        return path
-
-    def __fixLevel(self, itemTypeID, path, maxPath):
-        level = -1
-        if itemTypeID == _VEHICLE and len(path) <= maxPath:
-            level = min(maxPath + 1, MAX_PATH_LIMIT)
-        return level
-
-    def __loadItems(self, rootCD, unlocksDs):
-        xpGetter = self._xps.get
-        maxPath = 0
-        nodes = []
-        for unlockIdx, data in enumerate(unlocksDs):
-            nodeCD = data[1]
-            itemTypeID, _, _ = vehicles.parseIntCompactDescr(nodeCD)
-            required = set(data[2:])
-            required.add(rootCD)
-            path = set(data[2:])
-            path.add(rootCD)
-            path = self.__fixPath(itemTypeID, path)
-            maxPath = max(len(path), maxPath)
-            nodes.append((nodeCD,
-             itemTypeID,
-             UnlockProps(rootCD, unlockIdx, data[0], required),
-             path))
-
-        invID = g_currentVehicle.invID if g_currentVehicle.isPresent() else -1
-        for nodeCD, itemTypeID, props, path in nodes:
-            node = self._getNodeData(nodeCD, xpGetter(nodeCD, 0), props, path, level=self.__fixLevel(itemTypeID, path, maxPath))
-            if itemTypeID == _VEHICLE:
-                item = self.getInvItem(nodeCD)
-                if item is not None and invID == item.inventoryId:
-                    node['state'] |= NODE_STATE.SELECTED
-            self._nodesIdx[nodeCD] = len(self._nodes)
-            self._nodes.append(node)
-
-        return
-
-    def __loadTopLevel(self, rootCD):
-        xpGetter = self._xps.get
-        invID = g_currentVehicle.invID if g_currentVehicle.isPresent() else -1
+    def clear(self, full=False):
         while len(self._topLevel):
             self._topLevel.pop().clear()
 
         self._topLevelCDs.clear()
-        for nodeCD in g_techTreeDP.getTopLevel(rootCD):
-            node = self._getNodeData(nodeCD, xpGetter(nodeCD, 0), makeDefUnlockProps(), set(), topLevel=True)
-            item = self.getInvItem(nodeCD)
-            if item is not None and invID == item.inventoryId:
-                node['state'] |= NODE_STATE.SELECTED
-            self._topLevelCDs[nodeCD] = len(self._topLevel)
-            self._topLevel.append(node)
-
-        return
-
-    def _getNodesToInvalidate(self):
-        toInvalidate = self._nodes[:]
-        toInvalidate.extend(self._topLevel)
-        return toInvalidate
-
-    def _findNext2UnlockItems(self, nodes):
-        result = []
-        topLevelCDs = self._topLevelCDs.keys()
-        freeXP = max(self._accFreeXP, 0)
-        for node in nodes:
-            nodeCD = node['id']
-            state = node['state']
-            itemTypeID, _, _ = vehicles.parseIntCompactDescr(nodeCD)
-            if itemTypeID == _VEHICLE and nodeCD in topLevelCDs:
-                available, unlockProps = g_techTreeDP.isNext2Unlock(nodeCD, unlocked=self._unlocks, xps=self._xps, freeXP=freeXP)
-                xp = freeXP + self._xps.get(unlockProps.parentID, 0)
-            else:
-                unlockProps = node['unlockProps']
-                required = unlockProps.required
-                available = len(required) and required.issubset(self._unlocks) and nodeCD not in self._unlocks
-                xp = freeXP + self._earnedXP
-            if available and state & NODE_STATE.LOCKED > 0:
-                state ^= NODE_STATE.LOCKED
-                state = NODE_STATE.addIfNot(state, NODE_STATE.NEXT_2_UNLOCK)
-                if xp >= unlockProps.xpCost:
-                    state = NODE_STATE.addIfNot(state, NODE_STATE.ENOUGH_XP)
-                else:
-                    state = NODE_STATE.removeIfHas(state, NODE_STATE.ENOUGH_XP)
-                node['state'] = state
-                result.append((node['id'], state, unlockProps._makeTuple()))
-
-        return result
-
-    def _canBuy(self, nodeCD):
-        result = False
-        itemTypeID, _, _ = vehicles.parseIntCompactDescr(nodeCD)
-        if (itemTypeID == _VEHICLE or self._enableInstallItems) and super(ResearchItemsData, self)._canBuy(nodeCD):
-            result = True
-        return result
-
-    def _canSell(self, nodeCD):
-        itemTypeID, _, _ = vehicles.parseIntCompactDescr(nodeCD)
-        item = self.getInvItem(nodeCD)
-        if itemTypeID == _VEHICLE:
-            canSell = item.canSell
-        else:
-            canSell = nodeCD not in self._installed
-        return canSell
-
-    def _getNodeData(self, nodeCD, earnedXP, unlockProps, path, level = -1, renderer = None, topLevel = False):
-        gameCredits, gold = self.getShopPrice(nodeCD)
-        itemTypeID, _, _ = vehicles.parseIntCompactDescr(nodeCD)
-        available = False
-        xp = 0
-        freeXP = max(self._accFreeXP, 0)
-        state = NODE_STATE.LOCKED
-        if topLevel and itemTypeID == _VEHICLE:
-            available, unlockProps = g_techTreeDP.isNext2Unlock(nodeCD, unlocked=self._unlocks, xps=self._xps, freeXP=freeXP)
-            xp = freeXP + self._xps.get(unlockProps.parentID, 0)
-        if nodeCD in self._unlocks:
-            state = NODE_STATE.UNLOCKED
-            if nodeCD in self._installed:
-                state |= NODE_STATE.INSTALLED
-            elif nodeCD in self._invItems.keys() and self._invItems[nodeCD].count is not None:
-                if len(self._installed) or itemTypeID == _VEHICLE:
-                    state |= NODE_STATE.IN_INVENTORY
-                if self._canSell(nodeCD):
-                    state |= NODE_STATE.CAN_SELL
-            elif self._canBuy(nodeCD):
-                state |= NODE_STATE.ENOUGH_MONEY
-            if nodeCD in self._wereInBattle:
-                state |= NODE_STATE.WAS_IN_BATTLE
-        elif not topLevel:
-            if unlockProps.required.issubset(self._unlocks):
-                available = self._rootCD in self._unlocks
-                xp = freeXP + self._earnedXP
-            if available:
-                state = NODE_STATE.NEXT_2_UNLOCK
-                xp >= unlockProps.xpCost and state |= NODE_STATE.ENOUGH_XP
-        if nodeCD in self._elite:
-            state |= NODE_STATE.ELITE
-        if renderer is None:
-            renderer = 'vehicle' if itemTypeID == _VEHICLE else 'item'
-        return {'id': nodeCD,
-         'earnedXP': earnedXP,
-         'state': state,
-         'unlockProps': unlockProps,
-         'shopPrice': (gameCredits, gold),
-         'displayInfo': {'path': list(path),
-                         'renderer': renderer,
-                         'level': level}}
-
-    def clear(self):
-        while len(self._topLevel):
-            self._topLevel.pop().clear()
-
-        self._topLevelCDs.clear()
-        super(ResearchItemsData, self).clear()
+        super(ResearchItemsData, self).clear(full=full)
 
     @classmethod
     def setRootCD(cls, cd):
@@ -457,66 +300,44 @@ class ResearchItemsData(_ItemsData):
             result = vehicles.getVehicleType(cls._rootCD).id[0]
         return result
 
+    def getRootItem(self):
+        rootCD = self.getRootCD()
+        assert rootCD is not None
+        return self.getItem(rootCD)
+
     def isRedrawNodes(self, unlocks):
         return self._rootCD in unlocks
 
     def getRootStatusString(self):
-        status = ''
-        item = self.getInvItem(self._rootCD)
-        if item is not None:
-            if item.lock == LOCK_REASON.ON_ARENA:
+        status = None
+        item = self.getRootItem()
+        if item.isInInventory:
+            lockReason = item.lock
+            if lockReason == LOCK_REASON.ON_ARENA:
                 status = 'battle'
-            elif item.lock == LOCK_REASON.PREBATTLE:
+            elif lockReason in (LOCK_REASON.PREBATTLE, LOCK_REASON.UNIT, LOCK_REASON.UNIT_CLUB):
                 status = 'inPrebattle'
             elif item.repairCost > 0:
                 status = 'destroyed'
+            elif item.isTelecomDealOver:
+                status = 'dealIsOver'
         return status
 
-    def isEnableInstallItems(self):
-        return self._enableInstallItems
-
-    def isNext2Unlock(self, nodeCD):
-        itemTypeID, _, _ = vehicles.parseIntCompactDescr(nodeCD)
-        topLevelCDs = []
-        if itemTypeID == _VEHICLE:
-            topLevelCDs = map(lambda node: node['id'], self._topLevel)
-        if nodeCD in topLevelCDs:
-            result, _ = g_techTreeDP.isNext2Unlock(nodeCD, unlocked=self._unlocks, xps=self._xps, freeXP=max(self._accFreeXP, 0))
-        else:
-            try:
-                node = self._nodes[self._nodesIdx[nodeCD]]
-                result = node['unlockProps'].required.issubset(self._unlocks)
-            except (KeyError, IndexError):
-                result = False
-
-        return result
+    def isInstallItemsEnabled(self):
+        rootItem = self.getRootItem()
+        return rootItem.isInInventory and not rootItem.isLocked and not rootItem.repairCost
 
     def load(self):
-        vTypeCD = self.getRootCD()
-        raise vTypeCD is not None or AssertionError
         g_techTreeDP.load()
-        while len(self._nodes):
-            self._nodes.pop().clear()
-
-        self._nodesIdx.clear()
-        root = vehicles.getVehicleType(vTypeCD)
-        unlocksDs = root.unlocksDescrs
-        vTypeCD = root.compactDescr
-        self._earnedXP = self._xps.get(vTypeCD, 0)
-        hasFakeTurrets = len(root.hull.get('fakeTurrets', {}).get('lobby', ())) != 0 and root.tags & set(['SPG', 'AT-SPG'])
-        self.__loadRoot(vTypeCD)
-        self.__loadAutoUnlockItems(vTypeCD, root.autounlockedItems, hasFakeTurrets)
-        self.__loadItems(vTypeCD, unlocksDs)
-        self.__loadTopLevel(vTypeCD)
-        return
-
-    def invalidateVTypeXP(self, xps):
-        if self._rootCD in xps:
-            self._earnedXP = xps[self._rootCD]
-        return super(ResearchItemsData, self).invalidateVTypeXP(xps)
+        self.clear()
+        rootItem = self.getRootItem()
+        unlockStats = self.getUnlockStats()
+        self.__loadRoot(rootItem, unlockStats)
+        self.__loadAutoUnlockItems(rootItem, unlockStats)
+        self.__loadItems(rootItem, unlockStats)
+        self.__loadTopLevel(rootItem, unlockStats)
 
     def invalidateUnlocks(self, unlocks):
-        self._unlocks |= unlocks
         mapping = dict(map(lambda item: (item['id'], item), self._getNodesToInvalidate()))
         unlocked = []
         for nodeCD in unlocks:
@@ -529,55 +350,284 @@ class ResearchItemsData(_ItemsData):
         return (next2Unlock, unlocked)
 
     def invalidateInstalled(self):
-        self.__loadInstalledItems(self._rootCD)
         nodes = self._getNodesToInvalidate()
+        rootItem = self.getRootItem()
         result = []
         for node in nodes:
             nodeCD = node['id']
             state = node['state']
-            if nodeCD in self._installed:
+            item = self.getItem(nodeCD)
+            if rootItem.isInInventory and item.isInstalled(rootItem):
                 state = NODE_STATE.add(state, NODE_STATE.INSTALLED)
             else:
                 state = NODE_STATE.remove(state, NODE_STATE.INSTALLED)
-            if nodeCD in self._elite:
+            if item.itemTypeID == GUI_ITEM_TYPE.VEHICLE and item.isElite:
                 state = NODE_STATE.add(state, NODE_STATE.ELITE)
             if state > -1:
                 node['state'] = state
-                result.append((nodeCD, state, self.getItem(nodeCD).pack()))
+                result.append((nodeCD, state))
 
         return result
 
-    def invalidateLocks(self, locks):
+    def _addTopNode(self, nodeCD, node):
+        index = len(self._topLevel)
+        self._topLevelCDs[nodeCD] = index
+        self._topLevel.append(node)
+        return index
+
+    def _getNodesToInvalidate(self):
+        toInvalidate = self._nodes[:]
+        toInvalidate.extend(self._topLevel)
+        return toInvalidate
+
+    def _findNext2UnlockItems(self, nodes):
+        result = []
+        topLevelCDs = self._topLevelCDs.keys()
+        unlockStats = self.getUnlockStats()
+        unlockKwargs = unlockStats._asdict()
+        for node in nodes:
+            nodeCD = node['id']
+            state = node['state']
+            itemTypeID, _, _ = vehicles.parseIntCompactDescr(nodeCD)
+            if itemTypeID == GUI_ITEM_TYPE.VEHICLE and (nodeCD in topLevelCDs or nodeCD == self.getRootCD()):
+                available, unlockProps = g_techTreeDP.isNext2Unlock(nodeCD, **unlockKwargs)
+                xp = g_techTreeDP.getAllVehiclePossibleXP(unlockProps.parentID, unlockStats)
+            else:
+                unlockProps = node['unlockProps']
+                required = unlockProps.required
+                available = len(required) and unlockStats.isSeqUnlocked(required) and not unlockStats.isUnlocked(nodeCD)
+                xp = g_techTreeDP.getAllVehiclePossibleXP(self.getRootCD(), unlockStats)
+            if available and state & NODE_STATE.LOCKED > 0:
+                state ^= NODE_STATE.LOCKED
+                state = NODE_STATE.addIfNot(state, NODE_STATE.NEXT_2_UNLOCK)
+                if xp >= unlockProps.xpCost:
+                    state = NODE_STATE.addIfNot(state, NODE_STATE.ENOUGH_XP)
+                else:
+                    state = NODE_STATE.removeIfHas(state, NODE_STATE.ENOUGH_XP)
+                node['state'] = state
+                result.append((node['id'], state, unlockProps._makeTuple()))
+
+        return result
+
+    def _canBuy(self, nodeCD):
         result = False
-        inventory = self.getInvMapping()
-        for invID, lock in locks.iteritems():
-            if lock is None:
-                lock = 0
-            if invID in inventory.keys():
-                itemCD = inventory[invID]
-                self._invItems[itemCD].lock = lock
-                if itemCD in self._nodesIdx or itemCD in self._topLevelCDs:
-                    result = True
-
+        if getTypeOfCompactDescr(nodeCD) == GUI_ITEM_TYPE.VEHICLE or self.isInstallItemsEnabled():
+            result = super(ResearchItemsData, self)._canBuy(nodeCD)
         return result
+
+    def _canSell(self, nodeCD):
+        item = self.getItem(nodeCD)
+        if item.isInInventory:
+            if getTypeOfCompactDescr(nodeCD) == GUI_ITEM_TYPE.VEHICLE:
+                canSell = item.canSell
+            else:
+                canSell = item.isInstalled(self.getRootItem())
+        else:
+            canSell = False
+        return canSell
+
+    def _getNodeData(self, nodeCD, rootItem, guiItem, unlockStats, unlockProps, path, level=-1, topLevel=False):
+        itemTypeID = guiItem.itemTypeID
+        available = False
+        xp = 0
+        state = NODE_STATE.LOCKED
+        if topLevel and itemTypeID == GUI_ITEM_TYPE.VEHICLE:
+            available, unlockProps = g_techTreeDP.isNext2Unlock(nodeCD, **unlockStats._asdict())
+            xp = g_techTreeDP.getAllVehiclePossibleXP(unlockProps.parentID, unlockStats)
+        if guiItem.isUnlocked:
+            state = NODE_STATE.UNLOCKED
+            if itemTypeID != GUI_ITEM_TYPE.VEHICLE and rootItem.isInInventory and guiItem.isInstalled(rootItem):
+                state |= NODE_STATE.INSTALLED
+            elif guiItem.isInInventory:
+                if rootItem.isInInventory or itemTypeID == GUI_ITEM_TYPE.VEHICLE:
+                    state |= NODE_STATE.IN_INVENTORY
+                if self._canSell(nodeCD):
+                    state |= NODE_STATE.CAN_SELL
+            elif self._canBuy(nodeCD):
+                state |= NODE_STATE.ENOUGH_MONEY
+            if nodeCD in self._wereInBattle:
+                state |= NODE_STATE.WAS_IN_BATTLE
+            if guiItem.buyPrice != guiItem.defaultPrice:
+                state |= NODE_STATE.SHOP_ACTION
+        else:
+            if not topLevel:
+                available = unlockStats.isSeqUnlocked(unlockProps.required) and unlockStats.isUnlocked(self._rootCD)
+                xp = g_techTreeDP.getAllVehiclePossibleXP(self._rootCD, unlockStats)
+            if available:
+                state = NODE_STATE.NEXT_2_UNLOCK
+                if xp >= unlockProps.xpCost:
+                    state |= NODE_STATE.ENOUGH_XP
+        if itemTypeID == GUI_ITEM_TYPE.VEHICLE:
+            if guiItem.isElite:
+                state |= NODE_STATE.ELITE
+            if guiItem.isPremium:
+                state |= NODE_STATE.PREMIUM
+            if guiItem.isRented and not guiItem.isPremiumIGR and not guiItem.isTelecom:
+                state = self._checkExpiredRent(state, guiItem)
+                state = self._checkMoneyForRentOrBuy(state, nodeCD)
+            if guiItem.isRentable and not guiItem.isInInventory and not guiItem.isTelecom:
+                state = self._checkMoneyForRentOrBuy(state, nodeCD)
+            if self._isVehicleCanBeChanged():
+                state |= NODE_STATE.VEHICLE_CAN_BE_CHANGED
+            if guiItem.isDisabledForBuy:
+                state |= NODE_STATE.PURCHASE_DISABLED
+            renderer = 'root' if self._rootCD == nodeCD else 'vehicle'
+        else:
+            renderer = 'item'
+        return {'id': nodeCD,
+         'earnedXP': unlockStats.getVehXP(nodeCD),
+         'state': state,
+         'unlockProps': unlockProps,
+         'displayInfo': {'path': list(path),
+                         'renderer': renderer,
+                         'level': level}}
+
+    def __loadRoot(self, rootItem, unlockStats):
+        rootCD = rootItem.intCD
+        node = self._getNodeData(rootCD, rootItem, rootItem, unlockStats, makeDefUnlockProps(), set(), topLevel=True)
+        index = self._addNode(rootCD, node)
+        assert index == 0, 'Index of root must be 0'
+
+    def __loadAutoUnlockItems(self, rootItem, unlockStats):
+        autoUnlocked = rootItem.getAutoUnlockedItemsMap()
+        hasFakeTurrets = not rootItem.hasTurrets
+        rootCD = rootItem.intCD
+        itemGetter = self.getItem
+        self._autoGunCD = -1
+        self._autoTurretCD = -1
+        for itemTypeID in RESEARCH_ITEMS:
+            if itemTypeID > len(ITEM_TYPE_NAMES) - 1:
+                continue
+            nodeCD = autoUnlocked[ITEM_TYPE_NAMES[itemTypeID]]
+            if itemTypeID == GUI_ITEM_TYPE.TURRET:
+                self._autoTurretCD = nodeCD
+                if hasFakeTurrets:
+                    continue
+            elif itemTypeID == GUI_ITEM_TYPE.GUN:
+                self._autoGunCD = nodeCD
+            node = self._getNodeData(nodeCD, rootItem, itemGetter(nodeCD), unlockStats, makeDefUnlockProps(), {rootCD})
+            node['state'] |= NODE_STATE.AUTO_UNLOCKED
+            self._addNode(nodeCD, node)
+
+    def __fixPath(self, itemTypeID, path):
+        if self._autoGunCD in path and self._autoTurretCD in path:
+            if itemTypeID == GUI_ITEM_TYPE.TURRET:
+                path.remove(self._autoGunCD)
+            elif itemTypeID == GUI_ITEM_TYPE.GUN:
+                path.remove(self._autoTurretCD)
+            elif itemTypeID == GUI_ITEM_TYPE.VEHICLE:
+                path.remove(self._autoGunCD)
+                path.remove(self._autoTurretCD)
+        return path
+
+    def __fixLevel(self, itemTypeID, path, maxPath):
+        level = -1
+        if itemTypeID == GUI_ITEM_TYPE.VEHICLE and len(path) <= maxPath:
+            level = min(maxPath + 1, MAX_PATH_LIMIT)
+        return level
+
+    def __loadItems(self, rootItem, unlockStats):
+        itemGetter = self.getItem
+        rootCD = rootItem.intCD
+        maxPath = 0
+        nodes = []
+        for unlockIdx, xpCost, nodeCD, required in rootItem.getUnlocksDescrs():
+            itemTypeID = getTypeOfCompactDescr(nodeCD)
+            required.add(rootCD)
+            path = required.copy()
+            path = self.__fixPath(itemTypeID, path)
+            maxPath = max(len(path), maxPath)
+            nodes.append((nodeCD,
+             itemTypeID,
+             UnlockProps(rootCD, unlockIdx, xpCost, required),
+             path))
+
+        for nodeCD, itemTypeID, unlockProps, path in nodes:
+            node = self._getNodeData(nodeCD, rootItem, itemGetter(nodeCD), unlockStats, unlockProps, path, level=self.__fixLevel(itemTypeID, path, maxPath))
+            self._addNode(nodeCD, node)
+
+    def __loadTopLevel(self, rootItem, unlockStats):
+        itemGetter = self.getItem
+        rootCD = self.getRootCD()
+        for nodeCD in g_techTreeDP.getTopLevel(rootCD):
+            node = self._getNodeData(nodeCD, rootItem, itemGetter(nodeCD), unlockStats, makeDefUnlockProps(), set(), topLevel=True)
+            self._addTopNode(nodeCD, node)
 
 
 class NationTreeData(_ItemsData):
 
-    def __init__(self):
-        super(NationTreeData, self).__init__()
-        self._displaySettings = {}
+    def __init__(self, dumper):
+        super(NationTreeData, self).__init__(dumper)
         self._scrollIndex = -1
-        self._hidden = set()
 
-    def _changeNext2Unlock(self, nodeCD, unlockProps):
+    def clear(self, full=False):
+        self._scrollIndex = -1
+        super(NationTreeData, self).clear(full)
+
+    def load(self, nationID, override=None):
+        self.clear()
+        vehicleList = sorted(vehicles.g_list.getList(nationID).values(), key=lambda item: item['level'])
+        g_techTreeDP.setOverride(override)
+        g_techTreeDP.load()
+        getDisplayInfo = g_techTreeDP.getDisplayInfo
+        getItem = self.getItem
+        selectedID = ResearchItemsData.getRootCD()
+        unlockStats = self.getUnlockStats()
+        for item in vehicleList:
+            nodeCD = item['compactDescr']
+            displayInfo = getDisplayInfo(nodeCD)
+            if displayInfo is not None:
+                item = getItem(nodeCD)
+                if item.isHidden:
+                    continue
+                index = self._addNode(nodeCD, self._getNodeData(nodeCD, item, unlockStats, displayInfo))
+                if nodeCD == selectedID:
+                    self._scrollIndex = index
+
+        ResearchItemsData.clearRootCD()
+        self._findSelectedNode(nationID)
+        return
+
+    def getRootItem(self):
+        if len(self._nodes):
+            return self._nodes[0]
+        else:
+            return None
+
+    def invalidateUnlocks(self, unlocks):
+        next2Unlock = []
+        unlocked = []
+        unlockStats = self.getUnlockStats()
+        items = g_techTreeDP.getNext2UnlockByItems(unlocks, **unlockStats._asdict())
+        if len(items):
+            next2Unlock = map(lambda item: (item[0], self._changeNext2Unlock(item[0], item[1], unlockStats), item[1]._makeTuple()), items.iteritems())
+        filtered = filter(lambda unlock: getTypeOfCompactDescr(unlock) == GUI_ITEM_TYPE.VEHICLE, unlocks)
+        if len(filtered):
+            unlocked = map(lambda item: (item, self._change2UnlockedByCD(item)), filtered)
+        return (next2Unlock, unlocked)
+
+    def invalidateXpCosts(self):
+        result = []
+        nodes = filter(lambda item: NODE_STATE.NEXT_2_UNLOCK & item['state'], self._getNodesToInvalidate())
+        statsAsDict = self.getUnlockStats()._asdict()
+        for node in nodes:
+            nodeCD = node['id']
+            props = node['unlockProps']
+            _, newProps = g_techTreeDP.isNext2Unlock(nodeCD, **statsAsDict)
+            if newProps.parentID != props.parentID:
+                node['unlockProps'] = newProps
+                result.append((nodeCD, newProps))
+
+        return result
+
+    def _changeNext2Unlock(self, nodeCD, unlockProps, unlockStats):
         state = NODE_STATE.NEXT_2_UNLOCK
-        totalXP = max(self._accFreeXP, 0) + self._xps.get(unlockProps.parentID, 0)
+        totalXP = g_techTreeDP.getAllVehiclePossibleXP(unlockProps.parentID, unlockStats)
         if totalXP >= unlockProps.xpCost:
             state = NODE_STATE.addIfNot(state, NODE_STATE.ENOUGH_XP)
         else:
             state = NODE_STATE.removeIfHas(state, NODE_STATE.ENOUGH_XP)
-        if nodeCD in self._elite:
+        if self.getItem(nodeCD).isElite:
             state = NODE_STATE.addIfNot(state, NODE_STATE.ELITE)
         try:
             data = self._nodes[self._nodesIdx[nodeCD]]
@@ -597,15 +647,13 @@ class NationTreeData(_ItemsData):
 
         return self._change2Unlocked(node)
 
-    def _getNodeData(self, nodeCD, displayInfo, invCDs):
-        earnedXP = self._xps.get(nodeCD, 0)
-        gameCredits, gold = self.getShopPrice(nodeCD)
-        freeXP = max(self._accFreeXP, 0)
+    def _getNodeData(self, nodeCD, guiItem, unlockStats, displayInfo):
+        earnedXP = unlockStats.getVehXP(nodeCD)
         state = NODE_STATE.LOCKED
-        available, unlockProps = g_techTreeDP.isNext2Unlock(nodeCD, unlocked=self._unlocks, xps=self._xps, freeXP=freeXP)
-        if nodeCD in self._unlocks:
+        available, unlockProps = g_techTreeDP.isNext2Unlock(nodeCD, **unlockStats._asdict())
+        if guiItem.isUnlocked:
             state = NODE_STATE.UNLOCKED
-            if nodeCD in invCDs:
+            if guiItem.isInInventory:
                 state |= NODE_STATE.IN_INVENTORY
                 if self._canSell(nodeCD):
                     state |= NODE_STATE.CAN_SELL
@@ -613,113 +661,50 @@ class NationTreeData(_ItemsData):
                 state |= NODE_STATE.ENOUGH_MONEY
             if nodeCD in self._wereInBattle:
                 state |= NODE_STATE.WAS_IN_BATTLE
+            if guiItem.buyPrice != guiItem.defaultPrice:
+                state |= NODE_STATE.SHOP_ACTION
         elif available:
             state = NODE_STATE.NEXT_2_UNLOCK
-            totalXP = freeXP + self._xps.get(unlockProps.parentID, 0)
-            if totalXP >= unlockProps.xpCost:
+            if g_techTreeDP.getAllVehiclePossibleXP(unlockProps.parentID, unlockStats) >= unlockProps.xpCost:
                 state |= NODE_STATE.ENOUGH_XP
-        if nodeCD in self._elite:
+        if guiItem.isElite:
             state |= NODE_STATE.ELITE
+        if guiItem.isPremium:
+            state |= NODE_STATE.PREMIUM
+        if guiItem.isRented and not guiItem.isPremiumIGR:
+            state = self._checkExpiredRent(state, guiItem)
+            state = self._checkMoneyForRentOrBuy(state, nodeCD)
+        if guiItem.isRentable and not guiItem.isInInventory:
+            state = self._checkMoneyForRentOrBuy(state, nodeCD)
+        if self._isVehicleCanBeChanged():
+            state |= NODE_STATE.VEHICLE_CAN_BE_CHANGED
         return {'id': nodeCD,
          'earnedXP': earnedXP,
          'state': state,
          'unlockProps': unlockProps,
-         'shopPrice': (gameCredits, gold),
          'displayInfo': displayInfo}
 
-    def load(self, nationID):
-        self._nodes = []
-        self._nodesIdx = {}
-        self._scrollIndex = -1
-        vehicleList = sorted(vehicles.g_list.getList(nationID).values(), key=lambda item: item['level'])
-        g_techTreeDP.load()
-        self._displaySettings = g_techTreeDP.getDisplaySettings(nationID)
-        invCDs = self._invItems.keys()
-        getDisplayInfo = g_techTreeDP.getDisplayInfo
-        selectedID = ResearchItemsData.getRootCD()
-        hidden = self._hidden
-        for item in vehicleList:
-            nodeCD = item['compactDescr']
-            displayInfo = getDisplayInfo(nodeCD)
-            if displayInfo is not None:
-                index = len(self._nodes)
-                if nodeCD in hidden:
-                    continue
-                if nodeCD == selectedID:
-                    self._scrollIndex = index
-                self._nodesIdx[nodeCD] = index
-                self._nodes.append(self._getNodeData(nodeCD, displayInfo, invCDs))
-
-        ResearchItemsData.clearRootCD()
-        if g_currentVehicle.isPresent():
-            vehicle = g_currentVehicle.item
-            if nationID == vehicle.nationID:
-                nodeCD = vehicle.intCD
-                if nodeCD in self._nodesIdx.keys():
-                    index = self._nodesIdx[nodeCD]
-                    node = self._nodes[index]
-                    if self._scrollIndex < 0:
-                        self._scrollIndex = index
-                    if nodeCD in self._invItems.keys():
-                        node['state'] |= NODE_STATE.SELECTED
-                    else:
-                        LOG_ERROR('Current vehicle not found in inventory', nodeCD)
-                else:
-                    _, _, itemID = vehicles.parseIntCompactDescr(nodeCD)
-                    if itemID in hidden:
-                        LOG_DEBUG('Current vehicle is hidden. Is it define in nation tree:', nodeCD, getDisplayInfo(nodeCD) is not None)
-                    else:
-                        LOG_ERROR('Current vehicle not found in nation tree', nodeCD)
-        return
-
-    def isNext2Unlock(self, nodeCD):
-        result, _ = g_techTreeDP.isNext2Unlock(nodeCD, unlocked=self._unlocks, xps=self._xps, freeXP=max(self._accFreeXP, 0))
-        return result
-
-    def addHidden(self, nodeCD):
-        self._hidden.add(nodeCD)
-
-    def invalidateUnlocks(self, unlocks):
-        self._unlocks |= unlocks
-        next2Unlock = []
-        unlocked = []
-        items = g_techTreeDP.getNext2UnlockByItems(unlocks, unlocked=self._unlocks, xps=self._xps, freeXP=max(self._accFreeXP, 0))
-        if len(items):
-            next2Unlock = map(lambda item: (item[0], self._changeNext2Unlock(item[0], item[1]), item[1]._makeTuple()), items.iteritems())
-        filtered = filter(lambda unlock: getTypeOfCompactDescr(unlock) == _VEHICLE, unlocks)
-        if len(filtered):
-            unlocked = map(lambda item: (item, self._change2UnlockedByCD(item)), filtered)
-        return (next2Unlock, unlocked)
-
-    def invalidateXpCosts(self):
-        result = []
-        nodes = filter(lambda item: NODE_STATE.NEXT_2_UNLOCK & item['state'], self._getNodesToInvalidate())
-        for node in nodes:
-            nodeCD = node['id']
-            props = node['unlockProps']
-            _, newProps = g_techTreeDP.isNext2Unlock(nodeCD, unlocked=self._unlocks, xps=self._xps, freeXP=max(self._accFreeXP, 0))
-            if newProps.parentID != props.parentID:
-                node['unlockProps'] = newProps
-                result.append((nodeCD, newProps))
-
-        return result
-
-    def invalidateLocks(self, locks):
-        result = False
-        inventory = self.getInvMapping()
-        for invID, lock in locks.iteritems():
-            if lock is None:
-                lock = 0
-            if invID in inventory.keys():
-                itemCD = inventory[invID]
-                self._invItems[itemCD].lock = lock
-                if itemCD in self._nodesIdx:
-                    result = True
-
-        return result
-
     def _canSell(self, nodeCD):
-        return self.getInvItem(nodeCD).canSell
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/lobby/techtree/data.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:18 EST
+        return self.getItem(nodeCD).canSell
+
+    def _findSelectedNode(self, nationID):
+        if not g_currentVehicle.isPresent():
+            return
+        vehicle = g_currentVehicle.item
+        if nationID != vehicle.nationID:
+            return
+        nodeCD = vehicle.intCD
+        if nodeCD in self._nodesIdx.keys():
+            index = self._nodesIdx[nodeCD]
+            node = self._nodes[index]
+            if self._scrollIndex < 0:
+                self._scrollIndex = index
+            if vehicle.isInInventory:
+                node['state'] |= NODE_STATE.SELECTED
+            else:
+                LOG_ERROR('Current vehicle not found in inventory', nodeCD)
+        elif vehicle.isHidden:
+            LOG_DEBUG('Current vehicle is hidden. Is it define in nation tree:', nodeCD)
+        else:
+            LOG_ERROR('Current vehicle not found in nation tree', nodeCD)
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/techtree/data.pyc

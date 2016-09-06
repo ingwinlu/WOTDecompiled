@@ -1,6 +1,14 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/locale/BATTLE_TUTORIAL.py
 
 
 class BATTLE_TUTORIAL(object):
+    """
+    DO NOT MODIFY!
+    Generated with yaml.
+    __author__ = 'yaml_processor'
+    null
+    """
     BOT_1 = '#battle_tutorial:bot_1'
     BOT_2 = '#battle_tutorial:bot_2'
     BOT_3 = '#battle_tutorial:bot_3'
@@ -26,6 +34,8 @@ class BATTLE_TUTORIAL(object):
     BUTTONS_CANCEL = '#battle_tutorial:buttons/cancel'
     BUTTONS_EXIT_QUEUE = '#battle_tutorial:buttons/exit-queue'
     BUTTONS_WATCH = '#battle_tutorial:buttons/watch'
+    BUTTONS_YES = '#battle_tutorial:buttons/yes'
+    BUTTONS_NO = '#battle_tutorial:buttons/no'
     LOADING_HINT_TITLE = '#battle_tutorial:loading/hint/title'
     LOADING_HINT_TEXT = '#battle_tutorial:loading/hint/text'
     DISPATCHER_STATUSES_REFUSE = '#battle_tutorial:dispatcher/statuses/refuse'
@@ -39,6 +49,9 @@ class BATTLE_TUTORIAL(object):
     DIALOGS_GREETING_TEXT_SIDE_03 = '#battle_tutorial:dialogs/greeting/text/side-03'
     DIALOGS_GREETING_NOTES_TIME = '#battle_tutorial:dialogs/greeting/notes/time'
     DIALOGS_GREETING_RESTART_HINT_TEXT = '#battle_tutorial:dialogs/greeting/restart-hint/text'
+    DIALOGS_CONFIRMREFUSE_TITLE = '#battle_tutorial:dialogs/confirmRefuse/title'
+    DIALOGS_CONFIRMREFUSE_MESSAGE_TEXT = '#battle_tutorial:dialogs/confirmRefuse/message/text'
+    DIALOGS_CONFIRMREFUSE_CHECKBOX_LABEL = '#battle_tutorial:dialogs/confirmRefuse/checkbox/label'
     DIALOGS_REPLENISH_AMMO_TITLE = '#battle_tutorial:dialogs/replenish-ammo/title'
     DIALOGS_REPLENISH_AMMO_TEXT = '#battle_tutorial:dialogs/replenish-ammo/text'
     DIALOGS_REPLENISH_AMMO_SUBMIT = '#battle_tutorial:dialogs/replenish-ammo/submit'
@@ -46,12 +59,14 @@ class BATTLE_TUTORIAL(object):
     WINDOWS_RESULT_TABLE_COLUMN_1 = '#battle_tutorial:windows/result/table/column-1'
     WINDOWS_RESULT_TABLE_COLUMN_2 = '#battle_tutorial:windows/result/table/column-2'
     WINDOWS_RESULT_LABELS_BATTLE_HINTS_FIRST = '#battle_tutorial:windows/result/labels/battle-hints/first'
-    WINDOWS_RESULT_LABELS_BATTLE_HINTS_SECOND = '#battle_tutorial:windows/result/labels/battle-hints/second'
-    WINDOWS_RESULT_LABELS_BATTLE_HINTS_THIRD = '#battle_tutorial:windows/result/labels/battle-hints/third'
+    WINDOWS_RESULT_LABELS_BATTLE_HINTS_SECOND1 = '#battle_tutorial:windows/result/labels/battle-hints/second1'
+    WINDOWS_RESULT_LABELS_BATTLE_HINTS_SECOND2 = '#battle_tutorial:windows/result/labels/battle-hints/second2'
+    WINDOWS_RESULT_LABELS_BATTLE_HINTS_SECOND3 = '#battle_tutorial:windows/result/labels/battle-hints/second3'
+    WINDOWS_RESULT_LABELS_BATTLE_HINTS_THIRD1 = '#battle_tutorial:windows/result/labels/battle-hints/third1'
+    WINDOWS_RESULT_LABELS_BATTLE_HINTS_THIRD2 = '#battle_tutorial:windows/result/labels/battle-hints/third2'
+    WINDOWS_RESULT_LABELS_BATTLE_HINTS_THIRD3 = '#battle_tutorial:windows/result/labels/battle-hints/third3'
     WINDOWS_RESULT_LABELS_RESTART_HINT = '#battle_tutorial:windows/result/labels/restart-hint'
     WINDOWS_RESULT_BUTTONS_RESTART = '#battle_tutorial:windows/result/buttons/restart'
-    CHAPTERS_OFFBATTLE_TITLE = '#battle_tutorial:chapters/offbattle/title'
-    CHAPTERS_OFFBATTLE_DESCRIPTION = '#battle_tutorial:chapters/offbattle/description'
     CHAPTERS_GREETING_TITLE = '#battle_tutorial:chapters/greeting/title'
     CHAPTERS_GREETING_DESCRIPTION = '#battle_tutorial:chapters/greeting/description'
     CHAPTERS_VEHICLE_CONTROL_TITLE = '#battle_tutorial:chapters/vehicle-control/title'
@@ -104,3 +119,4 @@ class BATTLE_TUTORIAL(object):
     HINTS_DESTROY_BOT_3_TEXT = '#battle_tutorial:hints/destroy-bot-3/text'
     HINTS_DESTROY_BOT_3_DONE_TEXT = '#battle_tutorial:hints/destroy-bot-3-done/text'
     HINTS_VEHICLE_ON_SOFT_TERRAIN_TEXT = '#battle_tutorial:hints/vehicle-on-soft-terrain/text'
+# okay decompiling ./res/scripts/client/gui/scaleform/locale/battle_tutorial.pyc

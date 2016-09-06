@@ -1,13 +1,20 @@
-from collections import defaultdict
-from encodings import utf_8
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/helpers/i18n.py
+import types
+import json
 import gettext
 import BigWorld
-import json
-from debug_utils import LOG_WARNING, LOG_CURRENT_EXCEPTION, LOG_DEBUG
+from collections import defaultdict
+from encodings import utf_8
+from debug_utils import LOG_WARNING, LOG_CURRENT_EXCEPTION
+
+def _getTextPath(baseLoc):
+    locator = baseLoc + '/.text_locator'
+    return convert(BigWorld.wg_resolveFileName(locator)[:-len(locator)])
+
 
 def _getTranslator(domain):
-    path = convert(BigWorld.wg_resolveFileName('text')[:-5])
-    return gettext.translation(domain, path, languages=['text'])
+    return gettext.translation(domain, _getTextPath('text'), languages=['text'])
 
 
 class _TranslatorsCache(defaultdict):
@@ -26,6 +33,21 @@ def convert(utf8String):
         LOG_CURRENT_EXCEPTION()
         LOG_WARNING('Wrong UTF8 string', utf8String)
         return utf_8.decode('----')[0]
+
+
+def isValidKey(key):
+    return key and key[0] == '#' and ':' in key
+
+
+def doesTextExist(key):
+    if not isValidKey(key):
+        return False
+    moName, subkey = key[1:].split(':', 1)
+    if not moName or not subkey:
+        return False
+    translator = g_translators[moName]
+    text = translator.gettext(subkey)
+    return text != subkey
 
 
 def makeString(key, *args, **kwargs):
@@ -81,3 +103,10 @@ def makeStringJSON(key, argsStr):
         LOG_CURRENT_EXCEPTION()
         LOG_WARNING('Failed to translate JSON-encoded string to dict or list', key, argsStr)
         return key
+
+
+def encodeUtf8(string):
+    if isinstance(string, types.UnicodeType):
+        return string.encode('utf-8', 'ignore')
+    return string
+# okay decompiling ./res/scripts/client/helpers/i18n.pyc

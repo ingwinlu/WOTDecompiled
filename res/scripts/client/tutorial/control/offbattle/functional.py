@@ -1,52 +1,93 @@
-import BigWorld
-import MusicController
-from gui import game_control
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/tutorial/control/offbattle/functional.py
+import collections
+import urllib
+import MusicControllerWWISE
+import ResMgr
+from adisp import process
+from constants import QUEUE_TYPE
+from gui.prb_control.context import pre_queue_ctx, PrebattleAction
+from gui.prb_control.settings import PREBATTLE_ACTION_NAME, FUNCTIONAL_FLAG
+from helpers.i18n import makeString as _ms
+from gui.game_control import getBrowserCtrl
+from gui.prb_control.dispatcher import g_prbLoader
 from tutorial.control import TutorialProxyHolder
+from tutorial.control.context import GLOBAL_VAR, GlobalStorage
 from tutorial.control.functional import FunctionalEffect
 from tutorial.control.offbattle.context import OffbattleBonusesRequester
 from tutorial.control.offbattle.context import OffBattleClientCtx
-from tutorial.control.offbattle.context import _getBattleDescriptor
+from tutorial.control.offbattle.context import getBattleDescriptor
 from tutorial.gui import GUI_EFFECT_NAME
-from tutorial.logger import LOG_ERROR
+from tutorial.logger import LOG_ERROR, LOG_WARNING
 from tutorial.settings import PLAYER_XP_LEVEL
 
 class FunctionalEnterQueueEffect(FunctionalEffect):
 
+    def __init__(self, effect):
+        super(FunctionalEnterQueueEffect, self).__init__(effect)
+        self.__stillRunning = False
+
     def triggerEffect(self):
-        enqueue = getattr(BigWorld.player(), 'enqueueTutorial', None)
-        if enqueue is None:
-            LOG_ERROR('BigWorld.player().enqueueTutorial not found')
-            return
-        else:
-            activate = self._tutorial.getFlags().activateFlag
-            flagID = self._effect.getTargetID()
-            refuse = self._tutorial.refuse
-
-            def enterToQueue(result):
-                if result:
-                    activate(flagID)
-                    enqueue()
-                else:
-                    refuse()
-
-            captcha = game_control.g_instance.captcha
-            if captcha.isCaptchaRequired():
-                captcha.showCaptcha(enterToQueue)
+        dispatcher = g_prbLoader.getDispatcher()
+        if dispatcher is not None:
+            state = dispatcher.getFunctionalState()
+            if state.isInPreQueue(QUEUE_TYPE.TUTORIAL):
+                self._doEffect(dispatcher)
             else:
-                enterToQueue(True)
-            return
+                self._doSelect(dispatcher)
+        else:
+            LOG_WARNING('Prebattle dispatcher is not defined')
+            self._tutorial.refuse()
+        return
+
+    def _doSelect(self, dispatcher):
+        result = dispatcher.doSelectAction(PrebattleAction(PREBATTLE_ACTION_NAME.BATTLE_TUTORIAL))
+        if result:
+            self._doEffect(dispatcher)
+
+    @process
+    def _doEffect(self, dispatcher):
+        self.__stillRunning = True
+        result = yield dispatcher.sendPreQueueRequest(pre_queue_ctx.QueueCtx())
+        self.__stillRunning = False
+        if not result:
+            self._tutorial.refuse()
+
+    def isInstantaneous(self):
+        return False
+
+    def isStillRunning(self):
+        return self.__stillRunning
 
 
 class FunctionalExitQueueEffect(FunctionalEffect):
 
+    def __init__(self, effect):
+        super(FunctionalExitQueueEffect, self).__init__(effect)
+        self.__stillRunning = False
+
     def triggerEffect(self):
-        dequeue = getattr(BigWorld.player(), 'dequeueTutorial', None)
-        if dequeue is not None and callable(dequeue):
-            self._tutorial.getFlags().deactivateFlag(self._effect.getTargetID())
-            dequeue()
+        dispatcher = g_prbLoader.getDispatcher()
+        if dispatcher is not None:
+            self._doEffect(dispatcher)
         else:
-            LOG_ERROR('BigWorld.player().dequeueTutorial not found')
+            LOG_WARNING('Prebattle dispatcher is not defined')
+        self._tutorial.getFlags().deactivateFlag(self._effect.getTargetID())
         return
+
+    @process
+    def _doEffect(self, dispatcher):
+        self.__stillRunning = True
+        result = yield dispatcher.sendPreQueueRequest(pre_queue_ctx.DequeueCtx())
+        self.__stillRunning = False
+        if result:
+            self._tutorial.getFlags().deactivateFlag(self._effect.getTargetID())
+
+    def isInstantaneous(self):
+        return False
+
+    def isStillRunning(self):
+        return self.__stillRunning
 
 
 class ContentChangedEvent(TutorialProxyHolder):
@@ -56,7 +97,7 @@ class ContentChangedEvent(TutorialProxyHolder):
         self._popUpID = popUpID
 
     def fire(self, value):
-        popUp = self._tutorial._data.getHasIDEntity(self._popUpID)
+        popUp = self._data.getHasIDEntity(self._popUpID)
         if popUp is not None:
             content = popUp.getContent()
             if not popUp.isContentFull():
@@ -87,7 +128,7 @@ class FunctionalRequestAllBonusesEffect(FunctionalEffect):
         localCtx = OffBattleClientCtx.fetch(self._cache)
         inBattle = localCtx.completed
         inStats = self._bonuses.getCompleted()
-        descriptor = _getBattleDescriptor()
+        descriptor = getBattleDescriptor()
         if descriptor is None:
             return
         else:
@@ -101,19 +142,30 @@ class FunctionalRequestAllBonusesEffect(FunctionalEffect):
             return
 
 
+class FunctionalOpenInternalBrowser(FunctionalEffect):
+
+    def triggerEffect(self):
+        browserID = self._effect.getTargetID()
+        if getBrowserCtrl().getBrowser(browserID) is None:
+            pageDir = urllib.quote(ResMgr.resolveToAbsolutePath('gui/html/video_tutorial/'))
+            getBrowserCtrl().load(url='file:///{0}'.format('{pageDir}/index_{lang}.html'.format(pageDir=pageDir, lang=_ms('#settings:LANGUAGE_CODE'))), title=_ms('#miniclient:tutorial/video/title'), showCloseBtn=True, showActionBtn=False, browserSize=(780, 470), browserID=browserID)(lambda success: True)
+        return
+
+
 class FunctionalPlayMusicEffect(FunctionalEffect):
 
     def triggerEffect(self):
-        if MusicController.g_musicController is not None:
-            soundID = getattr(MusicController, self._effect.getTargetID(), None)
+        if MusicControllerWWISE.g_musicController is not None:
+            soundID = getattr(MusicControllerWWISE, self._effect.getTargetID(), None)
             if soundID is not None:
-                MusicController.g_musicController.play(soundID)
+                MusicControllerWWISE.play(soundID)
             else:
                 LOG_ERROR('Sound not found', self._effect.getTargetID())
         return
 
 
 class FunctionalShowMessage4QueryEffect(FunctionalEffect):
+    _messagesIDs = GlobalStorage(GLOBAL_VAR.SERVICE_MESSAGES_IDS, [])
 
     def triggerEffect(self):
         target = self.getTarget()
@@ -121,7 +173,11 @@ class FunctionalShowMessage4QueryEffect(FunctionalEffect):
             content = {}
             query = self._tutorial._ctrlFactory.createContentQuery(target.getType())
             query.invoke(content, target.getVarRef())
-            self._gui.showServiceMessage(content, target.getExtra())
+            messageID = self._gui.showServiceMessage(content, target.getExtra())
+            if messageID:
+                ids = self._messagesIDs
+                if isinstance(ids, collections.Iterable):
+                    ids.append(messageID)
         else:
             LOG_ERROR('Target not found', self._effect.getTargetID())
         return
@@ -130,9 +186,15 @@ class FunctionalShowMessage4QueryEffect(FunctionalEffect):
 class FunctionalRefuseTrainingEffect(FunctionalEffect):
 
     def triggerEffect(self):
-        descriptor = _getBattleDescriptor()
+        descriptor = getBattleDescriptor()
         if descriptor is not None and descriptor.areAllBonusesReceived(self._bonuses.getCompleted()):
-            self._cache.setPlayerXPLevel(PLAYER_XP_LEVEL.NORMAL).write()
+            self._cache.setPlayerXPLevel(PLAYER_XP_LEVEL.NORMAL)
+        dispatcher = g_prbLoader.getDispatcher()
+        if dispatcher is not None:
+            dispatcher.doLeaveAction(pre_queue_ctx.LeavePreQueueCtx(flags=FUNCTIONAL_FLAG.BATTLE_TUTORIAL))
+        else:
+            LOG_WARNING('Prebattle dispatcher is not defined')
+        self._cache.setAfterBattle(False).write()
         self._tutorial.refuse()
         return
 
@@ -141,3 +203,4 @@ class FunctionalRefuseTrainingEffect(FunctionalEffect):
 
     def isInstantaneous(self):
         return False
+# okay decompiling ./res/scripts/client/tutorial/control/offbattle/functional.pyc

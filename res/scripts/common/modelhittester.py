@@ -1,7 +1,11 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/common/ModelHitTester.py
+from collections import namedtuple
 import math
 import BigWorld
 from Math import Vector3, Vector2, Matrix
 from debug_utils import *
+from constants import IS_DEVELOPMENT, IS_CLIENT
 
 class ModelHitTester(object):
     bbox = None
@@ -12,14 +16,18 @@ class ModelHitTester(object):
 
     bspModelName = property(lambda self: self.__bspModelName, __setBspModelName)
 
-    def __init__(self, dataSection = None):
+    def __init__(self, dataSection=None):
         self.__bspModel = None
         self.__bspModelName = None
         if dataSection is not None:
-            self.__bspModelName = dataSection.readString('collisionModel')
+            modelTag = 'collisionModelClient' if IS_CLIENT else 'collisionModelServer'
+            self.__bspModelName = dataSection.readString(modelTag)
             if not self.__bspModelName:
-                raise Exception, '<collisionModel> is missing or wrong'
+                raise Exception('<%s> is missing or wrong' % modelTag)
         return
+
+    def getBspModel(self):
+        return self.__bspModel
 
     def isBspModelLoaded(self):
         return self.__bspModel is not None
@@ -30,7 +38,7 @@ class ModelHitTester(object):
         else:
             bspModel = BigWorld.WGBspCollisionModel()
             if not bspModel.setModelName(self.bspModelName):
-                raise Exception, "wrong collision model '%s'" % self.bspModelName
+                raise Exception("wrong collision model '%s'" % self.bspModelName)
             self.__bspModel = bspModel
             self.bbox = bspModel.getBoundingBox()
             return
@@ -46,6 +54,11 @@ class ModelHitTester(object):
 
     def localHitTest(self, start, stop):
         return self.__bspModel.collideSegment(start, stop)
+
+    def localHitTestFull_debug(self, start, stop):
+        assert IS_DEVELOPMENT
+        LOG_DEBUG('localHitTestFull_debug', self.bspModelName, start, stop)
+        return self.__bspModel.collideSegmentFull_debug(start, stop)
 
     def worldHitTest(self, start, stop, worldMatrix):
         worldToLocal = Matrix(worldMatrix)
@@ -63,18 +76,18 @@ class ModelHitTester(object):
 
             return res
 
-    def localSphericHitTest(self, center, radius, bOutsidePolygonsOnly = True):
+    def localSphericHitTest(self, center, radius, bOutsidePolygonsOnly=True):
         return self.__bspModel.collideSphere(center, radius, bOutsidePolygonsOnly)
 
     def localCollidesWithTriangle(self, triangle, hitDir):
         return self.__bspModel.collidesWithTriangle(triangle, hitDir)
 
 
-def segmentMayHitVehicle(vehicleDescr, segmentStart, segmentEnd, vehicleCenter):
-    radiusSquared = vehicleDescr.boundingRadius
+def segmentMayHitVolume(boundingRadius, center, segmentStart, segmentEnd):
+    radiusSquared = boundingRadius
     radiusSquared *= radiusSquared
-    segmentStart = segmentStart - vehicleCenter
-    segmentEnd = segmentEnd - vehicleCenter
+    segmentStart = segmentStart - center
+    segmentEnd = segmentEnd - center
     ao = Vector2(-segmentStart.x, -segmentStart.z)
     bo = Vector2(-segmentEnd.x, -segmentEnd.z)
     ab = ao - bo
@@ -84,3 +97,11 @@ def segmentMayHitVehicle(vehicleDescr, segmentStart, segmentEnd, vehicleCenter):
     if e >= ab.lengthSquared:
         return bo.lengthSquared <= radiusSquared
     return ao.lengthSquared - e * e / ab.lengthSquared <= radiusSquared
+
+
+def segmentMayHitVehicle(vehicleDescr, segmentStart, segmentEnd, vehicleCenter):
+    return segmentMayHitVolume(vehicleDescr.boundingRadius, vehicleCenter, segmentStart, segmentEnd)
+
+
+SegmentCollisionResult = namedtuple('SegmentCollisionResult', ('dist', 'hitAngleCos', 'armor'))
+# okay decompiling ./res/scripts/common/modelhittester.pyc

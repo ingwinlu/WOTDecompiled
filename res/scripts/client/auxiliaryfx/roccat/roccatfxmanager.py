@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/AuxiliaryFx/Roccat/RoccatFxManager.py
 import BigWorld
 from AuxiliaryFx.FxController import IAuxiliaryVehicleFx
 
@@ -144,3 +146,4 @@ class RoccatVehicleFx(IAuxiliaryVehicleFx):
         if health <= 0:
             self._fxManager.launchTempColors(*RoccatVehicleFx.DEATH_EFFECT)
         self.__prevHealth = health
+# okay decompiling ./res/scripts/client/auxiliaryfx/roccat/roccatfxmanager.pyc

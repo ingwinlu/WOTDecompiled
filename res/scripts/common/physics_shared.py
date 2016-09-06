@@ -1,9 +1,15 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/common/physics_shared.py
 import BigWorld
 import Math
 import math
+import material_kinds
 from math import pi
-from constants import IS_CLIENT
+from constants import IS_CLIENT, IS_CELLAPP, VEHICLE_PHYSICS_MODE
 from debug_utils import *
+import copy
+from material_kinds import EFFECT_MATERIAL_INDEXES_BY_NAMES
+from gun_rotation_shared import encodeRestrictedValueToUint, decodeRestrictedValueFromUint
 G = 9.81
 COHESION = 1.3
 CONTACT_COHESION = 0.9
@@ -85,10 +91,10 @@ _COH_DECAY_POW = 3.0
 _COH_DECAY_BOUND = 0.5
 _STRAFE_THRESHOLD = 0.005
 _SIMULATION_Y_BOUND = 1000.0
-FREEZE_ANG_ACCEL_EPSILON = 0.05
-FREEZE_ACCEL_EPSILON = 0.05
-FREEZE_VEL_EPSILON = 0.05
-FREEZE_ANG_VEL_EPSILON = 0.05
+FREEZE_ANG_ACCEL_EPSILON = 0.35
+FREEZE_ACCEL_EPSILON = 0.4
+FREEZE_VEL_EPSILON = 0.15
+FREEZE_ANG_VEL_EPSILON = 0.06
 WIDTH_LONG = 6.2
 WIDTH_VERY_LONG = 7.0
 CLEARANCE_RATIO_LONG = 5.0
@@ -107,6 +113,7 @@ DYN_RATIO_MAX = 21.0
 CLEARANCE = 1.75
 CLEARANCE_MIN = 0.55
 CLEARANCE_MAX = 0.6
+VEHICLE_ON_OBSTACLE_COLLISION_BOX_MIN_HEIGHT = 1.1
 STIFF_MP = 1.0
 TRACK_LENGTH_FACTOR = 0.9
 TRACK_LENGTH_MIN = 0.6
@@ -125,7 +132,11 @@ FRICTION_RATIO = 1.0
 NUM_ITERATIONS = 10
 NUM_ITERATIONS_ACCURATE = 40
 MID_SOLVING_ITERATIONS = 4
-NUM_SUBSTEPS = 2
+NUM_SUBSTEPS_IN_STANDARD_MODE = 2
+USE_SSE_SOLVER_IN_STANDARD_MODE = False
+NUM_SUBSTEPS_IN_DETAILED_MODE = 3
+USE_SSE_SOLVER_IN_DETAILED_MODE = False
+NUM_SUBSTEPS = NUM_SUBSTEPS_IN_STANDARD_MODE
 WARMSTARTING_VEHICLE_VEHICLE = False
 WARMSTARTING_VEHICLE_STATICS = False
 WARMSTARTING_THRESHOLD = 0.1
@@ -134,15 +145,259 @@ ALLOWED_PENETRATION = 0.01
 CONTACT_PENETRATION = 0.1
 TRACKS_PENETRATION = 0.01
 IMPROVE_ACCURACY_MASS_RATIO = 10.0
+CONTACT_ENERGY_POW = 3.0
+CONTACT_ENERGY_POW2 = 0.75
+ROLLER_RISE_STRONG_FRICTION = 4.0
+SLOPE_FRICTION_FUNC_DEF = tuple((math.pi * ang / 180.0 for ang in (34.0, 50.0, 70.0)))
+SLOPE_FRICTION_FUNC_VAL = (0.4, 2.0, 5.0)
+SLOPE_FRICTION_MODELS_FUNC_VAL = (0.4, 0.45, 0.5)
+CONTACT_FRICTION_TERRAIN = 1.0
+CONTACT_FRICTION_STATICS = 0.05
+CONTACT_FRICTION_STATICS_VERT = 0.25
+CONTACT_FRICTION_DESTRUCTIBLES = 1.0
+CONTACT_FRICTION_VEHICLES = 0.3
+ROLLER_FRICTION_GAIN_MIN = 0.05
+ROLLER_FRICTION_GAIN_MAX = 0.25
+ROLLER_FRICTION_ANGLE_MIN = 20.0
+ROLLER_FRICTION_ANGLE_MAX = 45.0
+ANCHOR_MAX_REACTION_FACTOR = 0.5
+ANCHOR_CONST_FRACTION = 0.0
+ANCHOR_VEL_FACTOR = 0.0
+OVERTURN_CONSTR_MIN = 0.5
+OVERTURN_CONSTR_MAX = 0.707
+OVERTURN_CONSTR_ACCURATE = 0.866
+OVERTURN_CONSTR_MARGIN = math.pi / 6.0
+SINGLE_TRACK_POWER_FACTOR = 0.1
+SINGLE_TRACK_Y = 0.866
+SPEED_TO_CHANGE_ROTATION_DIR = 5.0
+ARENA_BOUNDS_FRICTION_HOR = 0.2
+ARENA_BOUNDS_FRICTION_VERT = 1.0
+CLIMB_FRICTION_BOUND = 0.5
+CLIMB_FRICTION_BIAS = 0.012 * SUSP_CLIMB_FRICTION
+CLIMB_POWER_DECREASE = 0.4
+_TRACK_RESTITUTION = 0.4
+SUSP_USE_PSEUDO_SLIDER = True
+SUSP_SLIDER_EXTENSION = 0.0
+BOUNCE_Y = 0.707
+CLIMB_TANG = 1.0
+STAB_DAMP_MP = 5.0
+STAB_EPSILON_AMBIT = 2.0
+STAB_EPSILON_PERIOD = 4.0
+g_vehiclePhysicsMode = VEHICLE_PHYSICS_MODE.DETAILED
 g_confUpdaters = []
+g_xphysicsOverrides = {}
+
+def _cosDeg(angle):
+    return math.cos(math.radians(angle))
+
+
+def _sinDeg(angle):
+    return math.sin(math.radians(angle))
+
+
+g_defaultXPhysicsCfg = {'gravity': 9.81,
+ 'wheelRestitution': 0.9,
+ 'wheelPenetration': 0.02,
+ 'wheelUsePseudoContacts': True,
+ 'chokerPressSpeed': 10000.0,
+ 'bodyHeight': 1.0,
+ 'hullCOMShiftY': 0.0,
+ 'clearance': 0.7,
+ 'engineTorque': ((500.0, 2.0),
+                  (1000.0, 3.0),
+                  (2000.0, 2.5),
+                  (2500.0, 2.0)),
+ 'smplEngPower': 800.0,
+ 'comFrictionYOffs': 0.7,
+ 'sideFrictionConstantRatio': 0.0,
+ 'smplFwMaxSpeed': 10.0,
+ 'smplBkMaxSpeed': 5.5,
+ 'pushStop': 0.3,
+ 'pushInContact': 2.5,
+ 'railFactorInContact': 0.5,
+ 'WV_Scale': 30.0,
+ 'WV_Ko': 0.09,
+ 'WV_Exp_K': 3.0,
+ 'WV_Vo': 26.0,
+ 'WV_Exp_V': 2.0,
+ 'wheelRadius': 0.4,
+ 'slopeFrictionFactor': 1.5,
+ 'slopeFrictionTiltCos': math.cos(math.radians(15.0)),
+ 'slopeFrictionSurfaceSin': math.sin(math.radians(30.0)),
+ 'trackGaugeFactor': 0.96,
+ 'smplMinRPM': 150.0,
+ 'wheelFwdInertiaFactor': 3.0,
+ 'slopeResistTerrain': (1.5, _cosDeg(15.0), _sinDeg(29.0)),
+ 'slopeResistStaticObject': (1.5, _cosDeg(15.0), _sinDeg(20.0)),
+ 'slopeResistDynamicObject': (1.5, _cosDeg(15.0), _sinDeg(20.0)),
+ 'slopeGripLngTerrain': (_cosDeg(27.5),
+                         1.0,
+                         _cosDeg(32.0),
+                         0.1),
+ 'slopeGripSdwTerrain': (_cosDeg(24.5),
+                         1.0,
+                         _cosDeg(29.0),
+                         0.1),
+ 'slopeGripLngStaticObject': (_cosDeg(20),
+                              1.0,
+                              _cosDeg(25),
+                              0.1),
+ 'slopeGripSdwStaticObject': (_cosDeg(20),
+                              1.0,
+                              _cosDeg(25),
+                              0.1),
+ 'slopeGripLngDynamicObject': (_cosDeg(20),
+                               1.0,
+                               _cosDeg(25),
+                               0.1),
+ 'slopeGripSdwDynamicObject': (_cosDeg(20),
+                               1.0,
+                               _cosDeg(25),
+                               0.1),
+ 'overspeedResistBaseFactor': 0.5,
+ 'allowedRPMExcessUnbounded': 1.4,
+ 'absoluteSpeedLimit': 25.0,
+ 'clutchDisableTimeFactor': 2.0,
+ 'gearSwitchStep': 1.46,
+ 'switchHysteresis': 1.0,
+ 'trackToBeLockedDelay': 1.0,
+ 'gimletVelScaleMin': 1.0,
+ 'gimletVelScaleMax': 5.0,
+ 'pushRotOnSpotFixedPeriod': 0.2,
+ 'pushRotOnMoveFixedPeriod': 0.2,
+ 'pushRotOnSpotGrowPeriod': 2.0,
+ 'pushRotOnMoveGrowPeriod': 2.0,
+ 'rotationChoker': 1.0,
+ 'chsDmgMultiplier': 1.0,
+ 'swingCompensatorCollisionExtend': 0.2,
+ 'swingCompensatorStiffnesFactor0': 1.0,
+ 'swingCompensatorStiffnesFactor1': 1.0,
+ 'swingCompensatorDampingFactor': 1.0,
+ 'swingCompensatorMaxPitchDeviation': 0.1,
+ 'swingCompensatorMaxRollDeviation': 0.1,
+ 'swingCompensatorRestitution': 0.8,
+ 'swingCompensatorStabilisationCenter': (0.0, 0.0, 0.0),
+ 'shape': {'terrAftChamferFraction': 0.5,
+           'terrFrontChamferFraction': 0.5,
+           'terrBoardAngle': 0.0,
+           'tankAftChamferFraction': 0.25,
+           'tankFrontChamferFraction': 0.25,
+           'tankBoardAngle': 0.0,
+           'auxClearance': 0.8},
+ 'flatSideFriction': True,
+ 'wheelDetachOnRoll': False}
+if IS_CELLAPP:
+
+    def _booleanFromString(stringValue):
+        return stringValue.lower() in ('true', 'yes', '1')
+
+
+    def _getVehiclePhysicsMode():
+        global g_vehiclePhysicsMode
+        return g_vehiclePhysicsMode
+
+
+    def _setVehiclePhysicsMode(stringValue):
+        try:
+            setVehiclePhysicsMode(_booleanFromString(stringValue))
+        except:
+            LOG_CURRENT_EXCEPTION()
+
+
+    def addWatchers():
+        BigWorld.addWatcher('physics/vehiclePhysicsMode', _getVehiclePhysicsMode, _setVehiclePhysicsMode)
+
+
+    def delWatchers():
+        try:
+            BigWorld.delWatcher('physics/vehiclePhysicsMode')
+        except Exception:
+            LOG_CURRENT_EXCEPTION()
+
+
+def init():
+    global g_vehiclePhysicsMode
+    if IS_CELLAPP:
+        from server_constants import BW_XML
+        vehiclePhysicsMode = BW_XML.readInt('wg/vehiclePhysicsMode', -1)
+        if vehiclePhysicsMode != -1:
+            LOG_DEBUG('Set vehicle physics mode to %d' % vehiclePhysicsMode)
+            g_vehiclePhysicsMode = vehiclePhysicsMode
+        else:
+            LOG_ERROR('Failed to read wg/vehiclePhysicsMode from bw.xml. Use default value (%d).' % g_vehiclePhysicsMode)
+    updateCommonConf()
+
+
+def setVehiclePhysicsMode(mode):
+    global g_vehiclePhysicsMode
+    g_vehiclePhysicsMode = mode
+    updateConf()
+
+
+def updateCommonConf():
+    if IS_CELLAPP:
+        from vehicle_constants import DAMAGE_ACCUMULATOR_LENGTH, DAMAGE_IDLE_CYCLES_ALLOWED, DAMAGE_ACCUMULATOR_THRESHOLD
+        from VehicleMover import STATIC_DAMAGE_ABSORPTION_TRACK, STATIC_DAMAGE_ABSORPTION_HULL, OVERTURN_HULL_DAMAGE_ABSORPTION
+    BigWorld.wg_setupPhysicsParam('CONTACT_ENERGY_POW', CONTACT_ENERGY_POW)
+    BigWorld.wg_setupPhysicsParam('CONTACT_ENERGY_POW2', CONTACT_ENERGY_POW2)
+    BigWorld.wg_setupPhysicsParam('ROLLER_RISE_STRONG_FRICTION', ROLLER_RISE_STRONG_FRICTION)
+    BigWorld.wg_setupPhysicsParam('SLOPE_FRICTION_FUNC_DEF', SLOPE_FRICTION_FUNC_DEF)
+    BigWorld.wg_setupPhysicsParam('SLOPE_FRICTION_FUNC_VAL', SLOPE_FRICTION_FUNC_VAL)
+    BigWorld.wg_setupPhysicsParam('SLOPE_FRICTION_MODELS_FUNC_VAL', SLOPE_FRICTION_MODELS_FUNC_VAL)
+    BigWorld.wg_setupPhysicsParam('CONTACT_FRICTION_TERRAIN', CONTACT_FRICTION_TERRAIN)
+    BigWorld.wg_setupPhysicsParam('CONTACT_FRICTION_STATICS', CONTACT_FRICTION_STATICS)
+    BigWorld.wg_setupPhysicsParam('CONTACT_FRICTION_STATICS_VERT', CONTACT_FRICTION_STATICS_VERT)
+    BigWorld.wg_setupPhysicsParam('CONTACT_FRICTION_DESTRUCTIBLES', CONTACT_FRICTION_DESTRUCTIBLES)
+    BigWorld.wg_setupPhysicsParam('CONTACT_FRICTION_VEHICLES', CONTACT_FRICTION_VEHICLES)
+    BigWorld.wg_setupPhysicsParam('ROLLER_FRICTION_GAIN_MIN', ROLLER_FRICTION_GAIN_MIN)
+    BigWorld.wg_setupPhysicsParam('ROLLER_FRICTION_GAIN_MAX', ROLLER_FRICTION_GAIN_MAX)
+    BigWorld.wg_setupPhysicsParam('ROLLER_FRICTION_ANGLE_MIN', ROLLER_FRICTION_ANGLE_MIN)
+    BigWorld.wg_setupPhysicsParam('ROLLER_FRICTION_ANGLE_MAX', ROLLER_FRICTION_ANGLE_MAX)
+    BigWorld.wg_setupPhysicsParam('OVERTURN_CONSTR_MIN', OVERTURN_CONSTR_MIN)
+    BigWorld.wg_setupPhysicsParam('OVERTURN_CONSTR_MAX', OVERTURN_CONSTR_MAX)
+    BigWorld.wg_setupPhysicsParam('OVERTURN_CONSTR_ACCURATE', OVERTURN_CONSTR_ACCURATE)
+    BigWorld.wg_setupPhysicsParam('OVERTURN_CONSTR_MARGIN', OVERTURN_CONSTR_MARGIN)
+    BigWorld.wg_setupPhysicsParam('SINGLE_TRACK_POWER_FACTOR', SINGLE_TRACK_POWER_FACTOR)
+    BigWorld.wg_setupPhysicsParam('SINGLE_TRACK_Y', SINGLE_TRACK_Y)
+    BigWorld.wg_setupPhysicsParam('SPEED_TO_CHANGE_ROTATION_DIR', SPEED_TO_CHANGE_ROTATION_DIR)
+    BigWorld.wg_setupPhysicsParam('ARENA_BOUNDS_FRICTION_HOR', ARENA_BOUNDS_FRICTION_HOR)
+    BigWorld.wg_setupPhysicsParam('ARENA_BOUNDS_FRICTION_VERT', ARENA_BOUNDS_FRICTION_VERT)
+    BigWorld.wg_setupPhysicsParam('CLIMB_FRICTION_BOUND', CLIMB_FRICTION_BOUND)
+    BigWorld.wg_setupPhysicsParam('CLIMB_FRICTION_BIAS', CLIMB_FRICTION_BIAS)
+    BigWorld.wg_setupPhysicsParam('CLIMB_POWER_DECREASE', CLIMB_POWER_DECREASE)
+    BigWorld.wg_setupPhysicsParam('TRACK_RESTITUTION', _TRACK_RESTITUTION)
+    BigWorld.wg_setupPhysicsParam('SUSP_USE_PSEUDO_SLIDER', SUSP_USE_PSEUDO_SLIDER)
+    BigWorld.wg_setupPhysicsParam('USE_PSEUDO_CONTACTS', USE_PSEUDO_CONTACTS)
+    BigWorld.wg_setupPhysicsParam('CONTACT_PENETRATION', CONTACT_PENETRATION)
+    BigWorld.wg_setupPhysicsParam('SUSP_SLIDER_EXTENSION', SUSP_SLIDER_EXTENSION)
+    BigWorld.wg_setupPhysicsParam('WARMSTARTING_VEHICLE_VEHICLE', WARMSTARTING_VEHICLE_VEHICLE)
+    BigWorld.wg_setupPhysicsParam('WARMSTARTING_VEHICLE_STATICS', WARMSTARTING_VEHICLE_STATICS)
+    BigWorld.wg_setupPhysicsParam('WARMSTARTING_THRESHOLD', WARMSTARTING_THRESHOLD)
+    BigWorld.wg_setupPhysicsParam('GRAVITY_COMPENSATION', (GRAVITY_FACTOR - 1.0) / GRAVITY_FACTOR)
+    BigWorld.wg_setupPhysicsParam('BOUNCE_Y', BOUNCE_Y)
+    BigWorld.wg_setupPhysicsParam('BROKEN_TRACK_Y', BROKEN_TRACK_Y)
+    BigWorld.wg_setupPhysicsParam('CLIMB_TANG', CLIMB_TANG)
+    BigWorld.wg_setupPhysicsParam('STAB_DAMP_MP', STAB_DAMP_MP)
+    BigWorld.wg_setupPhysicsParam('STAB_EPSILON_AMBIT', STAB_EPSILON_AMBIT)
+    BigWorld.wg_setupPhysicsParam('STAB_EPSILON_PERIOD', STAB_EPSILON_PERIOD)
+    BigWorld.wg_setupPhysicsParam('IMPROVE_ACCURACY_MASS_RATIO', IMPROVE_ACCURACY_MASS_RATIO)
+    strenghtMap = {'firm': 1,
+     'medium': 2,
+     'soft': 3}
+    strenghtsByMatkinds = tuple(((matKind, strenghtMap[strStrenght]) for matKind, strStrenght in material_kinds.GROUND_STRENGTHS_BY_IDS.iteritems()))
+    BigWorld.wg_setupGroundStrengths(strenghtsByMatkinds)
+
 
 def updateConf():
     for e in BigWorld.entities.values():
         if e.className == 'Vehicle':
-            initVehiclePhysics(e.mover.physics, e.typeDescriptor)
+            initVehiclePhysics(e.mover.physics, e.typeDescriptor, None, True)
 
+    updateCommonConf()
     for updater in g_confUpdaters:
         updater()
+
+    return
 
 
 def computeRotationalCohesion(rotSpeedLimit, mass, length, width, enginePower):
@@ -151,8 +406,117 @@ def computeRotationalCohesion(rotSpeedLimit, mass, length, width, enginePower):
     return (rotSpeedLimit * inertia / ANG_ACCELERATION_TIME + enginePower / rotSpeedLimit) / mg
 
 
-def initVehiclePhysics(physics, typeDesc):
+def configureXPhysics(physics, baseCfg, typeDesc, useSimplifiedGearbox, gravityFactor):
+    cfg = copy.copy(g_defaultXPhysicsCfg)
+    cfg['fakegearbox'] = typeDesc.type.xphysics['detailed']['fakegearbox']
+    if baseCfg:
+        if typeDesc.type.xphysics['detailed'] != baseCfg:
+            typeDesc.type.xphysics['detailed'].update(baseCfg)
+        engName = typeDesc.engine['name']
+        engCfg = baseCfg['engines'].get(engName)
+        if engCfg:
+            cfg.update(engCfg)
+        chsName = typeDesc.chassis['name']
+        chsCfg = baseCfg['chassis'].get(chsName)
+        if chsCfg:
+            cfg.update(chsCfg)
+            groundsSrc = cfg['grounds'].copy()
+            softCfg = groundsSrc['soft']
+            del groundsSrc['soft']
+            idMap = EFFECT_MATERIAL_INDEXES_BY_NAMES
+            cfg['grounds'] = dict(((idMap[nm], dict(sub.items() + [('soft', softCfg)])) for nm, sub in groundsSrc.iteritems()))
+        fakeGearBox = baseCfg.get('fakegearbox')
+        if fakeGearBox is not None:
+            cfg['fakegearbox'] = fakeGearBox
+    cfg.update(g_xphysicsOverrides)
+    cfg['fullMass'] = typeDesc.physics['weight'] * WEIGHT_SCALE
+    bmin, bmax, _ = typeDesc.chassis['hitTester'].bbox
+    sizeX = bmax[0] - bmin[0]
+    sizeZ = bmax[2] - bmin[2]
+    hullCenter = (bmin + bmax) * 0.5
+    cfg['hullSize'] = Math.Vector3((sizeX, cfg['bodyHeight'], sizeZ))
+    cfg['gravity'] = cfg['gravity'] * gravityFactor
+    cfg['engineTorque'] = tuple(((arg, val * gravityFactor) for arg, val in cfg['engineTorque']))
+    offsZ = hullCenter[2]
+    cfg['hullBoxOffsetZ'] = offsZ
+    turretMin, turretMax, _ = typeDesc.turret['hitTester'].bbox
+    hullPos = typeDesc.chassis['hullPosition']
+    turretPos = typeDesc.hull['turretPositions'][0]
+    topPos = hullPos + turretPos
+    topPos.y += turretMax[1] - cfg['clearance'] - cfg['bodyHeight']
+    topPos.y = max(0.1, topPos.y * 0.8)
+    topPos.y += cfg['bodyHeight'] * 0.5
+    cfg['turretTopPos'] = topPos
+    turretBoxSizeX = turretMax[0] - turretMin[0]
+    cfg['turretTopWidth'] = max(sizeX * 0.25, turretBoxSizeX * 0.7)
+    cfg['swingStabilisationCenter'] = Math.Vector3((0.0, hullPos[1] + turretPos[1], 0.0))
+    cfg['pushHB'] = cfg.get('gimletPushOnSpotFinal', 0.0)
+    cfg['smplEngJoinRatio'] = 0.020000000000000004 / cfg['wheelRadius']
+    cfg['anchorMaxReactionFactor'] = ANCHOR_MAX_REACTION_FACTOR
+    cfg['anchorConstFraction'] = ANCHOR_CONST_FRACTION
+    cfg['anchorVelFactor'] = ANCHOR_VEL_FACTOR
+    xphysics = typeDesc.type.xphysics
+    chassisCfg = xphysics['detailed']['chassis'].get(typeDesc.chassis['name'])
+    if IS_CELLAPP:
+        cfg['damage'] = {'vehicleByChassisDamageFactor': typeDesc.miscAttrs['vehicleByChassisDamageFactor'],
+         'chsDmgMultiplier': chassisCfg['chsDmgMultiplier']}
+    if 'useSimplifiedGearbox' not in cfg:
+        cfg['useSimplifiedGearbox'] = useSimplifiedGearbox
+    selfDrivenMaxSpeed = max(cfg['smplFwMaxSpeed'], cfg['smplBkMaxSpeed'])
+    cfg['overspeedResistFactor'] = cfg['overspeedResistBaseFactor'] / selfDrivenMaxSpeed
+    speedLimit = min(cfg['absoluteSpeedLimit'], selfDrivenMaxSpeed * cfg['allowedRPMExcessUnbounded'])
+    cfg['allowedRPMExcess'] = max(1.0, speedLimit / selfDrivenMaxSpeed)
+    applyRotationAndPowerFactors(cfg)
+    cfg['gearChangeTimeout'] = 1.0
+    cfg['gearIncreaseFactor'] = 0.85
+    cfg['gearDecreaseFactor'] = 0.85
+    cfg['gearVelocities'] = (0.0, 15.0, 15.0, 9.0, 15.0, 24.0, 42.0, 60.0, 0.0, 0.0, 0.0)
+    if not physics.configure(cfg):
+        LOG_ERROR('configureXPhysics: configure failed')
+    comz = 0.0 if IS_CLIENT else physics.hullCOMZ
+    physics.centerOfMass = Math.Vector3((0.0, cfg['clearance'] + cfg['bodyHeight'] * 0.5 + cfg['hullCOMShiftY'], comz))
+    return cfg
+
+
+def applyRotationAndPowerFactors(cfg):
+    try:
+        cfg['smplEnginePower'] = cfg['smplEnginePower'] * cfg['powerFactor']
+        cfg['angVelocityFactor'] = cfg['angVelocityFactor'] * cfg['rotationFactor']
+        arm = cfg['hullSize'][0]
+        cfg['smplRotSpeed'] = arm * cfg['angVelocityFactor0'] * cfg['rotationFactor']
+        cfg['gimletGoalWOnSpot'] = cfg['gimletGoalWOnSpot'] * cfg['rotationFactor']
+        cfg['gimletGoalWOnMove'] = cfg['gimletGoalWOnMove'] * cfg['rotationFactor']
+        cfg['wPushedRot'] = cfg['gimletGoalWOnSpot']
+        cfg['wPushedDiag'] = cfg['gimletGoalWOnMove']
+    except:
+        LOG_CURRENT_EXCEPTION()
+
+
+def initVehiclePhysics(physics, typeDesc, forcedCfg, saveTransform, IS_EDITOR=False):
     physDescr = typeDesc.physics
+    useDetailedPhysics = g_vehiclePhysicsMode == VEHICLE_PHYSICS_MODE.DETAILED
+    if IS_CELLAPP:
+        if useDetailedPhysics:
+            if forcedCfg:
+                useSimplifiedGearbox = forcedCfg['useSimplifiedGearbox']
+                baseCfg = forcedCfg
+                gravityFactor = forcedCfg['gravityFactor']
+            elif typeDesc.type.xphysics:
+                baseCfg = typeDesc.type.xphysics['detailed']
+                useSimplifiedGearbox = typeDesc.type.xphysics['useSimplifiedGearbox']
+                gravityFactor = baseCfg['gravityFactor']
+            else:
+                baseCfg = None
+                useSimplifiedGearbox = True
+                gravityFactor = 1.0
+            cfg = configureXPhysics(physics, baseCfg, typeDesc, useSimplifiedGearbox, gravityFactor)
+        if physics.detailedPhysicsEnabled != useDetailedPhysics:
+            if saveTransform:
+                m = Math.Matrix(physics.matrix)
+            physics.detailedPhysicsEnabled = useDetailedPhysics
+            if saveTransform:
+                physics.matrix = m
+            physics.isFrozen = False
     hullMin, hullMax, _ = typeDesc.hull['hitTester'].bbox
     hullCenter = (hullMin + hullMax) * 0.5
     hullY = hullCenter.y + typeDesc.chassis['hullPosition'].y
@@ -162,27 +526,31 @@ def initVehiclePhysics(physics, typeDesc):
     blen = bmax[2] - bmin[2]
     width = bmax[0] - bmin[0]
     height = bmax[1] - bmin[1]
-    fullMass = physDescr['weight'] * WEIGHT_SCALE
     srcEnginePower = physDescr['enginePower']
     srcMass = physDescr['weight']
+    fullMass = physDescr['weight'] * WEIGHT_SCALE
     suspMass = _computeSuspWeightRatio(srcMass, srcEnginePower) * fullMass
-    if IS_CLIENT:
+    if IS_CLIENT or IS_EDITOR:
         hullMass = fullMass
     else:
         hullMass = fullMass - suspMass
     g = G * GRAVITY_FACTOR
-    clearance = (typeDesc.chassis['hullPosition'].y + hullMin.y) * CLEARANCE
-    clearance = _clamp(CLEARANCE_MIN * height, clearance, CLEARANCE_MAX * height)
+    if useDetailedPhysics and not IS_CLIENT and not IS_EDITOR:
+        clearance = cfg['clearance']
+    else:
+        clearance = (typeDesc.chassis['hullPosition'].y + hullMin.y) * CLEARANCE
+        clearance = _clamp(CLEARANCE_MIN * height, clearance, CLEARANCE_MAX * height)
     suspCompression = _computeSuspCompression(fullMass)
-    if not IS_CLIENT:
+    if not IS_CLIENT and not IS_EDITOR:
         carringSpringLength = (clearance + TRACKS_PENETRATION) / suspCompression
     else:
         carringSpringLength = clearance / suspCompression
     hmg = hullMass * g
     cmShift = _computeCenterOfMassShift(srcMass, srcEnginePower)
-    physics.centerOfMass = Math.Vector3((0.0, hullY + cmShift * hullHeight, 0.0))
+    if not useDetailedPhysics or IS_CLIENT or IS_EDITOR:
+        physics.centerOfMass = Math.Vector3((0.0, hullY + cmShift * hullHeight, 0.0))
     forcePtX = FORCE_POINT_X
-    if IS_CLIENT:
+    if IS_CLIENT or IS_EDITOR:
         forcePtY = 0.0
     else:
         forcePtY = -physics.centerOfMass.y * suspMass / fullMass
@@ -196,7 +564,7 @@ def initVehiclePhysics(physics, typeDesc):
     commonBoxMaxY = max(chassisMaxY, hullMaxY, turretMaxY)
     gunPosY = hullPosY + turretPosY + typeDesc.turret['gunPosition'][1]
     boxHeight = min(commonBoxMaxY, gunPosY, hullUpperBound * BODY_HEIGHT) - clearance
-    boxHeight = max(chassisMaxY * 0.7, boxHeight)
+    boxHeight = max(chassisMaxY * 0.7, boxHeight, VEHICLE_ON_OBSTACLE_COLLISION_BOX_MIN_HEIGHT)
     globalBoxY = clearance + boxHeight / 2
     boxCenter = Math.Vector3(chassisCenter)
     boxCenter[1] = globalBoxY - physics.centerOfMass.y
@@ -225,7 +593,7 @@ def initVehiclePhysics(physics, typeDesc):
     physics.rotationIsAroundCenter = physDescr['rotationIsAroundCenter']
     wlim = physDescr['rotationSpeedLimit']
     physics.enginePower = physDescr['enginePower'] * GRAVITY_FACTOR_SCALED
-    if not IS_CLIENT:
+    if not IS_CLIENT and not IS_EDITOR:
         physics.slopeCohDecay = min(COHESION - _COH_DECAY_BOUND, SLOPE_COH_DECAY)
         physics.slopeCohDecayY = SLOPE_COH_DECAY_Y
         physics.compensateFrictionDecayRatio = COH_DECAY_COMPENSATION
@@ -363,6 +731,7 @@ def initVehiclePhysics(physics, typeDesc):
         LOG_DEBUG('initVehiclePhysics: hardRatio %f' % hardRatio)
         LOG_DEBUG('initVehiclePhysics: cmShift %f' % cmShift)
         LOG_DEBUG('initVehiclePhysics: suspCompression: %f' % suspCompression)
+    return
 
 
 def computeBarrelLocalPoint(vehDescr, turretYaw, gunPitch):
@@ -473,3 +842,55 @@ def _decodeTurretDescr(descr):
      turretPos,
      turretIdx,
      gunIdx)
+
+
+def initVehiclePhysicsFromParams(physics, params):
+
+    class _SimpleObject(object):
+        pass
+
+    typeDesc = _SimpleObject()
+    typeDesc.physics = {}
+    typeDesc.physics['weight'] = params['weight']
+    typeDesc.physics['enginePower'] = params['enginePower']
+    typeDesc.physics['speedLimits'] = params['speedLimits']
+    typeDesc.physics['rotationIsAroundCenter'] = params['rotationIsAroundCenter']
+    typeDesc.physics['rotationSpeedLimit'] = params['rotationSpeedLimit']
+    typeDesc.physics['terrainResistance'] = params['terrainResistance']
+    typeDesc.physics['trackCenterOffset'] = params['trackCenterOffset']
+    typeDesc.hull = {}
+    typeDesc.hull['hitTester'] = _SimpleObject()
+    typeDesc.hull['hitTester'].bbox = (params['hullHitTesterMin'], params['hullHitTesterMax'], None)
+    typeDesc.hull['turretPositions'] = (params['turretPosition'],)
+    typeDesc.chassis = {}
+    typeDesc.chassis['hullPosition'] = params['hullPosition']
+    typeDesc.chassis['hitTester'] = _SimpleObject()
+    typeDesc.chassis['hitTester'].bbox = (params['chassisHitTesterMin'], params['chassisHitTesterMax'], None)
+    typeDesc.turret = {}
+    typeDesc.turret['hitTester'] = _SimpleObject()
+    typeDesc.turret['hitTester'].bbox = (params['turretHitTesterMin'], params['turretHitTesterMax'], None)
+    typeDesc.turret['gunPosition'] = params['gunPosition']
+    initVehiclePhysics(physics, typeDesc, None, False, True)
+    physics.visibilityMask = 4294967295L
+    return
+
+
+TRACK_SCROLL_LIMITS = (-15.0, 30.0)
+
+def encodeTrackScrolling(leftScroll, rightScroll):
+    return encodeRestrictedValueToUint(leftScroll, 8, *TRACK_SCROLL_LIMITS) | encodeRestrictedValueToUint(rightScroll, 8, *TRACK_SCROLL_LIMITS) << 8
+
+
+def decodeTrackScrolling(code):
+    return (decodeRestrictedValueFromUint((code & 255), 8, *TRACK_SCROLL_LIMITS), decodeRestrictedValueFromUint((code >> 8), 8, *TRACK_SCROLL_LIMITS))
+
+
+MAX_NORMALISED_RPM = 1.2
+
+def encodeNormalisedRPM(normalRPM):
+    return encodeRestrictedValueToUint(normalRPM, 8, 0.0, MAX_NORMALISED_RPM)
+
+
+def decodeNormalisedRPM(code):
+    return decodeRestrictedValueFromUint(code, 8, 0.0, MAX_NORMALISED_RPM)
+# okay decompiling ./res/scripts/common/physics_shared.pyc

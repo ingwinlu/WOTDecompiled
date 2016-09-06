@@ -1,13 +1,16 @@
-from PlayerEvents import g_playerEvents
-from constants import JOIN_FAILURE_NAMES
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/tutorial/control/offbattle/triggers.py
+from constants import QUEUE_TYPE
 from gui.ClientUpdateManager import g_clientUpdateManager
+from gui.prb_control.prb_helpers import GlobalListener
+from tutorial import LOG_ERROR
 from tutorial.control.context import GlobalStorage, GLOBAL_FLAG
 from tutorial.control.offbattle.functional import ContentChangedEvent
-from tutorial.control.triggers import _Trigger
+from tutorial.control.triggers import Trigger
 from tutorial.control.offbattle.context import OffBattleClientCtx
 __all__ = ['TutorialQueueTrigger', 'AllBonusesTrigger']
 
-class TutorialQueueTrigger(_Trigger):
+class TutorialQueueTrigger(Trigger, GlobalListener):
     _inQueue = GlobalStorage(GLOBAL_FLAG.IN_QUEUE, False)
 
     def __init__(self, triggerID, popUpID):
@@ -16,9 +19,7 @@ class TutorialQueueTrigger(_Trigger):
 
     def run(self):
         if not self.isSubscribed:
-            g_playerEvents.onTutorialEnqueued += self.__pe_onTutorialEnqueued
-            g_playerEvents.onTutorialDequeued += self.__pe_onTutorialDequeued
-            g_playerEvents.onTutorialEnqueueFailure += self.__pe_onTutorialEnqueueFailure
+            self.startGlobalListening()
             self.isSubscribed = True
         super(TutorialQueueTrigger, self).run()
 
@@ -28,34 +29,49 @@ class TutorialQueueTrigger(_Trigger):
     def clear(self):
         self._gui.hideWaiting('queue')
         if self.isSubscribed:
-            g_playerEvents.onTutorialEnqueued -= self.__pe_onTutorialEnqueued
-            g_playerEvents.onTutorialDequeued -= self.__pe_onTutorialDequeued
-            g_playerEvents.onTutorialEnqueueFailure -= self.__pe_onTutorialEnqueueFailure
-        self.isSubscribed = False
+            self.stopGlobalListening()
+            self.isSubscribed = False
         self._inQueue = False
         super(TutorialQueueTrigger, self).clear()
 
-    def __pe_onTutorialEnqueued(self, queueNumber, queueLen, avgWaitingTime):
+    def onEnqueued(self, queueType, *args):
+        if queueType != QUEUE_TYPE.TUTORIAL:
+            return
+        if len(args) < 3:
+            LOG_ERROR('Number of argument is invalid', args)
+            queueNumber, queueLen, avgWaitingTime = (0, 0, 0)
+        else:
+            queueNumber, queueLen, avgWaitingTime = args[:3]
         self._event.fire(avgWaitingTime)
         if not self._inQueue:
             self._inQueue = True
             self.toggle(isOn=True)
 
-    def __pe_onTutorialDequeued(self):
+    def onDequeued(self, queueType, *args):
+        if queueType != QUEUE_TYPE.TUTORIAL:
+            return
         if self._inQueue:
             self._inQueue = False
             self.toggle(isOn=False)
 
-    def __pe_onTutorialEnqueueFailure(self, errorCode, errorStr):
-        if errorCode in JOIN_FAILURE_NAMES:
-            text = '#system_messages:arena_start_errors/join/{0:>s}'.format(JOIN_FAILURE_NAMES[errorCode])
-        else:
-            text = errorStr
-        self._gui.showI18nMessage(text, msgType='Error')
-        self._tutorial.refuse()
+    def onEnqueueError(self, queueType, *args):
+        if queueType == QUEUE_TYPE.TUTORIAL:
+            self._tutorial.refuse()
+
+    def onKickedFromQueue(self, queueType, *args):
+        if queueType == QUEUE_TYPE.TUTORIAL:
+            self._tutorial.refuse()
+
+    def onKickedFromArena(self, queueType, *args):
+        if queueType == QUEUE_TYPE.TUTORIAL:
+            self._tutorial.refuse()
+
+    def onArenaJoinFailure(self, queueType, *args):
+        if queueType == QUEUE_TYPE.TUTORIAL:
+            self._tutorial.refuse()
 
 
-class AllBonusesTrigger(_Trigger):
+class AllBonusesTrigger(Trigger):
 
     def __init__(self, triggerID, setVarID):
         super(AllBonusesTrigger, self).__init__(triggerID)
@@ -85,3 +101,4 @@ class AllBonusesTrigger(_Trigger):
             if self.isOn(completed):
                 self.toggle(isOn=True)
         return
+# okay decompiling ./res/scripts/client/tutorial/control/offbattle/triggers.pyc

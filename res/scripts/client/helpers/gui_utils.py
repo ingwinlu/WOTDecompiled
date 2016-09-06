@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/helpers/gui_utils.py
 import GUI
 import Math
 
@@ -24,3 +26,4 @@ def buildTexMapping(texCoords, texSize, fullTexSize):
      (texCoords[0] / fullTexSize[0], max[1] / fullTexSize[1]),
      (max[0] / fullTexSize[0], max[1] / fullTexSize[1]),
      (max[0] / fullTexSize[0], texCoords[1] / fullTexSize[1]))
+# okay decompiling ./res/scripts/client/helpers/gui_utils.pyc

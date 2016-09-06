@@ -1,26 +1,22 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/helpers/RSSDownloader.py
 import threading
 import helpers
 import BigWorld
-import ResMgr
 import feedparser
 from debug_utils import *
-_CLIENT_VERSION = helpers.getClientVersion()
+_CLIENT_VERSION = helpers.getFullClientVersion()
 feedparser.PARSE_MICROFORMATS = 0
 feedparser.SANITIZE_HTML = 0
 
 class RSSDownloader:
     UPDATE_INTERVAL = 0.1
-    MIN_INTERVAL_BETWEEN_DOWNLOAD = 60.0
     lastRSS = property(lambda self: self.__lastRSS)
     isBusy = property(lambda self: self.__thread is not None)
 
     def __init__(self):
-        self.url = ''
-        ds = ResMgr.openSection('gui/gui_settings.xml')
-        if ds is not None:
-            self.url = ds.readString('rssUrl')
         self.__thread = None
-        self.__lastDownloadTime = 0
+        self.__lastDownloadTime = None
         self.__cbID = BigWorld.callback(self.UPDATE_INTERVAL, self.__update)
         self.__lastRSS = {}
         self.__onCompleteCallbacks = set()
@@ -29,27 +25,24 @@ class RSSDownloader:
     def destroy(self):
         self.__thread = None
         self.__onCompleteCallbacks = None
+        self.__lastDownloadTime = None
         if self.__cbID is not None:
             BigWorld.cancelCallback(self.__cbID)
             self.__cbID = None
         return
 
-    def download(self, callback, url = None):
-        if callback is None:
+    def download(self, callback, url):
+        assert callback is not None
+        if self.__thread is not None:
+            LOG_WARNING('Rss downloading in progress, skipping')
             return
         else:
-            if url is None:
-                url = self.url
             if self.__thread is not None:
                 self.__onCompleteCallbacks.add(callback)
             else:
-                time = BigWorld.time()
-                if self.__lastDownloadTime != 0 and time - self.__lastDownloadTime < self.MIN_INTERVAL_BETWEEN_DOWNLOAD:
-                    callback(self.__lastRSS)
-                else:
-                    self.__lastDownloadTime = time
-                    self.__thread = _WorkerThread(url)
-                    self.__onCompleteCallbacks.add(callback)
+                self.__lastDownloadTime = BigWorld.time()
+                self.__thread = _WorkerThread(url)
+                self.__onCompleteCallbacks.add(callback)
             return
 
     def __update(self):
@@ -94,3 +87,4 @@ g_downloader = None
 def init():
     global g_downloader
     g_downloader = RSSDownloader()
+# okay decompiling ./res/scripts/client/helpers/rssdownloader.pyc

@@ -1,27 +1,33 @@
-# 2013.11.15 11:26:06 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/prb_windows/BattleSessionWindow.py
 import BigWorld
 import constants
+import functools
 import nations
 from adisp import process
+from debug_utils import LOG_DEBUG
 from gui.shared import events, EVENT_BUS_SCOPE
+from gui.shared.formatters import text_styles
 from gui.shared.utils import functions
-from gui import prb_control
-from gui.prb_control import formatters, context
+from shared_utils import safeCancelCallback
+from gui.prb_control import formatters, prb_getters
+from gui.prb_control.context import prb_ctx
 from gui.prb_control.settings import PREBATTLE_ROSTER, REQUEST_TYPE, PREBATTLE_SETTING_NAME
 from gui.Scaleform.locale.MENU import MENU
-from gui.Scaleform.daapi.view.lobby.prb_windows.PrebattleWindow import PrebattleWindow
 from gui.Scaleform.daapi.view.meta.BattleSessionWindowMeta import BattleSessionWindowMeta
 from gui import makeHtmlString
+from helpers import time_utils
 
-class BattleSessionWindow(PrebattleWindow, BattleSessionWindowMeta):
+class BattleSessionWindow(BattleSessionWindowMeta):
     START_TIME_SYNC_PERIOD = 10
     NATION_ICON_PATH = '../maps/icons/filters/nations/%(nation)s.png'
 
-    def __init__(self):
+    def __init__(self, ctx=None):
         super(BattleSessionWindow, self).__init__(prbName='battleSession')
+        self.__setStaticData()
         self.__startTimeSyncCallbackID = None
         self.__team = None
+        self.__timerCallbackID = None
         return
 
     def startListening(self):
@@ -46,6 +52,7 @@ class BattleSessionWindow(PrebattleWindow, BattleSessionWindowMeta):
 
     def onPlayerStateChanged(self, functional, roster, playerInfo):
         super(BattleSessionWindow, self).onPlayerStateChanged(functional, roster, playerInfo)
+        self.as_setInfoS(self.__battlesWinsString, self.__arenaName, self.__firstTeam, self.__secondTeam, self.prbFunctional.getProps().getBattlesScore(), self.__eventName, self.__sessionName)
         self.__updateCommonRequirements(functional.getTeamLimits(), functional.getRosters())
 
     def onSettingUpdated(self, functional, settingName, settingValue):
@@ -71,15 +78,15 @@ class BattleSessionWindow(PrebattleWindow, BattleSessionWindowMeta):
 
     @process
     def requestToAssignMember(self, pID):
-        yield self.prbDispatcher.sendPrbRequest(context.AssignPrbCtx(pID, self._getPlayerTeam() | PREBATTLE_ROSTER.ASSIGNED, 'prebattle/assign'))
+        yield self.prbDispatcher.sendPrbRequest(prb_ctx.AssignPrbCtx(pID, self._getPlayerTeam() | PREBATTLE_ROSTER.ASSIGNED, 'prebattle/assign'))
 
     @process
     def requestToUnassignMember(self, pID):
-        yield self.prbDispatcher.sendPrbRequest(context.AssignPrbCtx(pID, self._getPlayerTeam() | PREBATTLE_ROSTER.UNASSIGNED, 'prebattle/assign'))
+        yield self.prbDispatcher.sendPrbRequest(prb_ctx.AssignPrbCtx(pID, self._getPlayerTeam() | PREBATTLE_ROSTER.UNASSIGNED, 'prebattle/assign'))
 
     @process
     def requestToKickPlayer(self, pID):
-        yield self.prbDispatcher.sendPrbRequest(context.KickPlayerCtx(pID, 'prebattle/kick'))
+        yield self.prbDispatcher.sendPrbRequest(prb_ctx.KickPlayerCtx(pID, 'prebattle/kick'))
 
     def _populate(self):
         super(BattleSessionWindow, self)._populate()
@@ -88,12 +95,13 @@ class BattleSessionWindow(PrebattleWindow, BattleSessionWindowMeta):
         self.__syncStartTime()
         self._setRosterList(rosters)
         self.__updateCommonRequirements(teamLimits, rosters)
-        self.__updateInfo(self.prbFunctional.getSettings(), self.prbFunctional.getProps())
+        self.as_setInfoS(self.__battlesWinsString, self.__arenaName, self.__firstTeam, self.__secondTeam, self.prbFunctional.getProps().getBattlesScore(), self.__eventName, self.__sessionName)
         self.__updateLimits(teamLimits, rosters)
 
     def _dispose(self):
         self.__team = None
         self.__clearSyncStartTimeCallback()
+        self.__cancelTimerCallback()
         super(BattleSessionWindow, self)._dispose()
         return
 
@@ -103,8 +111,9 @@ class BattleSessionWindow(PrebattleWindow, BattleSessionWindowMeta):
         return self.__team
 
     def _setRosterList(self, rosters):
-        self.as_setRosterListS(self._getPlayerTeam(), True, self._makeAccountsData(rosters[self._getPlayerTeam() | PREBATTLE_ROSTER.ASSIGNED]))
-        self.as_setRosterListS(self._getPlayerTeam(), False, self._makeAccountsData(rosters[self._getPlayerTeam() | PREBATTLE_ROSTER.UNASSIGNED]))
+        playerTeam = self._getPlayerTeam()
+        self.as_setRosterListS(playerTeam, True, self._makeAccountsData(rosters[playerTeam | PREBATTLE_ROSTER.ASSIGNED]))
+        self.as_setRosterListS(playerTeam, False, self._makeAccountsData(rosters[playerTeam | PREBATTLE_ROSTER.UNASSIGNED]))
 
     def __handleBSWindowHide(self, _):
         self.destroy()
@@ -123,40 +132,67 @@ class BattleSessionWindow(PrebattleWindow, BattleSessionWindowMeta):
         self.__clearSyncStartTimeCallback()
         startTime = self.prbFunctional.getSettings()[PREBATTLE_SETTING_NAME.START_TIME]
         startTime = formatters.getStartTimeLeft(startTime)
-        self.as_setStartTimeS(startTime)
+        self.__cancelTimerCallback()
+        self.__showTimer(startTime)
         if startTime > 0:
             self.__startTimeSyncCallbackID = BigWorld.callback(self.START_TIME_SYNC_PERIOD, self.__syncStartTime)
 
-    def __updateInfo(self, settings, props):
+    def __showTimer(self, timeLeft):
+        self.__timerCallbackID = None
+        self.as_setStartTimeS(time_utils.getTimeLeftFormat(timeLeft))
+        if timeLeft > 0:
+            self.__timerCallbackID = BigWorld.callback(1, functools.partial(self.__showTimer, timeLeft - 1))
+        return
+
+    def __cancelTimerCallback(self):
+        if self.__timerCallbackID is not None:
+            safeCancelCallback(self.__timerCallbackID)
+            self.__timerCallbackID = None
+        return
+
+    def __setStaticData(self):
+        settings = self.prbFunctional.getSettings()
         extraData = settings[PREBATTLE_SETTING_NAME.EXTRA_DATA]
-        arenaName = functions.getArenaShortName(settings[PREBATTLE_SETTING_NAME.ARENA_TYPE_ID])
-        firstTeam, secondTeam = formatters.getPrebattleOpponents(extraData)
+        self.__arenaName = functions.getArenaShortName(settings[PREBATTLE_SETTING_NAME.ARENA_TYPE_ID])
+        self.__firstTeam, self.__secondTeam = formatters.getPrebattleOpponents(extraData)
         battlesLimit = settings[PREBATTLE_SETTING_NAME.BATTLES_LIMIT]
         winsLimit = settings[PREBATTLE_SETTING_NAME.WINS_LIMIT]
-        battlesWinsString = '%d/%s' % (battlesLimit, str(winsLimit or '-'))
-        eventName = formatters.getPrebattleEventName(extraData)
-        sessionName = formatters.getPrebattleSessionName(extraData)
+        self.__battlesWinsString = '%d/%s' % (battlesLimit, str(winsLimit or '-'))
+        self.__eventName = formatters.getPrebattleEventName(extraData)
+        self.__sessionName = formatters.getPrebattleSessionName(extraData)
         description = formatters.getPrebattleDescription(extraData)
         if description:
-            sessionName = '%s\n%s' % (sessionName, description)
-        self.as_setInfoS(battlesWinsString, arenaName, firstTeam, secondTeam, props.getBattlesScore(), eventName, sessionName)
+            self.__sessionName = '%s\n%s' % (self.__sessionName, description)
 
     def __updateCommonRequirements(self, teamLimits, rosters):
-        minTotalLvl, maxTotalLvl = prb_control.getTotalLevelLimits(teamLimits)
-        playersMaxCount = prb_control.getMaxSizeLimits(teamLimits)[0]
+        minTotalLvl, maxTotalLvl = prb_getters.getTotalLevelLimits(teamLimits)
+        playersMaxCount = prb_getters.getMaxSizeLimits(teamLimits)[0]
         totalLvl = 0
+        playersCount = 0
         for roster, players in rosters.iteritems():
             if roster ^ self.__team == PREBATTLE_ROSTER.ASSIGNED:
                 for player in players:
+                    if player.isReady():
+                        playersCount += 1
                     if player.isVehicleSpecified():
                         totalLvl += player.getVehicle().level
 
-        self.as_setCommonLimitsS(totalLvl, minTotalLvl, maxTotalLvl, playersMaxCount)
+        if minTotalLvl <= totalLvl and totalLvl <= maxTotalLvl:
+            teamLevelStr = text_styles.main(str(totalLvl))
+        else:
+            teamLevelStr = text_styles.error(str(totalLvl))
+        self.as_setCommonLimitsS(teamLevelStr, playersMaxCount)
+        self.as_setPlayersCountTextS(makeHtmlString('html_templates:lobby/prebattle', 'specBattlePlayersCount', {'membersCount': playersCount,
+         'maxMembersCount': playersMaxCount}))
+        playerTeam = len(self._makeAccountsData(rosters[self._getPlayerTeam() | PREBATTLE_ROSTER.ASSIGNED]))
+        playersStyleFunc = text_styles.main if playerTeam < playersMaxCount else text_styles.error
+        playersCountStr = playersStyleFunc('%d/%d' % (playerTeam, playersMaxCount))
+        self.as_setTotalPlayersCountS(playersCountStr)
 
     def __updateLimits(self, teamLimits, rosters):
         levelLimits = {}
         for className in constants.VEHICLE_CLASSES:
-            classLvlLimits = prb_control.getClassLevelLimits(teamLimits, className)
+            classLvlLimits = prb_getters.getClassLevelLimits(teamLimits, className)
             levelLimits[className] = {'minLevel': classLvlLimits[0],
              'maxLevel': classLvlLimits[1],
              'maxCurLevel': 0}
@@ -176,7 +212,7 @@ class BattleSessionWindow(PrebattleWindow, BattleSessionWindowMeta):
                 strlevelLimits[className] = self.__makeMinMaxString(levelLimits[className])
 
         self.as_setClassesLimitsS(strlevelLimits, classesLimitsAreIdentical)
-        nationsLimits = prb_control.getNationsLimits(teamLimits)
+        nationsLimits = prb_getters.getNationsLimits(teamLimits)
         nationsLimitsResult = None
         if nationsLimits is not None and len(nationsLimits) != len(nations.AVAILABLE_NAMES):
             nationsLimitsResult = []
@@ -214,6 +250,4 @@ class BattleSessionWindow(PrebattleWindow, BattleSessionWindowMeta):
             return '-'
         else:
             return '{0:>s}-{1:>s}'.format(minString, maxString)
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/lobby/prb_windows/battlesessionwindow.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:07 EST
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/prb_windows/battlesessionwindow.pyc

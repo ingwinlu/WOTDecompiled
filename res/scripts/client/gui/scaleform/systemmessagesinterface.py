@@ -1,15 +1,15 @@
-# 2013.11.15 11:26:45 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/SystemMessagesInterface.py
 import time
 import account_helpers
 from ConnectionManager import connectionManager
 import constants
 from debug_utils import LOG_DEBUG, LOG_ERROR
-from gui import game_control
-from helpers import i18n, getLocalizedData
+from gui import game_control, GUI_SETTINGS
+from gui.shared import g_itemsCache
+from helpers import i18n
 from gui.SystemMessages import SM_TYPE, BaseSystemMessages
-from gui.shared.utils.requesters import StatsRequester
-from messenger.formatters import SCH_CLIENT_MSG_TYPE
+from messenger.m_constants import SCH_CLIENT_MSG_TYPE
 from PlayerEvents import g_playerEvents
 from MemoryCriticalController import g_critMemHandler
 from adisp import process
@@ -18,7 +18,8 @@ from messenger.proto import proto_getter
 KOREA_TIME_TILL_MIDNIGHT = 7200
 
 class SystemMessagesInterface(BaseSystemMessages):
-    __BLOCK_PREFIX = 'cmd_'
+    __CMD_BLOCK_PREFIX = 'cmd_'
+    __PROMO_BLOCK_PREFIX = 'promo_'
 
     def init(self):
         connectionManager.onConnected += self.__onConnected
@@ -28,7 +29,7 @@ class SystemMessagesInterface(BaseSystemMessages):
         ctrl = game_control.g_instance
         ctrl.aogas.onNotifyAccount += self.__AOGAS_onNotifyAccount
         ctrl.gameSession.onClientNotify += self.__gameSession_onClientNotify
-        g_playerEvents.onEventNotificationsChanged += self.__onReceiveEventNotification
+        game_control.getEventsNotificationCtrl().onEventNotificationsChanged += self.__onReceiveEventNotification
 
     def destroy(self):
         connectionManager.onConnected -= self.__onConnected
@@ -37,20 +38,25 @@ class SystemMessagesInterface(BaseSystemMessages):
         ctrl = game_control.g_instance
         ctrl.aogas.onNotifyAccount -= self.__AOGAS_onNotifyAccount
         ctrl.gameSession.onClientNotify -= self.__gameSession_onClientNotify
-        g_playerEvents.onEventNotificationsChanged -= self.__onReceiveEventNotification
+        game_control.getEventsNotificationCtrl().onEventNotificationsChanged += self.__onReceiveEventNotification
         self.__clearLobbyListeners()
 
     @proto_getter(PROTO_TYPE.BW)
     def proto(self):
         return None
 
-    def pushMessage(self, text, type = SM_TYPE.Information):
-        self.proto.serviceChannel.pushClientSysMessage(text, type)
+    def pushMessage(self, text, type=SM_TYPE.Information, priority=None):
+        if GUI_SETTINGS.isGuiEnabled():
+            self.proto.serviceChannel.pushClientSysMessage(text, type, priority=priority)
+        else:
+            LOG_DEBUG('[SYSTEM MESSAGE]', text, type)
 
     def pushI18nMessage(self, key, *args, **kwargs):
         text = i18n.makeString(key, *args, **kwargs)
         msgType = kwargs.get('type', SM_TYPE.Information)
-        self.pushMessage(text, msgType)
+        msgPriority = kwargs.get('priority', None)
+        self.pushMessage(text, msgType, msgPriority)
+        return
 
     def __onAccountShowGUI(self, ctx):
         self.__checkPremiumAccountExpiry()
@@ -76,9 +82,8 @@ class SystemMessagesInterface(BaseSystemMessages):
     def __onConnected(self):
         self.pushI18nMessage('#system_messages:connected', connectionManager.serverUserName, type=SM_TYPE.GameGreeting)
 
-    @process
-    def __checkPremiumAccountExpiry(self, ctx = None):
-        expiryUTCTime = yield StatsRequester().getPremiumExpiryTime()
+    def __checkPremiumAccountExpiry(self, ctx=None):
+        expiryUTCTime = g_itemsCache.items.stats.premiumExpiryTime
         delta = account_helpers.getPremiumExpiryDelta(expiryUTCTime)
         if delta.days == 0 and expiryUTCTime and not self.__expirationShown:
             self.proto.serviceChannel.pushClientMessage(expiryUTCTime, SCH_CLIENT_MSG_TYPE.PREMIUM_ACCOUNT_EXPIRY_MSG)
@@ -89,7 +94,7 @@ class SystemMessagesInterface(BaseSystemMessages):
         self.pushI18nMessage('#system_messages:memory_critical/%s' % key, type=SM_TYPE.Error if msgType == 1 else SM_TYPE.Warning)
 
     def __AOGAS_onNotifyAccount(self, message):
-        self.proto.serviceChannel.pushClientMessage(message, SCH_CLIENT_MSG_TYPE.AOGAS_NOTIFY_TYPE, isPriority=True, auxData=['AOGAS', message.timeout])
+        self.proto.serviceChannel.pushClientMessage(message, SCH_CLIENT_MSG_TYPE.AOGAS_NOTIFY_TYPE, isAlert=True, auxData=['AOGAS', message.timeout])
 
     def __gameSession_onClientNotify(self, sessionDuration, timeTillMidnight, playTimeLeft):
         LOG_DEBUG('onGameSessionNotification', sessionDuration, timeTillMidnight, playTimeLeft)
@@ -101,27 +106,22 @@ class SystemMessagesInterface(BaseSystemMessages):
             if playTimeLeft is not None:
                 msgList.append(i18n.makeString(key.format('playTimeLeft'), timeLeft=time.strftime('%H:%M', time.gmtime(playTimeLeft))))
             msgList.append(i18n.makeString(key.format('note')))
-            self.proto.serviceChannel.pushClientSysMessage('\n'.join(msgList), SM_TYPE.Information)
+            self.proto.serviceChannel.pushClientSysMessage('\n'.join(msgList), SM_TYPE.Warning)
         return
 
-    def __onReceiveEventNotification(self, notificationsDiff):
-        self.__processNotifications(notificationsDiff.get('added', []), 'Begin')
-        self.__processNotifications(notificationsDiff.get('removed', []), 'End')
+    def __onReceiveEventNotification(self, added, removed):
+        self.__processNotifications(added, 'Begin')
+        self.__processNotifications(removed, 'End')
 
     def __processNotifications(self, notifications, state):
-        if game_control.g_instance.roaming.isInRoaming():
-            return
-        else:
-            for notification in notifications:
-                text = getLocalizedData(notification, 'text')
-                msgType = notification.get('type', None)
-                if msgType is not None and msgType[:len(self.__BLOCK_PREFIX)] != self.__BLOCK_PREFIX and len(text) > 0:
-                    message = {'data': text,
-                     'type': msgType,
-                     'state': state}
-                    self.proto.serviceChannel.pushClientMessage(message, SCH_CLIENT_MSG_TYPE.ACTION_NOTIFY_TYPE)
+        for notification in notifications:
+            msgType = notification.eventType
+            text = notification.text
+            if msgType is not None and not msgType.startswith(self.__CMD_BLOCK_PREFIX) and not msgType.startswith(self.__PROMO_BLOCK_PREFIX) and text:
+                message = {'data': text,
+                 'type': msgType,
+                 'state': state}
+                self.proto.serviceChannel.pushClientMessage(message, SCH_CLIENT_MSG_TYPE.ACTION_NOTIFY_TYPE)
 
-            return
-# okay decompyling res/scripts/client/gui/scaleform/systemmessagesinterface.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:46 EST
+        return
+# okay decompiling ./res/scripts/client/gui/scaleform/systemmessagesinterface.pyc

@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/doc_loaders/GuiDirReader.py
 import ResMgr
 
 class GuiDirReader(object):
@@ -19,3 +21,4 @@ class GuiDirReader(object):
 
         ResMgr.purge(GuiDirReader.SCALEFORM_STARTUP_VIDEO_PATH, True)
         return movieFiles
+# okay decompiling ./res/scripts/client/gui/doc_loaders/guidirreader.pyc

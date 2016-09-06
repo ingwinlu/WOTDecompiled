@@ -1,45 +1,67 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/techtree/dumpers.py
 from debug_utils import LOG_ERROR
 import gui
+from gui.Scaleform.daapi.view.lobby.techtree.techtree_dp import g_techTreeDP
+from gui.shared.formatters.time_formatters import RentLeftFormatter
+from gui.shared.gui_items import GUI_ITEM_TYPE
+from gui.shared.tooltips.formatters import packItemActionTooltipData
+from gui.shared.tooltips.formatters import packItemRentActionTooltipData
 from gui.shared.utils import CLIP_ICON_PATH
+from gui.shared.gui_items.Vehicle import Vehicle
 from helpers import i18n, html
-from gui.Scaleform.daapi.view.lobby.techtree import _PREMIUM_TAGS, _VEHICLE_TYPE_NAME, _GUN_TYPE_NAME, NODE_STATE, techtree_dp, VehicleClassInfo
+from gui.Scaleform.daapi.view.lobby.techtree import techtree_dp
+from gui.Scaleform.daapi.view.lobby.techtree.settings import VehicleClassInfo
+from gui.Scaleform.daapi.view.lobby.techtree.settings import SelectedNation
 import nations
-__all__ = ['_BaseDumper',
- 'ResearchItemsObjDumper',
- 'ResearchItemsXMLDumper',
- 'NationObjDumper',
- 'NationXMLDumper']
+__all__ = ('ResearchItemsObjDumper', 'ResearchItemsXMLDumper', 'NationObjDumper', 'NationXMLDumper')
 
 class _BaseDumper(object):
     __slots__ = ('_cache', '_vClassInfo')
 
-    def __init__(self, cache = None):
+    def __init__(self, cache=None):
         super(_BaseDumper, self).__init__()
         self._cache = cache
         self._vClassInfo = VehicleClassInfo()
 
-    def clear(self, full = False):
+    def clear(self, full=False):
         raise NotImplementedError
 
     def dump(self, data):
         return {}
 
+    @staticmethod
+    def _getRentStatus(item):
+        status = ''
+        statusLevel = ''
+        if item.isRented and not item.isTelecom:
+            if item.rentalIsOver:
+                if item.isPremiumIGR:
+                    status = i18n.makeString('#menu:currentVehicleStatus/igrRentalIsOver')
+                else:
+                    status = i18n.makeString('#menu:currentVehicleStatus/rentalIsOver')
+                statusLevel = Vehicle.VEHICLE_STATE_LEVEL.CRITICAL
+            elif not item.isPremiumIGR:
+                status = RentLeftFormatter(item.rentInfo).getRentLeftStr()
+                statusLevel = Vehicle.VEHICLE_STATE_LEVEL.RENTED
+        return (status, statusLevel)
+
 
 class ResearchItemsObjDumper(_BaseDumper):
 
-    def __init__(self, cache = None):
+    def __init__(self, cache=None):
         if cache is None:
             cache = {'nodes': [],
              'top': [],
              'global': {'enableInstallItems': False,
-                        'statusString': '',
+                        'statusString': None,
                         'extraInfo': {},
                         'freeXP': 0,
                         'hasNationTree': False}}
         super(ResearchItemsObjDumper, self).__init__(cache)
         return
 
-    def clear(self, full = False):
+    def clear(self, full=False):
         for key in ['nodes', 'top']:
             nodes = self._cache[key]
             while len(nodes):
@@ -52,9 +74,9 @@ class ResearchItemsObjDumper(_BaseDumper):
     def dump(self, data):
         self.clear()
         itemGetter = data.getItem
-        intCD = data.getRootCD()
-        self._cache['nodes'] = map(lambda node: self._getItemData(node, itemGetter(node['id']), intCD), data._nodes)
-        self._cache['top'] = map(lambda node: self._getItemData(node, itemGetter(node['id']), intCD), data._topLevel)
+        rootItem = data.getRootItem()
+        self._cache['nodes'] = map(lambda node: self._getItemData(node, itemGetter(node['id']), rootItem), data._nodes)
+        self._cache['top'] = map(lambda node: self._getItemData(node, itemGetter(node['id']), rootItem), data._topLevel)
         self._getGlobalData(data)
         return self._cache
 
@@ -66,15 +88,18 @@ class ResearchItemsObjDumper(_BaseDumper):
             nation = None
 
         globalData = self._cache['global']
-        globalData.update({'enableInstallItems': data.isEnableInstallItems(),
+        warningMessage = None
+        globalData.update({'enableInstallItems': data.isInstallItemsEnabled(),
          'statusString': data.getRootStatusString(),
          'extraInfo': self._getExtraInfo(data),
-         'freeXP': data._accFreeXP,
-         'hasNationTree': nation in techtree_dp.g_techTreeDP.getAvailableNations()})
+         'freeXP': data.getUnlockStats().freeXP,
+         'hasNationTree': nation in techtree_dp.g_techTreeDP.getAvailableNations(),
+         'warningMessage': warningMessage,
+         'historicalBattleID': -1})
         return
 
     def _getExtraInfo(self, data):
-        item = data.getItem(data.getRootCD())
+        item = data.getRootItem()
         result = {}
         if item.isPremium:
             if item.isSpecial:
@@ -83,59 +108,69 @@ class ResearchItemsObjDumper(_BaseDumper):
                 tag = 'premium'
             typeString = i18n.makeString('#tooltips:tankCaruselTooltip/vehicleType/elite/{0:>s}'.format(item.type))
             result = {'type': item.type,
-             'title': gui.makeHtmlString('html_templates:lobby/research', 'premium_title', ctx={'name': item.name,
+             'title': gui.makeHtmlString('html_templates:lobby/research', 'premium_title', ctx={'name': item.userName,
                        'type': typeString,
                        'level': i18n.makeString('#tooltips:level/{0:d}'.format(item.level))}),
              'benefitsHead': i18n.makeString('#menu:research/{0:>s}/benefits/head'.format(tag)),
-             'benefitsList': gui.makeHtmlString('html_templates:lobby/research', '{0:>s}_benefits'.format(tag), ctx={'description': item.description})}
+             'benefitsList': gui.makeHtmlString('html_templates:lobby/research', '{0:>s}_benefits'.format(tag), ctx={'description': item.fullDescription}),
+             'isPremiumIgr': item.isPremiumIGR}
         return result
 
-    def _getItemData(self, node, item, intCD):
+    def _getItemData(self, node, item, rootItem):
         nodeCD = node['id']
-        vClass = {'userString': '',
-         'name': ''}
-        iconPath = ''
-        smallIconPath = ''
-        isVehicle = item.itemTypeName == _VEHICLE_TYPE_NAME
+        vClass = {'name': ''}
         extraInfo = None
-        if isVehicle:
-            tags = item.tags
-            vClass = self._vClassInfo.getInfoByTags(tags)
-            if len(tags & _PREMIUM_TAGS):
-                node['state'] |= NODE_STATE.PREMIUM
-            iconPath = item.icon
-            smallIconPath = item.smallIcon
+        status = statusLevel = ''
+        minRentPricePackage = None
+        vehicleBtnLabel = ''
+        if item.itemTypeID == GUI_ITEM_TYPE.VEHICLE:
+            vClass = self._vClassInfo.getInfoByTags(item.tags)
+            status, statusLevel = self._getRentStatus(item)
+            minRentPricePackage = item.getRentPackage()
+            if item.isInInventory:
+                vehicleBtnLabel = '#menu:research/labels/button/showInHangar'
+            else:
+                vehicleBtnLabel = '#menu:research/showInPreviewBtn/label'
         else:
-            if item.itemTypeName == _GUN_TYPE_NAME:
-                if item.isClipGun(intCD):
-                    extraInfo = CLIP_ICON_PATH
-            vClass.update({'name': item.itemTypeName,
-             'userString': item.userType})
+            if item.itemTypeID == GUI_ITEM_TYPE.GUN and item.isClipGun(rootItem.descriptor):
+                extraInfo = CLIP_ICON_PATH
+            vClass.update({'name': item.itemTypeName})
+        credits, gold = item.minRentPrice or item.buyPrice
+        action = None
+        if item.buyPrice != item.defaultPrice and not minRentPricePackage:
+            action = packItemActionTooltipData(item)
+        elif minRentPricePackage:
+            if minRentPricePackage['rentPrice'] != minRentPricePackage['defaultRentPrice']:
+                action = packItemRentActionTooltipData(item, minRentPricePackage)
         return {'id': nodeCD,
-         'nameString': item.shortName,
+         'nameString': item.shortUserName,
          'primaryClass': vClass,
          'level': item.level,
-         'longName': item.longName,
-         'iconPath': iconPath,
-         'smallIconPath': smallIconPath,
-         'pickleDump': item.pack(),
+         'longName': item.longUserName,
+         'iconPath': item.icon,
+         'smallIconPath': item.iconSmall,
          'earnedXP': node['earnedXP'],
          'state': node['state'],
-         'shopPrice': node['shopPrice'],
+         'shopPrice': (credits, gold, action),
          'displayInfo': node['displayInfo'],
          'unlockProps': node['unlockProps']._makeTuple(),
-         'extraInfo': extraInfo}
+         'extraInfo': extraInfo,
+         'status': status,
+         'statusLevel': statusLevel,
+         'isPremiumIGR': item.isPremiumIGR,
+         'showVehicleBtnLabel': i18n.makeString(vehicleBtnLabel),
+         'showVehicleBtnEnabled': item.isInInventory or item.isPreviewAllowed()}
 
 
 class ResearchItemsXMLDumper(ResearchItemsObjDumper):
     __xmlBody = '<?xml version="1.0" encoding="utf-8"?><graph><top>{0:>s}</top><nodes>{1:>s}</nodes><global><enableInstallItems>{2[enableInstallItems]:b}</enableInstallItems><statusString>{2[statusString]:>s}</statusString><extraInfo><type>{2[extraInfo][type]:>s}</type><title><![CDATA[{2[extraInfo][title]:>s}]]></title><benefitsHead><![CDATA[{2[extraInfo][benefitsHead]:>s}]]></benefitsHead><benefitsList><![CDATA[{2[extraInfo][benefitsList]:>s}]]></benefitsList></extraInfo><freeXP>{2[freeXP]:n}</freeXP><hasNationTree>{2[hasNationTree]:b}</hasNationTree></global></graph>'
-    __nodeFormat = '<node><id>{id:d}</id><nameString>{nameString:>s}</nameString><class><name>{primaryClass[name]:>s}</name><userString>{primaryClass[userString]:>s}</userString></class><level>{level:d}</level><earnedXP>{earnedXP:d}</earnedXP><state>{state:d}</state><unlockProps><parentID>{unlockProps[0]:d}</parentID><unlockIdx>{unlockProps[1]:d}</unlockIdx><xpCost>{unlockProps[2]:n}</xpCost><required>{unlockProps[3]:>s}</required></unlockProps><smallIconPath><![CDATA[{smallIconPath:>s}]]></smallIconPath><iconPath><![CDATA[{iconPath:>s}]]></iconPath><longName>{longName:>s}</longName><dump><![CDATA[{pickleDump:>s}]]></dump><shopPrice><credits>{shopPrice[0]:n}</credits><gold>{shopPrice[1]:n}</gold></shopPrice><display><renderer>{displayInfo[renderer]:>s}</renderer><path>{displayInfo[path]:>s}</path><level>{displayInfo[level]:d}</level></display></node>'
+    __nodeFormat = '<node><id>{id:d}</id><nameString>{nameString:>s}</nameString><class><name>{primaryClass[name]:>s}</name></class><level>{level:d}</level><earnedXP>{earnedXP:d}</earnedXP><state>{state:d}</state><unlockProps><parentID>{unlockProps[0]:d}</parentID><unlockIdx>{unlockProps[1]:d}</unlockIdx><xpCost>{unlockProps[2]:n}</xpCost><required>{unlockProps[3]:>s}</required></unlockProps><smallIconPath><![CDATA[{smallIconPath:>s}]]></smallIconPath><iconPath><![CDATA[{iconPath:>s}]]></iconPath><longName>{longName:>s}</longName><shopPrice><credits>{shopPrice[0]:n}</credits><gold>{shopPrice[1]:n}</gold></shopPrice><display><renderer>{displayInfo[renderer]:>s}</renderer><path>{displayInfo[path]:>s}</path><level>{displayInfo[level]:d}</level></display></node>'
     __idFormat = '<id>{0:d}</id>'
 
     def __init__(self):
         super(ResearchItemsXMLDumper, self).__init__('')
 
-    def clear(self, full = False):
+    def clear(self, full=False):
         self._cache = ''
 
     def dump(self, data):
@@ -172,7 +207,7 @@ class ResearchItemsXMLDumper(ResearchItemsObjDumper):
 
 class NationObjDumper(_BaseDumper):
 
-    def __init__(self, cache = None):
+    def __init__(self, cache=None):
         if cache is None:
             cache = {'nodes': [],
              'displaySettings': {},
@@ -180,7 +215,7 @@ class NationObjDumper(_BaseDumper):
         super(NationObjDumper, self).__init__(cache)
         return
 
-    def clear(self, full = False):
+    def clear(self, full=False):
         nodes = self._cache['nodes']
         while len(nodes):
             nodes.pop().clear()
@@ -195,33 +230,43 @@ class NationObjDumper(_BaseDumper):
         itemGetter = data.getItem
         self._cache['nodes'] = map(lambda node: self._getVehicleData(node, itemGetter(node['id'])), nodes)
         self._cache['scrollIndex'] = data._scrollIndex
-        self._cache['displaySettings'].update(data._displaySettings)
+        self._cache['displaySettings'].update(g_techTreeDP.getDisplaySettings(SelectedNation.getIndex()))
         return self._cache
 
     def _getVehicleData(self, node, item):
         nodeCD = node['id']
         tags = item.tags
-        if len(tags & _PREMIUM_TAGS):
-            node['state'] |= NODE_STATE.PREMIUM
+        credits, gold = item.minRentPrice or item.buyPrice
+        status, statusLevel = self._getRentStatus(item)
+        action = None
+        minRentPricePackage = item.getRentPackage()
+        if item.buyPrice != item.defaultPrice and not minRentPricePackage:
+            action = packItemActionTooltipData(item)
+        elif minRentPricePackage:
+            if minRentPricePackage['rentPrice'] != minRentPricePackage['defaultRentPrice']:
+                action = packItemRentActionTooltipData(item, minRentPricePackage)
         return {'id': nodeCD,
          'state': node['state'],
          'type': item.itemTypeName,
-         'nameString': item.shortName,
+         'nameString': item.shortUserName,
          'primaryClass': self._vClassInfo.getInfoByTags(tags),
          'level': item.level,
-         'longName': item.longName,
+         'longName': item.longUserName,
          'iconPath': item.icon,
-         'smallIconPath': item.smallIcon,
-         'pickleDump': item.pack(),
+         'smallIconPath': item.iconSmall,
          'earnedXP': node['earnedXP'],
-         'shopPrice': node['shopPrice'],
+         'shopPrice': (credits, gold, action),
          'displayInfo': node['displayInfo'],
-         'unlockProps': node['unlockProps']._makeTuple()}
+         'unlockProps': node['unlockProps']._makeTuple(),
+         'status': status,
+         'statusLevel': statusLevel,
+         'isRemovable': item.isRented,
+         'isPremiumIGR': item.isPremiumIGR}
 
 
 class NationXMLDumper(NationObjDumper):
     __xmlBody = '<?xml version="1.0" encoding="utf-8"?><tree><nodes>{0:>s}</nodes><scrollIndex>{1:d}</scrollIndex></tree>'
-    __nodeFormat = '<node><id>{id:d}</id><nameString>{nameString:>s}</nameString><class><name>{primaryClass[name]:>s}</name><userString>{primaryClass[userString]:>s}</userString></class><level>{level:d}</level><earnedXP>{earnedXP:d}</earnedXP><state>{state:d}</state><unlockProps><parentID>{unlockProps[0]:d}</parentID><unlockIdx>{unlockProps[1]:d}</unlockIdx><xpCost>{unlockProps[2]:n}</xpCost><topIDs>{unlockProps[3]:>s}</topIDs></unlockProps><iconPath>{iconPath:>s}</iconPath><smallIconPath><![CDATA[{smallIconPath:>s}]]></smallIconPath><longName>{longName:>s}</longName><dump><![CDATA[{pickleDump:>s}]]></dump><shopPrice><credits>{shopPrice[0]:n}</credits><gold>{shopPrice[1]:n}</gold></shopPrice><display>{displayInfo:>s}</display></node>'
+    __nodeFormat = '<node><id>{id:d}</id><nameString>{nameString:>s}</nameString><class><name>{primaryClass[name]:>s}</name></class><level>{level:d}</level><earnedXP>{earnedXP:d}</earnedXP><state>{state:d}</state><unlockProps><parentID>{unlockProps[0]:d}</parentID><unlockIdx>{unlockProps[1]:d}</unlockIdx><xpCost>{unlockProps[2]:n}</xpCost><topIDs>{unlockProps[3]:>s}</topIDs></unlockProps><iconPath>{iconPath:>s}</iconPath><smallIconPath><![CDATA[{smallIconPath:>s}]]></smallIconPath><longName>{longName:>s}</longName><shopPrice><credits>{shopPrice[0]:n}</credits><gold>{shopPrice[1]:n}</gold></shopPrice><display>{displayInfo:>s}</display></node>'
     __displayInfoFormat = '<row>{row:d}</row><column>{column:d}</column><position><x>{position[0]:n}</x><y>{position[1]:n}</y></position><lines>{lines:>s}</lines>'
     __setFormat = '<set><outLiteral>{0:>s}</outLiteral><outPin><x>{1[0]:n}</x><y>{1[1]:n}</y></outPin><inPins>{2:>s}</inPins></set>'
     __inPinFormat = '<item><childID>{childID:d}</childID><inPin><x>{inPin[0]:n}</x><y>{inPin[1]:n}</y></inPin><viaPins>{dump:>s}</viaPins></item>'
@@ -231,7 +276,7 @@ class NationXMLDumper(NationObjDumper):
     def __init__(self):
         super(NationXMLDumper, self).__init__('')
 
-    def clear(self, full = False):
+    def clear(self, full=False):
         self._cache = ''
 
     def dump(self, data):
@@ -267,3 +312,4 @@ class NationXMLDumper(NationObjDumper):
 
         info['lines'] = ''.join(dump)
         return self.__displayInfoFormat.format(**info)
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/techtree/dumpers.pyc

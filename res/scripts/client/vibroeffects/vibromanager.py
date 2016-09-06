@@ -1,14 +1,15 @@
-import BigWorld
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/Vibroeffects/VibroManager.py
 import copy
 from EffectsSettings import EffectsSettings
 from VibroEffect import VibroEffect
 import Settings
 from debug_utils import *
 import Event
+from PlayerEvents import g_playerEvents
 g_instance = None
 
 class VibroManager:
-    __CONNECTION_CHECK_PERIOD = 10.0
 
     class GroupSettings:
         pass
@@ -18,7 +19,7 @@ class VibroManager:
         self.__quickEffects = {}
         self.__vibrationObject = BigWorld.WGVibration()
         self.__vibrationObject.reset()
-        self.__connectionCheckId = BigWorld.callback(VibroManager.__CONNECTION_CHECK_PERIOD, self.__checkConnection)
+        g_playerEvents.onAccountShowGUI += self.__onAccountShowGUI
         self.__eventManager = Event.EventManager()
         self.onConnect = Event.Event(self.__eventManager)
         self.onDisconnect = Event.Event(self.__eventManager)
@@ -40,14 +41,16 @@ class VibroManager:
         return
 
     def start(self):
-        from gui.WindowsManager import g_windowsManager
-        if g_windowsManager.window is not None:
-            g_windowsManager.window.addExternalCallback('StartGameVideo.StopVideo', self.__onStopVideo)
-            g_windowsManager.window.addExternalCallback('StartGameVideo.NetSteamError', self.__onStopVideo)
-        return
+        from gui.app_loader import g_appLoader
+        g_appLoader.onGUISpaceEntered += self.__onGUISpaceEntered
 
-    def __onStopVideo(self, *args):
-        self.stopAllEffects()
+    def __onGUISpaceEntered(self, spaceID):
+        from gui.app_loader.settings import GUI_GLOBAL_SPACE_ID
+        if spaceID == GUI_GLOBAL_SPACE_ID.LOGIN:
+            self.stopAllEffects()
+
+    def __onAccountShowGUI(self, ctx):
+        self.connect()
 
     def playButtonClickEffect(self, buttonType):
         if not self.__isConnected:
@@ -63,16 +66,16 @@ class VibroManager:
                 effect.destroy()
 
     def destroy(self):
+        from gui.app_loader import g_appLoader
+        g_appLoader.onGUISpaceEntered -= self.__onGUISpaceEntered
         self.clearEffects()
         self.__effects = None
         self.__quickEffects = None
         self.__runningEffects = None
         self.__vibrationObject = None
         self.saveUserPrefs()
-        if self.__connectionCheckId is not None:
-            BigWorld.cancelCallback(self.__connectionCheckId)
-            self.__connectionCheckId = None
         self.__eventManager.clear()
+        g_playerEvents.onAccountShowGUI -= self.__onAccountShowGUI
         return
 
     def loadUserPrefs(self):
@@ -89,8 +92,9 @@ class VibroManager:
             for groupName in EffectsSettings.Groups.AllGroupNames:
                 groupSection = groupsSettingsSection[groupName]
                 if groupSection is not None:
-                    self.__groupsSettings[groupName].enabled = groupSection.readBool('enabled', True)
-                    self.__groupsSettings[groupName].gain = groupSection.readFloat('gain', 1.0)
+                    gain = groupSection.readFloat('gain', 1.0)
+                    self.__groupsSettings[groupName].enabled = gain > 0
+                    self.__groupsSettings[groupName].gain = gain
 
             return
 
@@ -119,6 +123,7 @@ class VibroManager:
         self.__groupsSettings = copy.deepcopy(settings)
         for groupSettings in self.__groupsSettings.values():
             groupSettings.gain = self.__clampGain(groupSettings.gain)
+            groupSettings.enabled = groupSettings.gain > 0
 
     def isGroupEnabled(self, groupName):
         if groupName in self.__groupsSettings:
@@ -126,7 +131,7 @@ class VibroManager:
         LOG_DEBUG('group not found: ' + groupName)
         return False
 
-    def getGroupGain(self, groupName, default = 1.0):
+    def getGroupGain(self, groupName, default=1.0):
         if groupName in self.__groupsSettings:
             return self.__groupsSettings[groupName].gain
         return default
@@ -135,6 +140,7 @@ class VibroManager:
         if groupName in self.__groupsSettings:
             groupSettings = self.__groupsSettings[groupName]
             groupSettings.gain = self.__clampGain(value)
+            groupSettings.enabled = groupSettings.gain > 0
 
     def isEnabledByUser(self):
         return self.__isEnabledByUser
@@ -146,10 +152,6 @@ class VibroManager:
 
             self.__runningEffects.clear()
         self.__isEnabledByUser = enable
-
-    def __checkConnection(self):
-        self.connect()
-        self.__connectionCheckId = BigWorld.callback(VibroManager.__CONNECTION_CHECK_PERIOD, self.__checkConnection)
 
     def connect(self):
         wasConnected = self.__isConnected
@@ -192,7 +194,7 @@ class VibroManager:
     def getOverlappedGainMultiplier(self):
         return EffectsSettings.getOverlappedGainMultiplier()
 
-    def loadEffectFromFile(self, effectName, priority = 0):
+    def loadEffectFromFile(self, effectName, priority=0):
         if not self.__isConnected:
             return VibroEffect(effectName, None, EffectsSettings.getEffectPriority(effectName), self.__vibrationObject, EffectsSettings.getGroupForEffect(effectName))
         else:
@@ -209,7 +211,7 @@ class VibroManager:
         self.__effects[effectName] = effect
         return effect
 
-    def launchQuickEffect(self, effectName, count = 1, gain = 100):
+    def launchQuickEffect(self, effectName, count=1, gain=100):
         if not self.canWork():
             return
         elif count is None:
@@ -235,7 +237,7 @@ class VibroManager:
             self.startEffect(effectToLaunch, count)
             return
 
-    def startEffect(self, vibroEffect, count = None):
+    def startEffect(self, vibroEffect, count=None):
         if not self.canWork() or not self.isGroupEnabled(vibroEffect.group):
             return
         elif vibroEffect.isRunning() or vibroEffect.handle is None:
@@ -279,9 +281,9 @@ class VibroManager:
                 elif curTopEffect is None or curTopEffect.getPriority() < vibroEffect.getPriority():
                     curTopEffect = vibroEffect
 
-            if not self.__topEffect is None:
-                shouldRecalcGain = not self.__topEffect.isRunning()
-                self.__topEffect = shouldRecalcGain and curTopEffect
+            shouldRecalcGain = self.__topEffect is None or not self.__topEffect.isRunning()
+            if shouldRecalcGain:
+                self.__topEffect = curTopEffect
             for vibroEffect in self.__runningEffects.values():
                 if (shouldRecalcGain or vibroEffect.requiresGainChange()) and vibroEffect != self.__topEffect:
                     self.__drownEffect(vibroEffect)
@@ -289,3 +291,4 @@ class VibroManager:
                     self.__vibrationObject.setEffectGain(vibroEffect.handle, self.getGroupGain(vibroEffect.group) * vibroEffect.getRelativeGain())
 
             return
+# okay decompiling ./res/scripts/client/vibroeffects/vibromanager.pyc

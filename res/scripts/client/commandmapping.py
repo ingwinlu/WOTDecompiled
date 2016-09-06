@@ -1,6 +1,9 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/CommandMapping.py
 import BigWorld
 import ResMgr
 import Keys
+import Event
 import Settings
 from debug_utils import *
 g_instance = None
@@ -59,17 +62,20 @@ CMD_TOGGLE_GUI = 53
 CMD_RELOAD_PARTIAL_CLIP = 54
 CMD_RADIAL_MENU_SHOW = 55
 CMD_CHAT_SHORTCUT_RELOAD = 56
+CMD_VOICECHAT_ENABLE = 57
+CMD_BLOCK_TRACKS = 58
 
 class CommandMapping:
     __DEFAULT_CONFIG_FILE_NAME = 'scripts/command_mapping.xml'
     __USER_CONFIG_SECTION_NAME = 'commandMapping'
+    onMappingChanged = Event.Event()
 
     def __init__(self):
         self.__mapping = {}
         self.__dictCommand2CommandName = {}
         self.restoreUserConfig()
 
-    def add(self, commandName, fireKeyName, satelliteKeyNames = [], isDefault = False):
+    def add(self, commandName, fireKeyName, satelliteKeyNames=[], isDefault=False):
         try:
             command = int(self.getCommand(commandName))
             fireKey = int(Keys.__dict__.get(fireKeyName))
@@ -105,7 +111,7 @@ class CommandMapping:
 
         return None
 
-    def remove(self, commandName, fireKeyName = None, satelliteKeyNames = None, isDefault = None):
+    def remove(self, commandName, fireKeyName=None, satelliteKeyNames=None, isDefault=None):
         try:
             delCommand = int(self.getCommand(commandName))
             delFireKey = None if fireKeyName is None else int(Keys.__dict__.get(fireKeyName))
@@ -176,7 +182,7 @@ class CommandMapping:
 
         return False
 
-    def isActiveList(self, listCommands, bAndNor = False):
+    def isActiveList(self, listCommands, bAndNor=False):
         if bAndNor:
             for command in listCommands:
                 if not self.isActive(command):
@@ -210,7 +216,7 @@ class CommandMapping:
 
             return False
 
-    def isFiredList(self, listCommands, key, bAndNor = False):
+    def isFiredList(self, listCommands, key, bAndNor=False):
         if bAndNor:
             for command in listCommands:
                 if not self.isFired(command, key):
@@ -273,7 +279,7 @@ class CommandMapping:
         return False"""
         return True
 
-    def __loadFromSection(self, section, bDelOldCmds = True, asDefault = False):
+    def __loadFromSection(self, section, bDelOldCmds=True, asDefault=False):
         needsResave = False
         tempList = []
         for commandName in section.keys():
@@ -323,3 +329,4 @@ class CommandMapping:
 
     def __loadDevelopment(self):
         pass
+# okay decompiling ./res/scripts/client/commandmapping.pyc

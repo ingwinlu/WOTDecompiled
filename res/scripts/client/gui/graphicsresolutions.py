@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/GraphicsResolutions.py
 import BigWorld
 from debug_utils import LOG_CURRENT_EXCEPTION, LOG_ERROR, LOG_DEBUG
 
@@ -18,6 +20,7 @@ class GraphicsResolutions(object):
         maxHeight = 0
         self.ASPECT_RATIO = []
         self.ASPECT_RATIO.append((4, 3))
+        self.ASPECT_RATIO.append((5, 4))
         self.ASPECT_RATIO.append((16, 9))
         self.ASPECT_RATIO.append((16, 10))
         self.ASPECT_RATIO.append((19, 10))
@@ -65,7 +68,7 @@ class GraphicsResolutions(object):
             for m in monitorModes:
                 if m[1] > maxWindow[0] or m[2] > maxWindow[1]:
                     continue
-                modes.append((m[1], m[2]))
+                modes.append((m[1], m[2], m[5]))
 
             if maxWindow not in modes:
                 modes.append(maxWindow)
@@ -179,9 +182,9 @@ class GraphicsResolutions(object):
         for monitorModes in self.__windowSizes:
             modes = []
             for m in monitorModes:
-                modes.append('%dx%d' % m)
+                modes.append('%dx%d' % (m[1], m[2]))
 
-            current = '%dx%d' % self.__windowSize
+            current = '%dx%d' % (self.__windowSize[0], self.__windowSize[1])
             if current not in modes:
                 modes.append(current + '*')
             allModes.append(modes)
@@ -296,3 +299,4 @@ class GraphicsResolutions(object):
 
 
 g_graficsResolutions = GraphicsResolutions()
+# okay decompiling ./res/scripts/client/gui/graphicsresolutions.pyc

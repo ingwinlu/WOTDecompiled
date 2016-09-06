@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/common/PhysicsTurretShape.py
 import BigWorld
 import Math
 _DEBUG_WITH_SVG = False
@@ -10,7 +12,7 @@ class PhysicsTurretShape:
      'yScale': (0.0, 2.0, 1.0, 4),
      'yPos': (-2.0, 2.0, 0.0, 5),
      'zRounding': (0.0, 1.0, 0.5, 6),
-     'zRoundingCenter': (0.0, 0.1, 0.5, 7),
+     'zRoundingCenter': (0.0, 1.0, 0.5, 7),
      'xRounding': (0.0, 1.0, 0.5, 8),
      'xRoundingCenter': (0.0, 1.0, 0.5, 9),
      'xSlope': (0.0, 1.0, 0.5, 10),
@@ -18,6 +20,7 @@ class PhysicsTurretShape:
      'zSlope': (0.0, 1.0, 0.6, 12),
      'zSlopeCenter': (0.0, 1.0, 0.1, 13),
      'topSlope': (0.0, 1.0, 0.5, 14)}
+    PARAM_NAME_BY_INDEX = dict(((desc[3], name) for name, desc in PARAMS_DESC.iteritems()))
 
     def __init__(self, bbMin, bbMax):
         self.__polys = None
@@ -34,6 +37,13 @@ class PhysicsTurretShape:
         d = PhysicsTurretShape.PARAMS_DESC[name]
         self.__params[name] = max(d[0], min(d[1], value))
         self.__isDirty = True
+
+    def setParamByIndex(self, index, value):
+        self.setParam(PhysicsTurretShape.PARAM_NAME_BY_INDEX[index], value)
+
+    def setParams(self, params):
+        for i, value in enumerate(params):
+            self.setParamByIndex(i, value)
 
     def getParam(self, name):
         return self.__params[name]
@@ -164,7 +174,7 @@ def createPhysicsTurretShape(bbMin, bbMax):
 
 class _Scene:
 
-    def __init__(self, name = 'scene', height = 400, width = 400):
+    def __init__(self, name='scene', height=400, width=400):
         self.name = name
         self.items = []
         self.height = height
@@ -184,7 +194,7 @@ class _Scene:
         var += [' </g>\n</svg>\n']
         return var
 
-    def write_svg(self, filename = None):
+    def write_svg(self, filename=None):
         if filename:
             self.svgname = filename
         else:
@@ -193,7 +203,7 @@ class _Scene:
         file.writelines(self.strarray())
         file.close()
 
-    def display(self, prog = 'explorer'):
+    def display(self, prog='explorer'):
         import os
         os.system('%s %s' % (prog, self.svgname))
 
@@ -209,3 +219,4 @@ class _Line:
           self.start[1],
           self.end[0],
           self.end[1])]
+# okay decompiling ./res/scripts/common/physicsturretshape.pyc

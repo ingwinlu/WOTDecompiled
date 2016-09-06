@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/common/projectile_trajectory.py
 import BigWorld
 import Math
 
@@ -29,9 +31,15 @@ def computeProjectileTrajectory(beginPoint, velocity, gravity, time, epsilon):
     return checkPoints
 
 
-def getShotAngles(vehTypeDescr, vehMatrix, curShotAngles, point, adjust = True):
+try:
+    computeProjectileTrajectory = BigWorld.wg_computeProjectileTrajectory
+except AttributeError:
+    pass
+
+def getShotAngles(vehTypeDescr, vehMatrix, curShotAngles, point, adjust=True):
     turretOffs = vehTypeDescr.hull['turretPositions'][0] + vehTypeDescr.chassis['hullPosition']
     gunOffs = vehTypeDescr.turret['gunPosition']
     speed = vehTypeDescr.shot['speed']
     gravity = vehTypeDescr.shot['gravity']
     return BigWorld.wg_getShotAngles(turretOffs, gunOffs, vehMatrix, speed, gravity, curShotAngles[0], curShotAngles[1], point, adjust)
+# okay decompiling ./res/scripts/common/projectile_trajectory.pyc

@@ -1,14 +1,20 @@
-# 2013.11.15 11:26:35 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/locale/SYSTEM_MESSAGES.py
 from debug_utils import LOG_WARNING
 
 class SYSTEM_MESSAGES(object):
+    """
+    DO NOT MODIFY!
+    Generated with yaml.
+    __author__ = 'yaml_processor'
+    null
+    """
     REPAIR_SUCCESS = '#system_messages:repair/success'
-    REPAIR_CREDIT_ERROR = '#system_messages:repair/credit_error'
+    REPAIR_CREDITS_ERROR = '#system_messages:repair/credits_error'
     REPAIR_SERVER_ERROR = '#system_messages:repair/server_error'
-    CHARGE_CREDIT_ERROR_GOLD = '#system_messages:charge/credit_error_gold'
-    CHARGE_CREDIT_ERROR_CREDITS = '#system_messages:charge/credit_error_credits'
-    CHARGE_CREDIT_ERROR = '#system_messages:charge/credit_error'
+    CHARGE_CREDITS_ERROR_GOLD = '#system_messages:charge/credits_error_gold'
+    CHARGE_CREDITS_ERROR_CREDITS = '#system_messages:charge/credits_error_credits'
+    CHARGE_CREDITS_ERROR = '#system_messages:charge/credits_error'
     CHARGE_MONEY_SPENT = '#system_messages:charge/money_spent'
     CHARGE_SUCCESS = '#system_messages:charge/success'
     CHARGE_SERVER_ERROR = '#system_messages:charge/server_error'
@@ -20,6 +26,23 @@ class SYSTEM_MESSAGES(object):
     PREMIUM_SERVER_ERROR = '#system_messages:premium/server_error'
     PREMIUM_NOT_ENOUGH_GOLD = '#system_messages:premium/not_enough_gold'
     PREMIUM_WALLET_NOT_AVAILABLE = '#system_messages:premium/wallet_not_available'
+    PREMIUM_POST_BATTLE_PREMIUM = '#system_messages:premium/post_battle_premium'
+    BOOSTER_ACTIVATE_SUCCESS = '#system_messages:booster_activate/success'
+    BOOSTER_ACTIVATE_SERVER_ERROR = '#system_messages:booster_activate/server_error'
+    BOOSTER_ACTIVATE_NO_BOOSTERS = '#system_messages:booster_activate/NO_BOOSTERS'
+    BOOSTER_ACTIVATE_ALREADY_USED = '#system_messages:booster_activate/ALREADY_USED'
+    BOOSTER_ACTIVATE_DISABLED = '#system_messages:booster_activate/DISABLED'
+    BOOSTER_ACTIVATE_EXCEPTION = '#system_messages:booster_activate/EXCEPTION'
+    BOOSTER_ACTIVATE_WRONG_ARGS = '#system_messages:booster_activate/WRONG_ARGS'
+    BOOSTER_BUY_SUCCESS = '#system_messages:booster_buy/success'
+    BOOSTER_BUY_SERVER_ERROR = '#system_messages:booster_buy/server_error'
+    BOOSTER_BUY_SERVER_ERROR_CENTERDOWN = '#system_messages:booster_buy/server_error_centerDown'
+    BOOSTER_BUY_NOT_ENOUGH_CREDITS = '#system_messages:booster_buy/not_enough_credits'
+    BOOSTER_BUY_NOT_ENOUGH_GOLD = '#system_messages:booster_buy/not_enough_gold'
+    BOOSTER_BUY_WALLET_NOT_AVAILABLE = '#system_messages:booster_buy/wallet_not_available'
+    BOOSTER_SELL_SUCCESS = '#system_messages:booster_sell/success'
+    BOOSTER_SELL_SERVER_ERROR = '#system_messages:booster_sell/server_error'
+    BOOSTER_SELL_SERVER_ERROR_CENTERDOWN = '#system_messages:booster_sell/server_error_centerDown'
     UPGRADETANKMAN_SUCCESS = '#system_messages:upgradeTankman/success'
     UPGRADETANKMAN_SERVER_ERROR = '#system_messages:upgradeTankman/server_error'
     ARENA_START_ERRORS_JOIN_TIME_OUT = '#system_messages:arena_start_errors/join/TIME_OUT'
@@ -30,7 +53,6 @@ class SYSTEM_MESSAGES(object):
     ARENA_START_ERRORS_JOIN_WRONG_VEHICLE = '#system_messages:arena_start_errors/join/WRONG_VEHICLE'
     ARENA_START_ERRORS_JOIN_TEAM_IS_FULL = '#system_messages:arena_start_errors/join/TEAM_IS_FULL'
     ARENA_START_ERRORS_JOIN_WRONG_ARGS = '#system_messages:arena_start_errors/join/WRONG_ARGS'
-    ARENA_START_ERRORS_JOIN_CAPTCHA = '#system_messages:arena_start_errors/join/CAPTCHA'
     ARENA_START_ERRORS_JOIN_WRONG_ARENA_STATE = '#system_messages:arena_start_errors/join/WRONG_ARENA_STATE'
     ARENA_START_ERRORS_JOIN_CANNOT_CREATE = '#system_messages:arena_start_errors/join/CANNOT_CREATE'
     ARENA_START_ERRORS_JOIN_PRIVACY = '#system_messages:arena_start_errors/join/PRIVACY'
@@ -38,6 +60,8 @@ class SYSTEM_MESSAGES(object):
     ARENA_START_ERRORS_JOIN_COOLDOWN = '#system_messages:arena_start_errors/join/COOLDOWN'
     ARENA_START_ERRORS_JOIN_NO_VEHICLE = '#system_messages:arena_start_errors/join/no_vehicle'
     ARENA_START_ERRORS_JOIN_NO_READYVEHICLE = '#system_messages:arena_start_errors/join/no_readyVehicle'
+    ARENA_START_ERRORS_JOIN_WRONG_BATTLE_ID = '#system_messages:arena_start_errors/join/WRONG_BATTLE_ID'
+    ARENA_START_ERRORS_JOIN_EVENT_DISABLED = '#system_messages:arena_start_errors/join/EVENT_DISABLED'
     PREBATTLE_KICK_TYPE_SQUAD = '#system_messages:prebattle/kick/type/squad'
     PREBATTLE_KICK_TYPE_TEAM = '#system_messages:prebattle/kick/type/team'
     PREBATTLE_KICK_TYPE_UNKNOWN = '#system_messages:prebattle/kick/type/unknown'
@@ -59,15 +83,24 @@ class SYSTEM_MESSAGES(object):
     PREBATTLE_VEHICLEINVALID_LIMITS_COMPONENTS = '#system_messages:prebattle/vehicleInvalid/limits/components'
     PREBATTLE_VEHICLEINVALID_LIMITS_AMMO = '#system_messages:prebattle/vehicleInvalid/limits/ammo'
     PREBATTLE_VEHICLEINVALID_LIMITS_SHELLS = '#system_messages:prebattle/vehicleInvalid/limits/shells'
+    PREBATTLE_VEHICLEINVALID_LIMITS_TAGS = '#system_messages:prebattle/vehicleInvalid/limits/tags'
+    PREBATTLE_VEHICLEINVALID_LIMITS_NOT_SUPPORTED = '#system_messages:prebattle/vehicleInvalid/limits/not_supported'
+    PREBATTLE_VEHICLEINVALID_NO_SELECTEDVEHICLE = '#system_messages:prebattle/vehicleInvalid/no_selectedVehicle'
     PREBATTLE_VEHICLEINVALID_NO_READYVEHICLE = '#system_messages:prebattle/vehicleInvalid/no_readyVehicle'
+    PREBATTLE_VEHICLEINVALID_VEHICLENOTSUPPORTED = '#system_messages:prebattle/vehicleInvalid/vehicleNotSupported'
     PREBATTLE_VEHICLEINVALID_NOTSETREADYSTATUS = '#system_messages:prebattle/vehicleInvalid/notSetReadyStatus'
+    PREBATTLE_VEHICLEINVALID_FALLOUTONLY = '#system_messages:prebattle/vehicleInvalid/falloutOnly'
     PREBATTLE_VEHICLEINVALID_LIMITS_NATIONS = '#system_messages:prebattle/vehicleInvalid/limits/nations'
     PREBATTLE_VEHICLEINVALID_LIMITS_CLASSES = '#system_messages:prebattle/vehicleInvalid/limits/classes'
     PREBATTLE_TEAMINVALID_LIMIT_MINCOUNT = '#system_messages:prebattle/teamInvalid/limit/minCount'
     PREBATTLE_TEAMINVALID_LIMIT_TOTALLEVEL = '#system_messages:prebattle/teamInvalid/limit/totalLevel'
     PREBATTLE_TEAMINVALID_LIMITS_VEHICLES = '#system_messages:prebattle/teamInvalid/limits/vehicles'
     PREBATTLE_TEAMINVALID_LIMITS_LEVEL = '#system_messages:prebattle/teamInvalid/limits/level'
+    PREBATTLE_TEAMINVALID_OBSERVERS = '#system_messages:prebattle/teamInvalid/observers'
+    PREBATTLE_TEAMINVALID_EVENT_BATTLE = '#system_messages:prebattle/teamInvalid/event_battle'
     PREBATTLE_HASLOCKEDSTATE = '#system_messages:prebattle/hasLockedState'
+    PREBATTLE_INVITES_SENDINVITE_NAME = '#system_messages:prebattle/invites/sendInvite/name'
+    PREBATTLE_INVITES_SENDINVITE = '#system_messages:prebattle/invites/sendInvite'
     ARENA_START_ERRORS_KICK_ARENA_CREATION_FAILURE = '#system_messages:arena_start_errors/kick/ARENA_CREATION_FAILURE'
     ARENA_START_ERRORS_KICK_AVATAR_CREATION_FAILURE = '#system_messages:arena_start_errors/kick/AVATAR_CREATION_FAILURE'
     ARENA_START_ERRORS_KICK_VEHICLE_CREATION_FAILURE = '#system_messages:arena_start_errors/kick/VEHICLE_CREATION_FAILURE'
@@ -110,6 +143,7 @@ class SYSTEM_MESSAGES(object):
     WINDOW_BUTTONS_CLOSE = '#system_messages:window/buttons/close'
     CONNECTED = '#system_messages:connected'
     DISCONNECTED = '#system_messages:disconnected'
+    ROAMING_NOT_ALLOWED = '#system_messages:roaming_not_allowed'
     SERVER_SHUT_DOWN = '#system_messages:server_shut_down'
     UNLOCKS_VEHICLE_UNLOCK_SUCCESS = '#system_messages:unlocks/vehicle/unlock_success'
     UNLOCKS_ITEM_UNLOCK_SUCCESS = '#system_messages:unlocks/item/unlock_success'
@@ -117,12 +151,16 @@ class SYSTEM_MESSAGES(object):
     UNLOCKS_ITEM_ALREADY_UNLOCKED = '#system_messages:unlocks/item/already_unlocked'
     UNLOCKS_VEHICLE_SERVER_ERROR = '#system_messages:unlocks/vehicle/server_error'
     UNLOCKS_ITEM_SERVER_ERROR = '#system_messages:unlocks/item/server_error'
-    UNLOCKS_IN_PROCESSING = '#system_messages:unlocks/in_processing'
+    UNLOCKS_VEHICLE_IN_PROCESSING = '#system_messages:unlocks/vehicle/in_processing'
+    UNLOCKS_ITEM_IN_PROCESSING = '#system_messages:unlocks/item/in_processing'
     UNLOCKS_DRAWFAILED = '#system_messages:unlocks/drawFailed'
     SHOP_VEHICLE_NOT_ENOUGH_MONEY = '#system_messages:shop/vehicle/not_enough_money'
+    SHOP_VEHICLE_NOT_ENOUGH_MONEY_FOR_RENT = '#system_messages:shop/vehicle/not_enough_money_for_rent'
+    SHOP_VEHICLE_COMMON_RENT_OR_BUY_ERROR = '#system_messages:shop/vehicle/common_rent_or_buy_error'
     SHOP_ITEM_NOT_ENOUGH_MONEY = '#system_messages:shop/item/not_enough_money'
     SHOP_VEHICLE_NOT_FOUND = '#system_messages:shop/vehicle/not_found'
     SHOP_ITEM_NOT_FOUND = '#system_messages:shop/item/not_found'
+    SHOP_ITEM_COMMON_RENT_OR_BUY_ERROR = '#system_messages:shop/item/common_rent_or_buy_error'
     SHOP_ITEM_BUY_SUCCESS = '#system_messages:shop/item/buy_success'
     SHOP_ITEM_BUY_SERVER_ERROR = '#system_messages:shop/item/buy_server_error'
     SHOP_ITEM_BUY_AND_EQUIP_IN_PROCESSING = '#system_messages:shop/item/buy_and_equip_in_processing'
@@ -139,6 +177,7 @@ class SYSTEM_MESSAGES(object):
     SQUAD_CREATEERROR = '#system_messages:squad/createError'
     SQUAD_NOTSETREADYSTATUS = '#system_messages:squad/notSetReadyStatus'
     SQUAD_KICKEDFROMQUEUE = '#system_messages:squad/kickedFromQueue'
+    SQUAD_NOTVALIDDELETED = '#system_messages:squad/notValidDeleted'
     COMPANY_MEMBERJOINED = '#system_messages:company/memberJoined'
     COMPANY_MEMBERLEAVE = '#system_messages:company/memberLeave'
     COMPANY_MEMBERREADY = '#system_messages:company/memberReady'
@@ -183,7 +222,9 @@ class SYSTEM_MESSAGES(object):
     CUSTOMIZATION_CAMOUFLAGE_DROP_SERVER_ERROR = '#system_messages:customization/camouflage_drop_server_error'
     CUSTOMIZATION_CAMOUFLAGE_CHANGE_SUCCESS_CREDITS = '#system_messages:customization/camouflage_change_success/credits'
     CUSTOMIZATION_CAMOUFLAGE_CHANGE_SUCCESS_GOLD = '#system_messages:customization/camouflage_change_success/gold'
+    CUSTOMIZATION_CAMOUFLAGE_CHANGE_SUCCESS_FREE = '#system_messages:customization/camouflage_change_success/free'
     CUSTOMIZATION_CAMOUFLAGE_DROP_SUCCESS = '#system_messages:customization/camouflage_drop_success'
+    CUSTOMIZATION_CAMOUFLAGE_STORED_SUCCESS = '#system_messages:customization/camouflage_stored_success'
     CUSTOMIZATION_EMBLEM_NOT_SELECTED = '#system_messages:customization/emblem_not_selected'
     CUSTOMIZATION_EMBLEM_DAYS_NOT_SELECTED = '#system_messages:customization/emblem_days_not_selected'
     CUSTOMIZATION_EMBLEM_COST_NOT_FOUND = '#system_messages:customization/emblem_cost_not_found'
@@ -193,7 +234,9 @@ class SYSTEM_MESSAGES(object):
     CUSTOMIZATION_EMBLEM_DROP_SERVER_ERROR = '#system_messages:customization/emblem_drop_server_error'
     CUSTOMIZATION_EMBLEM_CHANGE_SUCCESS_CREDITS = '#system_messages:customization/emblem_change_success/credits'
     CUSTOMIZATION_EMBLEM_CHANGE_SUCCESS_GOLD = '#system_messages:customization/emblem_change_success/gold'
+    CUSTOMIZATION_EMBLEM_CHANGE_SUCCESS_FREE = '#system_messages:customization/emblem_change_success/free'
     CUSTOMIZATION_EMBLEM_DROP_SUCCESS = '#system_messages:customization/emblem_drop_success'
+    CUSTOMIZATION_EMBLEM_STORED_SUCCESS = '#system_messages:customization/emblem_stored_success'
     CUSTOMIZATION_INSCRIPTION_NOT_SELECTED = '#system_messages:customization/inscription_not_selected'
     CUSTOMIZATION_INSCRIPTION_DAYS_NOT_SELECTED = '#system_messages:customization/inscription_days_not_selected'
     CUSTOMIZATION_INSCRIPTION_COST_NOT_FOUND = '#system_messages:customization/inscription_cost_not_found'
@@ -203,7 +246,19 @@ class SYSTEM_MESSAGES(object):
     CUSTOMIZATION_INSCRIPTION_DROP_SERVER_ERROR = '#system_messages:customization/inscription_drop_server_error'
     CUSTOMIZATION_INSCRIPTION_CHANGE_SUCCESS_CREDITS = '#system_messages:customization/inscription_change_success/credits'
     CUSTOMIZATION_INSCRIPTION_CHANGE_SUCCESS_GOLD = '#system_messages:customization/inscription_change_success/gold'
+    CUSTOMIZATION_INSCRIPTION_CHANGE_SUCCESS_FREE = '#system_messages:customization/inscription_change_success/free'
     CUSTOMIZATION_INSCRIPTION_DROP_SUCCESS = '#system_messages:customization/inscription_drop_success'
+    CUSTOMIZATION_INSCRIPTION_STORED_SUCCESS = '#system_messages:customization/inscription_stored_success'
+    CUSTOMIZATION_IGR_TYPE_CHANGED_ERROR = '#system_messages:customization/igr_type_changed_error'
+    CUSTOMIZATION_ADDED_CAMOUFLAGES = '#system_messages:customization/added/camouflages'
+    CUSTOMIZATION_ADDED_EMBLEMS = '#system_messages:customization/added/emblems'
+    CUSTOMIZATION_ADDED_INSCRIPTIONS = '#system_messages:customization/added/inscriptions'
+    CUSTOMIZATION_REMOVED_CAMOUFLAGES = '#system_messages:customization/removed/camouflages'
+    CUSTOMIZATION_REMOVED_EMBLEMS = '#system_messages:customization/removed/emblems'
+    CUSTOMIZATION_REMOVED_INSCRIPTIONS = '#system_messages:customization/removed/inscriptions'
+    CUSTOMIZATION_ADDED_CAMOUFLAGESVALUE = '#system_messages:customization/added/camouflagesValue'
+    CUSTOMIZATION_ADDED_EMBLEMSVALUE = '#system_messages:customization/added/emblemsValue'
+    CUSTOMIZATION_ADDED_INSCRIPTIONSVALUE = '#system_messages:customization/added/inscriptionsValue'
     CHECKOUT_ERROR = '#system_messages:checkout_error'
     ANOTHER_PERIPHERY = '#system_messages:another_periphery'
     SHOP_RESYNC = '#system_messages:shop_resync'
@@ -230,8 +285,9 @@ class SYSTEM_MESSAGES(object):
     LOGIN_TO_OTHER_GAME_WOWP = '#system_messages:login_to_other_game_wowp'
     LOGIN_TO_OTHER_GAME_WOTG = '#system_messages:login_to_other_game_wotg'
     LOGIN_TO_OTHER_GAME_WOWS = '#system_messages:login_to_other_game_wows'
-    LOGIN_TO_OTHER_GAME_WOTBLITZ = '#system_messages:login_to_other_game_wotblitz'
+    LOGIN_TO_OTHER_GAME_WOTB = '#system_messages:login_to_other_game_wotb'
     LOGIN_TO_OTHER_GAME_UNKNOWN = '#system_messages:login_to_other_game_unknown'
+    LOGIN_TO_OTHER_GAME_WEB = '#system_messages:login_to_other_game_web'
     RECRUIT_WINDOW_SERVER_ERROR = '#system_messages:recruit_window/server_error'
     RECRUIT_WINDOW_SUCCESS = '#system_messages:recruit_window/success'
     RECRUIT_WINDOW_FINANCIAL_SUCCESS = '#system_messages:recruit_window/financial_success'
@@ -268,6 +324,7 @@ class SYSTEM_MESSAGES(object):
     BUY_AND_REEQUIP_TANKMAN_NOT_ENOUGH_GOLD = '#system_messages:buy_and_reequip_tankman/not_enough_gold'
     BUY_AND_REEQUIP_TANKMAN_WALLET_NOT_AVAILABLE = '#system_messages:buy_and_reequip_tankman/wallet_not_available'
     BUY_AND_REEQUIP_TANKMAN_FREE_TANKMEN_LIMIT = '#system_messages:buy_and_reequip_tankman/free_tankmen_limit'
+    BUY_AND_REEQUIP_TANKMAN_NOT_ENOUGH_SPACE = '#system_messages:buy_and_reequip_tankman/not_enough_space'
     DISMISS_TANKMAN_SUCCESS = '#system_messages:dismiss_tankman/success'
     DISMISS_TANKMAN_SERVER_ERROR = '#system_messages:dismiss_tankman/server_error'
     DISMISS_TANKMAN_INVALID_VEHICLE = '#system_messages:dismiss_tankman/invalid_vehicle'
@@ -285,12 +342,27 @@ class SYSTEM_MESSAGES(object):
     UNLOAD_CREW_INVALID_VEHICLE = '#system_messages:unload_crew/invalid_vehicle'
     UNLOAD_CREW_VEHICLE_NEED_REPAIR = '#system_messages:unload_crew/vehicle_need_repair'
     UNLOAD_CREW_VEHICLE_LOCKED = '#system_messages:unload_crew/vehicle_locked'
+    RETURN_CREW_SUCCESS = '#system_messages:return_crew/success'
+    RETURN_CREW_SERVER_ERROR = '#system_messages:return_crew/server_error'
+    RETURN_CREW_NOT_ENOUGH_SPACE = '#system_messages:return_crew/not_enough_space'
+    RETURN_CREW_INVALID_VEHICLE = '#system_messages:return_crew/invalid_vehicle'
+    RETURN_CREW_VEHICLE_NEED_REPAIR = '#system_messages:return_crew/vehicle_need_repair'
+    RETURN_CREW_VEHICLE_LOCKED = '#system_messages:return_crew/vehicle_locked'
     RETRAINING_TANKMAN_SUCCESS = '#system_messages:retraining_tankman/success'
     RETRAINING_TANKMAN_FINANCIAL_SUCCESS = '#system_messages:retraining_tankman/financial_success'
     RETRAINING_TANKMAN_SERVER_ERROR = '#system_messages:retraining_tankman/server_error'
     RETRAINING_TANKMAN_INVALID_VEHICLE = '#system_messages:retraining_tankman/invalid_vehicle'
     RETRAINING_TANKMAN_VEHICLE_NEED_REPAIR = '#system_messages:retraining_tankman/vehicle_need_repair'
     RETRAINING_TANKMAN_VEHICLE_LOCKED = '#system_messages:retraining_tankman/vehicle_locked'
+    RETRAINING_TANKMAN_INVALID_OPERATION = '#system_messages:retraining_tankman/invalid_operation'
+    RETRAINING_CREW_SUCCESS = '#system_messages:retraining_crew/success'
+    RETRAINING_CREW_FINANCIAL_SUCCESS = '#system_messages:retraining_crew/financial_success'
+    RETRAINING_CREW_SERVER_ERROR = '#system_messages:retraining_crew/server_error'
+    RETRAINING_CREW_INVALID_VEHICLE = '#system_messages:retraining_crew/invalid_vehicle'
+    RETRAINING_CREW_VEHICLE_NEED_REPAIR = '#system_messages:retraining_crew/vehicle_need_repair'
+    RETRAINING_CREW_VEHICLE_LOCKED = '#system_messages:retraining_crew/vehicle_locked'
+    RETRAINING_CREW_EMPTY_LIST = '#system_messages:retraining_crew/empty_list'
+    RETRAINING_CREW_INVALID_OPERATION = '#system_messages:retraining_crew/invalid_operation'
     ADD_TANKMAN_SKILL_SUCCESS = '#system_messages:add_tankman_skill/success'
     ADD_TANKMAN_SKILL_SERVER_ERROR = '#system_messages:add_tankman_skill/server_error'
     ADD_TANKMAN_SKILL_INVALID_VEHICLE = '#system_messages:add_tankman_skill/invalid_vehicle'
@@ -301,6 +373,16 @@ class SYSTEM_MESSAGES(object):
     DROP_TANKMAN_SKILL_INVALID_VEHICLE = '#system_messages:drop_tankman_skill/invalid_vehicle'
     DROP_TANKMAN_SKILL_VEHICLE_NEED_REPAIR = '#system_messages:drop_tankman_skill/vehicle_need_repair'
     DROP_TANKMAN_SKILL_VEHICLE_LOCKED = '#system_messages:drop_tankman_skill/vehicle_locked'
+    CHANGE_TANKMAN_ROLE_SUCCESS = '#system_messages:change_tankman_role/success'
+    CHANGE_TANKMAN_ROLE_INSTALLED = '#system_messages:change_tankman_role/installed'
+    CHANGE_TANKMAN_ROLE_SLOT_IS_TAKEN = '#system_messages:change_tankman_role/slot_is_taken'
+    CHANGE_TANKMAN_ROLE_NO_VEHICLE = '#system_messages:change_tankman_role/no_vehicle'
+    CHANGE_TANKMAN_ROLE_SERVER_ERROR = '#system_messages:change_tankman_role/server_error'
+    CHANGE_TANKMAN_ROLE_NOT_ENOUGH_GOLD = '#system_messages:change_tankman_role/not_enough_gold'
+    CHANGE_TANKMAN_ROLE_NOT_ENOUGH_CREDITS = '#system_messages:change_tankman_role/not_enough_credits'
+    CHANGE_TANKMAN_ROLE_WALLET_NOT_AVAILABLE = '#system_messages:change_tankman_role/wallet_not_available'
+    CHANGE_TANKMAN_ROLE_INVALID_VEHICLE = '#system_messages:change_tankman_role/invalid_vehicle'
+    CHANGE_TANKMAN_ROLE_INVALID_ROLE = '#system_messages:change_tankman_role/invalid_role'
     FREE_XP_TO_TMAN_SKILL_SUCCESS = '#system_messages:free_xp_to_tman_skill/success'
     FREE_XP_TO_TMAN_SKILL_SERVER_ERROR = '#system_messages:free_xp_to_tman_skill/server_error'
     FREE_XP_TO_TMAN_SKILL_ERROR_WRONG_ARGS_TYPE = '#system_messages:free_xp_to_tman_skill/error/WRONG_ARGS_TYPE'
@@ -321,6 +403,13 @@ class SYSTEM_MESSAGES(object):
     VEHICLE_BUY_NOT_ENOUGH_CREDITS = '#system_messages:vehicle_buy/not_enough_credits'
     VEHICLE_BUY_NOT_ENOUGH_GOLD = '#system_messages:vehicle_buy/not_enough_gold'
     VEHICLE_BUY_WALLET_NOT_AVAILABLE = '#system_messages:vehicle_buy/wallet_not_available'
+    VEHICLE_RENT_SUCCESS = '#system_messages:vehicle_rent/success'
+    VEHICLE_RENT_SERVER_ERROR = '#system_messages:vehicle_rent/server_error'
+    VEHICLE_RENT_INVALID_VEHICLE = '#system_messages:vehicle_rent/invalid_vehicle'
+    VEHICLE_RENT_SERVER_ERROR_CENTERDOWN = '#system_messages:vehicle_rent/server_error_centerDown'
+    VEHICLE_RENT_NOT_ENOUGH_CREDITS = '#system_messages:vehicle_rent/not_enough_credits'
+    VEHICLE_RENT_NOT_ENOUGH_GOLD = '#system_messages:vehicle_rent/not_enough_gold'
+    VEHICLE_RENT_WALLET_NOT_AVAILABLE = '#system_messages:vehicle_rent/wallet_not_available'
     VEHICLE_SLOT_BUY_SUCCESS = '#system_messages:vehicle_slot_buy/success'
     VEHICLE_SLOT_BUY_NOT_ENOUGH_GOLD = '#system_messages:vehicle_slot_buy/not_enough_gold'
     VEHICLE_SLOT_BUY_WALLET_NOT_AVAILABLE = '#system_messages:vehicle_slot_buy/wallet_not_available'
@@ -329,6 +418,7 @@ class SYSTEM_MESSAGES(object):
     VEHICLE_SELL_SUCCESS_DISMANTLING = '#system_messages:vehicle_sell/success_dismantling'
     VEHICLE_SELL_SERVER_ERROR = '#system_messages:vehicle_sell/server_error'
     VEHICLE_SELL_INVALID_VEHICLE = '#system_messages:vehicle_sell/invalid_vehicle'
+    VEHICLE_SELL_VEHICLE_CANNOT_BE_SOLD = '#system_messages:vehicle_sell/vehicle_cannot_be_sold'
     VEHICLE_SELL_VEHICLE_NEED_REPAIR = '#system_messages:vehicle_sell/vehicle_need_repair'
     VEHICLE_SELL_VEHICLE_LOCKED = '#system_messages:vehicle_sell/vehicle_locked'
     VEHICLE_SELL_NOT_ENOUGH_CREDITS = '#system_messages:vehicle_sell/not_enough_credits'
@@ -336,12 +426,27 @@ class SYSTEM_MESSAGES(object):
     VEHICLE_SELL_WALLET_NOT_AVAILABLE = '#system_messages:vehicle_sell/wallet_not_available'
     VEHICLE_SELL_VEHICLE_SELL_LIMIT = '#system_messages:vehicle_sell/vehicle_sell_limit'
     VEHICLE_SELL_NOT_ENOUGH_SPACE = '#system_messages:vehicle_sell/not_enough_space'
+    VEHICLE_REMOVE_SUCCESS = '#system_messages:vehicle_remove/success'
+    VEHICLE_REMOVE_SUCCESS_DISMANTLING = '#system_messages:vehicle_remove/success_dismantling'
+    VEHICLE_REMOVE_SERVER_ERROR = '#system_messages:vehicle_remove/server_error'
+    VEHICLE_REMOVE_INVALID_VEHICLE = '#system_messages:vehicle_remove/invalid_vehicle'
+    VEHICLE_REMOVE_VEHICLE_CANNOT_BE_SOLD = '#system_messages:vehicle_remove/vehicle_cannot_be_sold'
+    VEHICLE_REMOVE_VEHICLE_NEED_REPAIR = '#system_messages:vehicle_remove/vehicle_need_repair'
+    VEHICLE_REMOVE_VEHICLE_LOCKED = '#system_messages:vehicle_remove/vehicle_locked'
+    VEHICLE_REMOVE_NOT_ENOUGH_CREDITS = '#system_messages:vehicle_remove/not_enough_credits'
+    VEHICLE_REMOVE_NOT_ENOUGH_GOLD = '#system_messages:vehicle_remove/not_enough_gold'
+    VEHICLE_REMOVE_WALLET_NOT_AVAILABLE = '#system_messages:vehicle_remove/wallet_not_available'
+    VEHICLE_REMOVE_VEHICLE_SELL_LIMIT = '#system_messages:vehicle_remove/vehicle_sell_limit'
+    VEHICLE_REMOVE_NOT_ENOUGH_SPACE = '#system_messages:vehicle_remove/not_enough_space'
     VEHICLE_TMENXP_ACCELERATOR_SUCCESSFALSE = '#system_messages:vehicle_tmenxp_accelerator/successFalse'
     VEHICLE_TMENXP_ACCELERATOR_SUCCESSTRUE = '#system_messages:vehicle_tmenxp_accelerator/successTrue'
     VEHICLE_TMENXP_ACCELERATOR_INVALID_VEHICLE = '#system_messages:vehicle_tmenxp_accelerator/invalid_vehicle'
     VEHICLE_TMENXP_ACCELERATOR_VEHICLE_NEED_REPAIR = '#system_messages:vehicle_tmenxp_accelerator/vehicle_need_repair'
     VEHICLE_TMENXP_ACCELERATOR_VEHICLE_LOCKED = '#system_messages:vehicle_tmenxp_accelerator/vehicle_locked'
     VEHICLE_TMENXP_ACCELERATOR_SERVER_ERROR = '#system_messages:vehicle_tmenxp_accelerator/server_error'
+    VEHICLE_REPAIR_SUCCESS = '#system_messages:vehicle_repair/success'
+    VEHICLE_REPAIR_NOT_ENOUGH_CREDITS = '#system_messages:vehicle_repair/not_enough_credits'
+    VEHICLE_REPAIR_SERVER_ERROR = '#system_messages:vehicle_repair/server_error'
     BUY_TANKMEN_BERTHS_SUCCESS = '#system_messages:buy_tankmen_berths/success'
     BUY_TANKMEN_BERTHS_SERVER_ERROR = '#system_messages:buy_tankmen_berths/server_error'
     BUY_TANKMEN_BERTHS_NOT_ENOUGH_CREDITS = '#system_messages:buy_tankmen_berths/not_enough_credits'
@@ -361,6 +466,20 @@ class SYSTEM_MESSAGES(object):
     MODULE_BUY_WALLET_NOT_AVAILABLE = '#system_messages:module_buy/wallet_not_available'
     MODULE_BUY_SERVER_ERROR = '#system_messages:module_buy/server_error'
     MODULE_BUY_SERVER_ERROR_CENTERDOWN = '#system_messages:module_buy/server_error_centerDown'
+    MODULE_BUY_VEHICLE_NEED_REPAIR = '#system_messages:module_buy/vehicle_need_repair'
+    MODULE_BUY_VEHICLE_LOCKED = '#system_messages:module_buy/vehicle_locked'
+    MODULE_BUY_INVALID_VEHICLE = '#system_messages:module_buy/invalid_vehicle'
+    MODULE_BUY_ERROR_WRONG_NATION = '#system_messages:module_buy/error_wrong_nation'
+    MODULE_BUY_ERROR_NOT_FOR_THIS_VEHICLE_TYPE = '#system_messages:module_buy/error_not_for_this_vehicle_type'
+    MODULE_BUY_ERROR_NOT_FOR_CURRENT_VEHICLE = '#system_messages:module_buy/error_not_for_current_vehicle'
+    MODULE_BUY_ERROR_NO_GUN = '#system_messages:module_buy/error_no_gun'
+    MODULE_BUY_ERROR_WRONG_ITEM_TYPE = '#system_messages:module_buy/error_wrong_item_type'
+    MODULE_BUY_ERROR_TOO_HEAVY = '#system_messages:module_buy/error_too_heavy'
+    MODULE_BUY_ERROR_TOO_HEAVY_CHASSIS = '#system_messages:module_buy/error_too_heavy_chassis'
+    MODULE_BUY_ERROR_NEED_TURRET = '#system_messages:module_buy/error_need_turret'
+    MODULE_BUY_ERROR_NEED_GUN = '#system_messages:module_buy/error_need_gun'
+    MODULE_BUY_ERROR_IS_CURRENT = '#system_messages:module_buy/error_is_current'
+    MODULE_BUY_ERROR_NOT_WITH_INSTALLED_EQUIPMENT = '#system_messages:module_buy/error_not_with_installed_equipment'
     ARTEFACT_BUY_SUCCESS = '#system_messages:artefact_buy/success'
     ARTEFACT_BUY_INVALID_MODULE = '#system_messages:artefact_buy/invalid_module'
     ARTEFACT_BUY_NOT_ENOUGH_CREDITS = '#system_messages:artefact_buy/not_enough_credits'
@@ -368,6 +487,11 @@ class SYSTEM_MESSAGES(object):
     ARTEFACT_BUY_WALLET_NOT_AVAILABLE = '#system_messages:artefact_buy/wallet_not_available'
     ARTEFACT_BUY_SERVER_ERROR = '#system_messages:artefact_buy/server_error'
     ARTEFACT_BUY_SERVER_ERROR_CENTERDOWN = '#system_messages:artefact_buy/server_error_centerDown'
+    ARTEFACT_BUY_ERROR_TOO_HEAVY = '#system_messages:artefact_buy/error_too_heavy'
+    ARTEFACT_BUY_VEHICLE_NEED_REPAIR = '#system_messages:artefact_buy/vehicle_need_repair'
+    ARTEFACT_BUY_VEHICLE_LOCKED = '#system_messages:artefact_buy/vehicle_locked'
+    ARTEFACT_BUY_INVALID_VEHICLE = '#system_messages:artefact_buy/invalid_vehicle'
+    ARTEFACT_BUY_ERROR_NOT_FOR_THIS_VEHICLE_TYPE = '#system_messages:artefact_buy/error_not_for_this_vehicle_type'
     SHELL_SELL_SUCCESS = '#system_messages:shell_sell/success'
     SHELL_SELL_INVALID_MODULE = '#system_messages:shell_sell/invalid_module'
     SHELL_SELL_SERVER_ERROR = '#system_messages:shell_sell/server_error'
@@ -391,6 +515,7 @@ class SYSTEM_MESSAGES(object):
     MODULE_APPLY_ERROR_TOO_HEAVY = '#system_messages:module_apply/error_too_heavy'
     MODULE_APPLY_ERROR_TOO_HEAVY_CHASSIS = '#system_messages:module_apply/error_too_heavy_chassis'
     MODULE_APPLY_ERROR_NEED_TURRET = '#system_messages:module_apply/error_need_turret'
+    MODULE_APPLY_ERROR_NEED_GUN = '#system_messages:module_apply/error_need_gun'
     MODULE_APPLY_ERROR_IS_CURRENT = '#system_messages:module_apply/error_is_current'
     MODULE_APPLY_ERROR_NOT_WITH_INSTALLED_EQUIPMENT = '#system_messages:module_apply/error_not_with_installed_equipment'
     MODULE_APPLY_INCOMPATIBLEEQS = '#system_messages:module_apply/incompatibleEqs'
@@ -438,9 +563,12 @@ class SYSTEM_MESSAGES(object):
     LAYOUT_APPLY_CANNOT_EQUIP_EQUIPMENT = '#system_messages:layout_apply/Cannot equip equipment'
     LAYOUT_APPLY_COMPONENT_IS_NOT_IN_SHOP = '#system_messages:layout_apply/Component is not in shop'
     LAYOUT_APPLY_WALLET_NOT_AVAILABLE = '#system_messages:layout_apply/wallet_not_available'
-    PREBATTLE_REQUEST_ISINCOOLDOWN = '#system_messages:prebattle/request/isInCoolDown'
+    LAYOUT_APPLY_INVALID_VEHICLE = '#system_messages:layout_apply/invalid_vehicle'
+    LAYOUT_APPLY_VEHICLE_LOCKED = '#system_messages:layout_apply/vehicle_locked'
+    REQUEST_ISINCOOLDOWN = '#system_messages:request/isInCoolDown'
     PREBATTLE_REQUEST_NAME_CHANGE_SETTINGS = '#system_messages:prebattle/request/name/CHANGE_SETTINGS'
     PREBATTLE_REQUEST_NAME_CHANGE_ARENA_VOIP = '#system_messages:prebattle/request/name/CHANGE_ARENA_VOIP'
+    PREBATTLE_REQUEST_NAME_CHANGE_USER_STATUS = '#system_messages:prebattle/request/name/CHANGE_USER_STATUS'
     PREBATTLE_REQUEST_NAME_SWAP_TEAMS = '#system_messages:prebattle/request/name/SWAP_TEAMS'
     PREBATTLE_REQUEST_NAME_SET_TEAM_STATE = '#system_messages:prebattle/request/name/SET_TEAM_STATE'
     PREBATTLE_REQUEST_NAME_SET_PLAYER_STATE = '#system_messages:prebattle/request/name/SET_PLAYER_STATE'
@@ -448,6 +576,221 @@ class SYSTEM_MESSAGES(object):
     PREBATTLE_REQUEST_NAME_PREBATTLES_LIST = '#system_messages:prebattle/request/name/PREBATTLES_LIST'
     PREBATTLE_REQUEST_NAME_CHANGE_UNIT_STATE = '#system_messages:prebattle/request/name/CHANGE_UNIT_STATE'
     PREBATTLE_REQUEST_NAME_UNITS_LIST = '#system_messages:prebattle/request/name/UNITS_LIST'
+    PREBATTLE_REQUEST_NAME_CLOSE_SLOT = '#system_messages:prebattle/request/name/CLOSE_SLOT'
+    PREBATTLE_REQUEST_NAME_CHANGE_RATED = '#system_messages:prebattle/request/name/CHANGE_RATED'
+    PREBATTLE_REQUEST_NAME_CHANGE_DIVISION = '#system_messages:prebattle/request/name/CHANGE_DIVISION'
+    PREBATTLE_REQUEST_NAME_SET_VEHICLE_LIST = '#system_messages:prebattle/request/name/SET_VEHICLE_LIST'
+    PREBATTLE_REQUEST_NAME_CHANGE_FALLOUT_QUEUE_TYPE = '#system_messages:prebattle/request/name/CHANGE_FALLOUT_QUEUE_TYPE'
+    FORTIFICATION_REQUEST_NAME_CREATE_FORT = '#system_messages:fortification/request/name/CREATE_FORT'
+    FORTIFICATION_REQUEST_NAME_DELETE_FORT = '#system_messages:fortification/request/name/DELETE_FORT'
+    FORTIFICATION_REQUEST_NAME_OPEN_DIRECTION = '#system_messages:fortification/request/name/OPEN_DIRECTION'
+    FORTIFICATION_REQUEST_NAME_CLOSE_DIRECTION = '#system_messages:fortification/request/name/CLOSE_DIRECTION'
+    FORTIFICATION_REQUEST_NAME_ADD_BUILDING = '#system_messages:fortification/request/name/ADD_BUILDING'
+    FORTIFICATION_REQUEST_NAME_DELETE_BUILDING = '#system_messages:fortification/request/name/DELETE_BUILDING'
+    FORTIFICATION_REQUEST_NAME_TRANSPORTATION = '#system_messages:fortification/request/name/TRANSPORTATION'
+    FORTIFICATION_REQUEST_NAME_ADD_ORDER = '#system_messages:fortification/request/name/ADD_ORDER'
+    FORTIFICATION_REQUEST_NAME_ACTIVATE_ORDER = '#system_messages:fortification/request/name/ACTIVATE_ORDER'
+    FORTIFICATION_REQUEST_NAME_ATTACH = '#system_messages:fortification/request/name/ATTACH'
+    FORTIFICATION_REQUEST_NAME_UPGRADE = '#system_messages:fortification/request/name/UPGRADE'
+    FORTIFICATION_REQUEST_NAME_CREATE_SORTIE = '#system_messages:fortification/request/name/CREATE_SORTIE'
+    FORTIFICATION_REQUEST_NAME_REQUEST_SORTIE_UNIT = '#system_messages:fortification/request/name/REQUEST_SORTIE_UNIT'
+    FORTIFICATION_REQUEST_NAME_CHANGE_DEF_HOUR = '#system_messages:fortification/request/name/CHANGE_DEF_HOUR'
+    FORTIFICATION_REQUEST_NAME_CHANGE_OFF_DAY = '#system_messages:fortification/request/name/CHANGE_OFF_DAY'
+    FORTIFICATION_REQUEST_NAME_CHANGE_PERIPHERY = '#system_messages:fortification/request/name/CHANGE_PERIPHERY'
+    FORTIFICATION_REQUEST_NAME_CHANGE_VACATION = '#system_messages:fortification/request/name/CHANGE_VACATION'
+    FORTIFICATION_REQUEST_NAME_CHANGE_SETTINGS = '#system_messages:fortification/request/name/CHANGE_SETTINGS'
+    FORTIFICATION_REQUEST_NAME_SHUTDOWN_DEF_HOUR = '#system_messages:fortification/request/name/SHUTDOWN_DEF_HOUR'
+    FORTIFICATION_REQUEST_NAME_CANCEL_SHUTDOWN_DEF_HOUR = '#system_messages:fortification/request/name/CANCEL_SHUTDOWN_DEF_HOUR'
+    FORTIFICATION_REQUEST_NAME_REQUEST_PUBLIC_INFO = '#system_messages:fortification/request/name/REQUEST_PUBLIC_INFO'
+    FORTIFICATION_REQUEST_NAME_REQUEST_CLAN_CARD = '#system_messages:fortification/request/name/REQUEST_CLAN_CARD'
+    FORTIFICATION_REQUEST_NAME_ADD_FAVORITE = '#system_messages:fortification/request/name/ADD_FAVORITE'
+    FORTIFICATION_REQUEST_NAME_REMOVE_FAVORITE = '#system_messages:fortification/request/name/REMOVE_FAVORITE'
+    FORTIFICATION_REQUEST_NAME_PLAN_ATTACK = '#system_messages:fortification/request/name/PLAN_ATTACK'
+    CLUB_REQUEST_NAME_SUBSCRIBE = '#system_messages:club/request/name/SUBSCRIBE'
+    CLUB_REQUEST_NAME_UNSUBSCRIBE = '#system_messages:club/request/name/UNSUBSCRIBE'
+    CLUB_REQUEST_NAME_CREATE_CLUB = '#system_messages:club/request/name/CREATE_CLUB'
+    CLUB_REQUEST_NAME_GET_MY_CLUBS = '#system_messages:club/request/name/GET_MY_CLUBS'
+    CLUB_REQUEST_NAME_GET_MY_CLUBS_HISTORY = '#system_messages:club/request/name/GET_MY_CLUBS_HISTORY'
+    CLUB_REQUEST_NAME_DESTROY_CLUB = '#system_messages:club/request/name/DESTROY_CLUB'
+    CLUB_REQUEST_NAME_LEAVE_CLUB = '#system_messages:club/request/name/LEAVE_CLUB'
+    CLUB_REQUEST_NAME_GET_CLUB = '#system_messages:club/request/name/GET_CLUB'
+    CLUB_REQUEST_NAME_OPEN_CLUB = '#system_messages:club/request/name/OPEN_CLUB'
+    CLUB_REQUEST_NAME_CLOSE_CLUB = '#system_messages:club/request/name/CLOSE_CLUB'
+    CLUB_REQUEST_NAME_GET_CLUBS = '#system_messages:club/request/name/GET_CLUBS'
+    CLUB_REQUEST_NAME_CHANGE_CLUB_NAME = '#system_messages:club/request/name/CHANGE_CLUB_NAME'
+    CLUB_REQUEST_NAME_CHANGE_CLUB_EMBLEM = '#system_messages:club/request/name/CHANGE_CLUB_EMBLEM'
+    CLUB_REQUEST_NAME_SEND_INVITE = '#system_messages:club/request/name/SEND_INVITE'
+    CLUB_REQUEST_NAME_REVOKE_INVITE = '#system_messages:club/request/name/REVOKE_INVITE'
+    CLUB_REQUEST_NAME_ACCEPT_INVITE = '#system_messages:club/request/name/ACCEPT_INVITE'
+    CLUB_REQUEST_NAME_DECLINE_INVITE = '#system_messages:club/request/name/DECLINE_INVITE'
+    CLUB_REQUEST_NAME_SEND_APPLICATION = '#system_messages:club/request/name/SEND_APPLICATION'
+    CLUB_REQUEST_NAME_REVOKE_APPLICATION = '#system_messages:club/request/name/REVOKE_APPLICATION'
+    CLUB_REQUEST_NAME_ACCEPT_APPLICATION = '#system_messages:club/request/name/ACCEPT_APPLICATION'
+    CLUB_REQUEST_NAME_DECLINE_APPLICATION = '#system_messages:club/request/name/DECLINE_APPLICATION'
+    CLUB_REQUEST_NAME_JOIN_UNIT = '#system_messages:club/request/name/JOIN_UNIT'
+    CLUB_REQUEST_NAME_GET_APPLICATIONS = '#system_messages:club/request/name/GET_APPLICATIONS'
+    CLUB_REQUEST_NAME_GET_CLUB_APPLICANTS = '#system_messages:club/request/name/GET_CLUB_APPLICANTS'
+    CLUB_REQUEST_NAME_GET_INVITES = '#system_messages:club/request/name/GET_INVITES'
+    CLUB_REQUEST_NAME_TRANSFER_OWNERSHIP = '#system_messages:club/request/name/TRANSFER_OWNERSHIP'
+    CLUB_REQUEST_NAME_ASSIGN_OFFICER = '#system_messages:club/request/name/ASSIGN_OFFICER'
+    CLUB_REQUEST_NAME_ASSIGN_PRIVATE = '#system_messages:club/request/name/ASSIGN_PRIVATE'
+    CLUB_REQUEST_NAME_KICK_MEMBER = '#system_messages:club/request/name/KICK_MEMBER'
+    CLUB_REQUEST_NAME_SET_APPLICANT_REQUIREMENTS = '#system_messages:club/request/name/SET_APPLICANT_REQUIREMENTS'
+    CLUBS_REQUEST_SUCCESS_APPLICATION_SENT = '#system_messages:clubs/request/success/application/sent'
+    CLUBS_REQUEST_SUCCESS_APPLICATION_REVOKE = '#system_messages:clubs/request/success/application/revoke'
+    CLUBS_REQUEST_SUCCESS_APPLICATION_ACCEPT = '#system_messages:clubs/request/success/application/accept'
+    CLUBS_REQUEST_SUCCESS_APPLICATION_DECLINE = '#system_messages:clubs/request/success/application/decline'
+    CLUBS_REQUEST_SUCCESS_INVITE_SENT = '#system_messages:clubs/request/success/invite/sent'
+    CLUBS_REQUEST_SUCCESS_INVITES_SENT = '#system_messages:clubs/request/success/invites/sent'
+    CLUBS_REQUEST_SUCCESS_INVITES_SENT_NAMES_SUCCESS = '#system_messages:clubs/request/success/invites/sent/names/success'
+    CLUBS_REQUEST_SUCCESS_INVITES_SENT_NAMES_ERROR = '#system_messages:clubs/request/success/invites/sent/names/error'
+    CLUBS_REQUEST_SUCCESS_INVITE_REVOKE = '#system_messages:clubs/request/success/invite/revoke'
+    CLUBS_REQUEST_SUCCESS_CREATECLUB = '#system_messages:clubs/request/success/createClub'
+    CLUBS_REQUEST_SUCCESS_LEAVECLUB = '#system_messages:clubs/request/success/leaveClub'
+    CLUBS_REQUEST_SUCCESS_DESTROYCLUB = '#system_messages:clubs/request/success/destroyClub'
+    CLUBS_REQUEST_SUCCESS_OPENCLUB = '#system_messages:clubs/request/success/openClub'
+    CLUBS_REQUEST_SUCCESS_CLOSECLUB = '#system_messages:clubs/request/success/closeClub'
+    CLUBS_REQUEST_SUCCESS_USERS_ASSIGNPRIVATE = '#system_messages:clubs/request/success/users/assignPrivate'
+    CLUBS_REQUEST_SUCCESS_USERS_ASSIGNOFFICER = '#system_messages:clubs/request/success/users/assignOfficer'
+    CLUBS_REQUEST_SUCCESS_USERS_TRANSFEROWNERSHIP = '#system_messages:clubs/request/success/users/transferOwnership'
+    CLUBS_REQUEST_SUCCESS_USERS_KICK = '#system_messages:clubs/request/success/users/kick'
+    CLUBS_REQUEST_ERRORS_DEFAULT = '#system_messages:clubs/request/errors/default'
+    CLUBS_REQUEST_ERRORS_SOME_ERROR_ON_ESTB_SIDE__SEE_SERVER_LOG_FOR_DETAILS_ = '#system_messages:clubs/request/errors/Some error on estb side. See server log for details.'
+    CLUBS_REQUEST_ERRORS_ACCOUNT_ALREADY_OWNS_THE_CLUB_ = '#system_messages:clubs/request/errors/Account already owns the club.'
+    CLUBS_REQUEST_ERRORS_ACCOUNT_ALREADY_A_CLUB_MEMBER_ = '#system_messages:clubs/request/errors/Account already a club member.'
+    CLUBS_REQUEST_ERRORS_NO_CLUB_FOUND_ = '#system_messages:clubs/request/errors/No club found.'
+    CLUBS_REQUEST_ERRORS_ACCOUNT_NOT_A_CLUB_MEMBER_ = '#system_messages:clubs/request/errors/Account not a club member.'
+    CLUBS_REQUEST_ERRORS_FORBIDDEN_OPERATION_FOR_NON_EMPTY_CLUB_ = '#system_messages:clubs/request/errors/Forbidden operation for non-empty club.'
+    CLUBS_REQUEST_ERRORS_THIS_OPERATION_IS_FORBIDDEN_FOR_CLUB_OWNER_ = '#system_messages:clubs/request/errors/This operation is forbidden for club owner.'
+    CLUBS_REQUEST_ERRORS_FORBIDDEN_OPERATION_BECAUSE_APPLICANTS_LIMIT_REACHED_ = '#system_messages:clubs/request/errors/Forbidden operation because applicants limit reached.'
+    CLUBS_REQUEST_ERRORS_FORBIDDEN_OPERATION_BECAUSE_MEMBERS_LIMIT_REACHED_ = '#system_messages:clubs/request/errors/Forbidden operation because members limit reached.'
+    CLUBS_REQUEST_ERRORS_INVITE_TO_THE_CLUB_ALREADY_SENT_TO_THIS_PLAYER_ = '#system_messages:clubs/request/errors/Invite to the club already sent to this player.'
+    CLUBS_REQUEST_ERRORS_INVITE_TO_THE_CLUB_NOT_FOUND_FOR_THIS_PLAYER_ = '#system_messages:clubs/request/errors/Invite to the club not found for this player.'
+    CLUBS_REQUEST_ERRORS_ACCOUNT_NOT_A_CLUB_APPLICANT_ = '#system_messages:clubs/request/errors/Account not a club applicant.'
+    CLUBS_REQUEST_ERRORS_INCORRECT_PARAMS_PASSED_TO_THE_HANDLER_ = '#system_messages:clubs/request/errors/Incorrect params passed to the handler.'
+    CLUBS_REQUEST_ERRORS_HANDLER_RESPONSE_NOT_REGISTERED_ = '#system_messages:clubs/request/errors/Handler response not registered.'
+    CLUBS_REQUEST_ERRORS_APPLICATIONS_TO_THE_CLOSED_CLUB_ARE_FORBIDDEN_ = '#system_messages:clubs/request/errors/Applications to the closed club are forbidden.'
+    CLUBS_REQUEST_ERRORS_NONE_OF_THE_SUB_REQUESTS_WAS_NOT_COMPLETED_SUCCESSFULLY_ = '#system_messages:clubs/request/errors/None of the sub-requests was not completed successfully.'
+    CLUBS_REQUEST_ERRORS_THIS_EMBLEM_NOT_REGISTERED_IN_EMULATOR_ = '#system_messages:clubs/request/errors/This emblem not registered in emulator.'
+    CLUBS_REQUEST_ERRORS_COMMAND_FAILED_BY_TIMEOUT_ = '#system_messages:clubs/request/errors/Command failed by timeout.'
+    CLUBS_REQUEST_ERRORS_UNKNOWN_OR_UNEXPECTED_ERROR_ = '#system_messages:clubs/request/errors/Unknown or unexpected error.'
+    CLUBS_REQUEST_ERRORS_ACCOUNT_NOT_FOUND_FOR_GIVEN_ID_ = '#system_messages:clubs/request/errors/Account not found for given ID.'
+    CLUBS_REQUEST_ERRORS_ACCOUNT_FOR_GIVEN_ID_IS_BANNED_ = '#system_messages:clubs/request/errors/Account for given ID is banned.'
+    CLUBS_REQUEST_ERRORS_INTERNAL_ERROR_IN_SPA__ = '#system_messages:clubs/request/errors/Internal error in SPA .'
+    CLUBS_REQUEST_ERRORS_FORBIDDEN_OPERATION_FOR_THIS_ACCOUNT_ = '#system_messages:clubs/request/errors/Forbidden operation for this account.'
+    CLUBS_REQUEST_ERRORS_INACTIVE_CLUB_ = '#system_messages:clubs/request/errors/Inactive club.'
+    CLUBS_REQUEST_ERRORS_INACTIVE_APPLICATION_ = '#system_messages:clubs/request/errors/Inactive application.'
+    CLUBS_REQUEST_ERRORS_INACTIVE_INVITE_ = '#system_messages:clubs/request/errors/Inactive invite.'
+    CLUBS_REQUEST_ERRORS_TOO_MANY_REQUESTS_ARE_IN_THE_PENDING_STATE_ = '#system_messages:clubs/request/errors/Too many requests are in the pending state.'
+    CLUBS_REQUEST_ERRORS_TOO_MANY_INVITES_SENT_TO_THAT_PLAYER_ = '#system_messages:clubs/request/errors/Too many invites sent to that player.'
+    CLUBS_REQUEST_ERRORS_THIS_CLUB_NAME_IS_ALREADY_TAKEN_ = '#system_messages:clubs/request/errors/This club name is already taken.'
+    CLUBS_REQUEST_ERRORS_INCORRECT_CHECKOUT_TOKEN_ = '#system_messages:clubs/request/errors/Incorrect checkout token.'
+    CLUBS_REQUEST_ERRORS_CLUB_IS_LOCKED_ = '#system_messages:clubs/request/errors/Club is locked.'
+    CLUBS_REQUEST_ERRORS_ATTEMPT_TO_ACCESS_TO_THE_INCORRECT_URL_ = '#system_messages:clubs/request/errors/Attempt to access to the incorrect url.'
+    CLUBS_REQUEST_ERRORS_APPLICATION_FROM_THIS_ACCOUNT_ALREADY_EXISTS_ = '#system_messages:clubs/request/errors/Application from this account already exists.'
+    CLUBS_REQUEST_ERRORS_WRONG_OBTAINED_WEB_DATA_FORMAT__PLEASE_SEE_SERVER_LOGS_ = '#system_messages:clubs/request/errors/Wrong obtained web data format. Please see server logs.'
+    CLUBS_REQUEST_ERRORS_THIS_OPERATION_IS_RESTRICTED_ON_WEB_SIDE_ = '#system_messages:clubs/request/errors/This operation is restricted on web side.'
+    CLUBS_REQUEST_ERRORS_WEB_API_IS_NOT_AVAILABLE_AT_THIS_MOMENT_ = '#system_messages:clubs/request/errors/Web API is not available at this moment.'
+    CLUBS_REQUEST_ERRORS_THIS_CLUB_IS_NOT_IN_THE_LADDER_ = '#system_messages:clubs/request/errors/This club is not in the ladder.'
+    CLUBS_REQUEST_ERRORS_UNITMGR_NOT_AVAILABLE = '#system_messages:clubs/request/errors/UnitMgr not available'
+    CLUBS_REQUEST_ERRORS_TEAM_DOES_NOT_EXIST = '#system_messages:clubs/request/errors/TEAM_DOES_NOT_EXIST'
+    CLUBS_REQUEST_ERRORS_TEAM_IS_FULL = '#system_messages:clubs/request/errors/TEAM_IS_FULL'
+    CLUBS_REQUEST_ERRORS_TEAM_IS_NOT_ACTIVE = '#system_messages:clubs/request/errors/TEAM_IS_NOT_ACTIVE'
+    CLUBS_REQUEST_ERRORS_TEAM_ALREADY_EXIST = '#system_messages:clubs/request/errors/TEAM_ALREADY_EXIST'
+    CLUBS_REQUEST_ERRORS_TEAM_MEMBERS_COUNT_ERROR = '#system_messages:clubs/request/errors/TEAM_MEMBERS_COUNT_ERROR'
+    CLUBS_REQUEST_ERRORS_TEAM_DOES_NOT_HAVE_OWNER = '#system_messages:clubs/request/errors/TEAM_DOES_NOT_HAVE_OWNER'
+    CLUBS_REQUEST_ERRORS_TEAM_DOSSIER_WAS_LOCKED = '#system_messages:clubs/request/errors/TEAM_DOSSIER_WAS_LOCKED'
+    CLUBS_REQUEST_ERRORS_TEAM_ALREADY_UNLOCKED = '#system_messages:clubs/request/errors/TEAM_ALREADY_UNLOCKED'
+    CLUBS_REQUEST_ERRORS_TEAM_LOCK_TOKEN_ERROR = '#system_messages:clubs/request/errors/TEAM_LOCK_TOKEN_ERROR'
+    CLUBS_REQUEST_ERRORS_EMBLEM_DOES_NOT_EXIST = '#system_messages:clubs/request/errors/EMBLEM_DOES_NOT_EXIST'
+    CLUBS_REQUEST_ERRORS_WGESTB_COOLDOWN = '#system_messages:clubs/request/errors/WGESTB_COOLDOWN'
+    CLUBS_REQUEST_ERRORS_CHANGE_TEAM_NAME_COOLDOWN = '#system_messages:clubs/request/errors/CHANGE_TEAM_NAME_COOLDOWN'
+    CLUBS_REQUEST_ERRORS_CHANGE_TEAM_TAG_COOLDOWN = '#system_messages:clubs/request/errors/CHANGE_TEAM_TAG_COOLDOWN'
+    CLUBS_REQUEST_ERRORS_TEAM_LEAVE_COOLDOWN = '#system_messages:clubs/request/errors/TEAM_LEAVE_COOLDOWN'
+    CLUBS_REQUEST_ERRORS_CANCEL_APPLICATION_COOLDOWN = '#system_messages:clubs/request/errors/CANCEL_APPLICATION_COOLDOWN'
+    CLUBS_REQUEST_ERRORS_CREATE_TEAM_AFTER_LEAVE_COOLDOWN = '#system_messages:clubs/request/errors/CREATE_TEAM_AFTER_LEAVE_COOLDOWN'
+    CLUBS_REQUEST_ERRORS_CREATE_TEAM_AFTER_DEACTIVATION_COOLDOWN = '#system_messages:clubs/request/errors/CREATE_TEAM_AFTER_DEACTIVATION_COOLDOWN'
+    CLUBS_REQUEST_ERRORS_JOIN_TEAM_AFTER_DEACTIVATION_COOLDOWN = '#system_messages:clubs/request/errors/JOIN_TEAM_AFTER_DEACTIVATION_COOLDOWN'
+    CLUBS_REQUEST_ERRORS_SAME_TEAM_APPLICATION_COOLDOWN = '#system_messages:clubs/request/errors/SAME_TEAM_APPLICATION_COOLDOWN'
+    CLUBS_REQUEST_ERRORS_MEMBERSHIP_APPLICATION_NOT_NEEDED = '#system_messages:clubs/request/errors/MEMBERSHIP_APPLICATION_NOT_NEEDED'
+    CLUBS_REQUEST_ERRORS_APPLICATION_FOR_USER_EXCEEDED = '#system_messages:clubs/request/errors/APPLICATION_FOR_USER_EXCEEDED'
+    CLUBS_REQUEST_ERRORS_ACCOUNT_BANNED = '#system_messages:clubs/request/errors/ACCOUNT_BANNED'
+    CLUBS_REQUEST_ERRORS_ACCOUNT_NOT_IN_TEAM = '#system_messages:clubs/request/errors/ACCOUNT_NOT_IN_TEAM'
+    CLUBS_REQUEST_ERRORS_ACCOUNT_ALREADY_IN_TEAM = '#system_messages:clubs/request/errors/ACCOUNT_ALREADY_IN_TEAM'
+    CLUBS_REQUEST_ERRORS_ACCOUNT_TEAMS_LIMIT_EXCEEDED = '#system_messages:clubs/request/errors/ACCOUNT_TEAMS_LIMIT_EXCEEDED'
+    CLUBS_REQUEST_ERRORS_ACCOUNT_IS_TEAM_OWNER = '#system_messages:clubs/request/errors/ACCOUNT_IS_TEAM_OWNER'
+    CLUBS_REQUEST_ERRORS_OWNER_TEAMS_LIMIT_EXCEEDED = '#system_messages:clubs/request/errors/OWNER_TEAMS_LIMIT_EXCEEDED'
+    CLUBS_REQUEST_ERRORS_INVITE_DOES_NOT_EXIST = '#system_messages:clubs/request/errors/INVITE_DOES_NOT_EXIST'
+    CLUBS_REQUEST_ERRORS_INVITE_IS_NOT_ACTIVE = '#system_messages:clubs/request/errors/INVITE_IS_NOT_ACTIVE'
+    CLUBS_REQUEST_ERRORS_HAS_NO_CLUB = '#system_messages:clubs/request/errors/HAS_NO_CLUB'
+    CLUBS_REQUEST_ERRORS_TOO_MANY_INVITES_PER_CALL = '#system_messages:clubs/request/errors/TOO_MANY_INVITES_PER_CALL'
+    CLUBS_REQUEST_ERRORS_TEAM_ACTIVE_PROPOSALS_EXCEEDED = '#system_messages:clubs/request/errors/TEAM_ACTIVE_PROPOSALS_EXCEEDED'
+    CLUBS_REQUEST_ERRORS_NOT_ENOUGH_RATED_BATTLES = '#system_messages:clubs/request/errors/NOT_ENOUGH_RATED_BATTLES'
+    CLUBS_REQUEST_ERRORS_HAVE_NO_RIGHTS = '#system_messages:clubs/request/errors/HAVE_NO_RIGHTS'
+    CLUBS_REQUEST_ERRORS_CLUBS_ARE_DISABLED = '#system_messages:clubs/request/errors/CLUBS ARE DISABLED'
+    CLUBS_REQUEST_ERRORS_TIME_OUT = '#system_messages:clubs/request/errors/time out'
+    CLUBS_REQUEST_ERRORS_SENDINVITE_IGNORED = '#system_messages:clubs/request/errors/sendInvite/ignored'
+    CLUBS_REQUEST_ERRORS_SENDAPP_IGNORED = '#system_messages:clubs/request/errors/sendApp/ignored'
+    CLUBS_REQUEST_ERRORS_JOINUNIT_WEBUNAVAILABLE = '#system_messages:clubs/request/errors/joinUnit/webUnavailable'
+    CLANS_ISCLANPROFILEDISABLED = '#system_messages:clans/isClanProfileDisabled'
+    CLANS_REQUEST_ERRORS_FORBIDDEN_ACCOUNT_TYPE = '#system_messages:clans/request/errors/FORBIDDEN_ACCOUNT_TYPE'
+    CLANS_REQUEST_ERRORS_CANT_SEND_INVITES = '#system_messages:clans/request/errors/CANT_SEND_INVITES'
+    CLANS_REQUEST_ERRORS_CLAN_CONSCRIPTION_CLOSED = '#system_messages:clans/request/errors/CLAN_CONSCRIPTION_CLOSED'
+    CLANS_REQUEST_ERRORS_CLAN_IS_FULL = '#system_messages:clans/request/errors/CLAN_IS_FULL'
+    CLANS_REQUEST_ERRORS_DEFAULT = '#system_messages:clans/request/errors/DEFAULT'
+    CLANS_REQUEST_ERRORS_USER_IS_NOT_AUTHENTIFICATED = '#system_messages:clans/request/errors/User is not authentificated'
+    CLANS_REQUEST_ERRORS_FORBIDDEN = '#system_messages:clans/request/errors/Forbidden'
+    CLANS_REQUEST_ERRORS_BAD_REQUEST = '#system_messages:clans/request/errors/Bad request'
+    CLANS_REQUEST_ERRORS_EXPORTER_ERROR_WAS_OCCURRED = '#system_messages:clans/request/errors/Exporter error was occurred'
+    CLANS_REQUEST_ERRORS_SPA_ERROR_WAS_OCCURRED = '#system_messages:clans/request/errors/SPA error was occurred'
+    CLANS_REQUEST_ERRORS_GLOBAL_MAP_ERROR_WAS_OCCURRED = '#system_messages:clans/request/errors/Global map error was occurred'
+    CLANS_REQUEST_ERRORS_WGRS_ERROR_WAS_OCCURRED = '#system_messages:clans/request/errors/Wgrs error was occurred'
+    CLANS_REQUEST_ERRORS_WGCCFE_ERROR_WAS_OCCURRED = '#system_messages:clans/request/errors/WGCCFE error was occurred'
+    CLANS_REQUEST_ERRORS_CLAN_IS_DISBANDED = '#system_messages:clans/request/errors/Clan is disbanded'
+    CLANS_REQUEST_ERRORS_STRONGHOLD_IS_NOT_FOUND = '#system_messages:clans/request/errors/Stronghold is not found'
+    CLANS_REQUEST_ERRORS_WGCCBE_ERROR_WAS_OCCURRED = '#system_messages:clans/request/errors/WGCCBE error was occurred'
+    CLANS_REQUEST_ERRORS_ACCOUNT_IS_BANNED = '#system_messages:clans/request/errors/Account is banned'
+    CLANS_REQUEST_ERRORS_ACCOUNT_IN_UNKNOWN = '#system_messages:clans/request/errors/Account in unknown'
+    CLANS_REQUEST_ERRORS_CLAN_DOES_NOT_EXIST = '#system_messages:clans/request/errors/Clan does not exist'
+    CLANS_REQUEST_ERRORS_CLAN_IS_FULL_ = '#system_messages:clans/request/errors/Clan is full'
+    CLANS_REQUEST_ERRORS_ACCOUNT_IS_IN_CLAN_ALREADY = '#system_messages:clans/request/errors/Account is in clan already'
+    CLANS_REQUEST_ERRORS_ACCOUNT_IS_NOT_IN_CLAN = '#system_messages:clans/request/errors/Account is not in clan'
+    CLANS_REQUEST_ERRORS_ACCOUNT_ALREADY_INVITED = '#system_messages:clans/request/errors/Account already invited'
+    CLANS_REQUEST_ERRORS_ACCOUNT_IN_COOLDOWN = '#system_messages:clans/request/errors/Account in cooldown'
+    CLANS_REQUEST_ERRORS_RECRUITING_POLICY_MISMATCH = '#system_messages:clans/request/errors/Recruiting policy mismatch'
+    CLANS_REQUEST_ERRORS_ACCOUNT_DOES_NOT_MEET_REQUIREMENTS = '#system_messages:clans/request/errors/Account does not meet requirements'
+    CLANS_REQUEST_ERRORS_TOO_MANY_INVITES = '#system_messages:clans/request/errors/Too many invites'
+    CLANS_REQUEST_ERRORS_INVITE_DOES_NOT_EXIST = '#system_messages:clans/request/errors/Invite does not exist'
+    CLANS_REQUEST_ERRORS_INVITE_IS_NOT_ACTIVE = '#system_messages:clans/request/errors/Invite is not active'
+    CLANS_REQUEST_ERRORS_TOO_MANY_APPLICATIONS = '#system_messages:clans/request/errors/Too Many Applications'
+    CLANS_REQUEST_ERRORS_APPLICATION_DOES_NOT_EXIST = '#system_messages:clans/request/errors/Application does not exist'
+    CLANS_REQUEST_ERRORS_APPLICATION_IS_NOT_ACTIVE = '#system_messages:clans/request/errors/Application is not active'
+    CLANS_REQUEST_ERRORS_CLAN_IS_NOT_ACTIVE = '#system_messages:clans/request/errors/Clan is not active'
+    CLANS_NOTIFICATIONS_FROM = '#system_messages:clans/notifications/from'
+    CLANS_NOTIFICATIONS_ACCEPT = '#system_messages:clans/notifications/accept'
+    CLANS_NOTIFICATIONS_DECLINE = '#system_messages:clans/notifications/decline'
+    CLANS_NOTIFICATIONS_INFO = '#system_messages:clans/notifications/info'
+    CLANS_NOTIFICATIONS_INVITE = '#system_messages:clans/notifications/invite'
+    CLANS_NOTIFICATIONS_INVITE_ACCEPTED = '#system_messages:clans/notifications/invite/accepted'
+    CLANS_NOTIFICATIONS_INVITE_DECLINED = '#system_messages:clans/notifications/invite/declined'
+    CLANS_NOTIFICATIONS_INVITE_EXPIRED = '#system_messages:clans/notifications/invite/expired'
+    CLANS_NOTIFICATIONS_REQUEST = '#system_messages:clans/notifications/request'
+    CLANS_NOTIFICATIONS_REQUEST_ACCEPTED = '#system_messages:clans/notifications/request/accepted'
+    CLANS_NOTIFICATIONS_REQUEST_DECLINED = '#system_messages:clans/notifications/request/declined'
+    CLANS_NOTIFICATIONS_INVITES = '#system_messages:clans/notifications/invites'
+    CLANS_NOTIFICATIONS_INVITES_TURNOFF = '#system_messages:clans/notifications/invites/turnOff'
+    CLANS_NOTIFICATIONS_INVITES_WATCHINVITES = '#system_messages:clans/notifications/invites/watchInvites'
+    CLANS_NOTIFICATIONS_REQUESTS = '#system_messages:clans/notifications/requests'
+    CLANS_NOTIFICATIONS_REQUESTS_WATCHREQUESTS = '#system_messages:clans/notifications/requests/watchRequests'
+    CLANS_NOTIFICATIONS_REQUESTSENT = '#system_messages:clans/notifications/requestSent'
+    CLANS_NOTIFICATIONS_INVITESENT = '#system_messages:clans/notifications/inviteSent'
+    CLANS_NOTIFICATIONS_INVITESSENT = '#system_messages:clans/notifications/invitesSent'
+    CLANS_NOTIFICATIONS_INVITESENDERROR = '#system_messages:clans/notifications/inviteSendError'
+    CLANS_NOTIFICATIONS_INVITESSENDERROR = '#system_messages:clans/notifications/invitesSendError'
+    CLANS_NOTIFICATIONS_PERSONAL_APPACCEPTED = '#system_messages:clans/notifications/personal/appAccepted'
+    CLANS_NOTIFICATIONS_PERSONAL_APPDECLINED = '#system_messages:clans/notifications/personal/appDeclined'
+    CLANS_NOTIFICATIONS_INVITEACCEPTED = '#system_messages:clans/notifications/inviteAccepted'
+    CLANS_NOTIFICATIONS_INVITEDECLINED = '#system_messages:clans/notifications/inviteDeclined'
     EXCHANGE_SUCCESS = '#system_messages:exchange/success'
     EXCHANGE_NOT_ENOUGH_GOLD = '#system_messages:exchange/not_enough_gold'
     EXCHANGE_WALLET_NOT_AVAILABLE = '#system_messages:exchange/wallet_not_available'
@@ -456,17 +799,55 @@ class SYSTEM_MESSAGES(object):
     EXCHANGEXP_NOT_ENOUGH_GOLD = '#system_messages:exchangeXP/not_enough_gold'
     EXCHANGEXP_WALLET_NOT_AVAILABLE = '#system_messages:exchangeXP/wallet_not_available'
     EXCHANGEXP_SERVER_ERROR = '#system_messages:exchangeXP/server_error'
+    QUESTS_NOQUESTSWITHGIVENID = '#system_messages:quests/noQuestsWithGivenID'
+    QUEUE_ISINQUEUE = '#system_messages:queue/isInQueue'
     WALLET_AVAILABLE = '#system_messages:wallet/available'
     WALLET_AVAILABLE_GOLD = '#system_messages:wallet/available_gold'
     WALLET_AVAILABLE_FREEXP = '#system_messages:wallet/available_freexp'
     WALLET_NOT_AVAILABLE = '#system_messages:wallet/not_available'
     WALLET_NOT_AVAILABLE_GOLD = '#system_messages:wallet/not_available_gold'
     WALLET_NOT_AVAILABLE_FREEXP = '#system_messages:wallet/not_available_freexp'
+    POTAPOVQUESTS_SELECT_SUCCESS = '#system_messages:potapovQuests/select/success'
+    POTAPOVQUESTS_SELECT_SERVER_ERROR = '#system_messages:potapovQuests/select/server_error'
+    POTAPOVQUESTS_SELECT_SERVER_ERROR_WRONG_ARGS_TYPE = '#system_messages:potapovQuests/select/server_error/WRONG_ARGS_TYPE'
+    POTAPOVQUESTS_SELECT_SERVER_ERROR_WRONG_ARGS = '#system_messages:potapovQuests/select/server_error/WRONG_ARGS'
+    POTAPOVQUESTS_SELECT_SERVER_ERROR_NOT_ENOUGH_SLOTS = '#system_messages:potapovQuests/select/server_error/NOT_ENOUGH_SLOTS'
+    POTAPOVQUESTS_SELECT_SERVER_ERROR_NOT_GOTTEN_REWARD = '#system_messages:potapovQuests/select/server_error/NOT_GOTTEN_REWARD'
+    POTAPOVQUESTS_SELECT_SERVER_ERROR_NOT_BOUGHT_TILE = '#system_messages:potapovQuests/select/server_error/NOT_BOUGHT_TILE'
+    POTAPOVQUESTS_SELECT_SERVER_ERROR_QUEST_ALREADY_COMPLETED = '#system_messages:potapovQuests/select/server_error/QUEST_ALREADY_COMPLETED'
+    POTAPOVQUESTS_SELECT_SERVER_ERROR_NOT_UNLOCKED_QUEST = '#system_messages:potapovQuests/select/server_error/NOT_UNLOCKED_QUEST'
+    POTAPOVQUESTS_SELECT_SERVER_ERROR_TOO_MANY_QUESTS_IN_CHAIN = '#system_messages:potapovQuests/select/server_error/TOO_MANY_QUESTS_IN_CHAIN'
+    POTAPOVQUESTS_SELECT_SERVER_ERROR_LOCKED_BY_VEHICLE_QUEST = '#system_messages:potapovQuests/select/server_error/LOCKED_BY_VEHICLE_QUEST'
+    POTAPOVQUESTS_SELECT_SERVER_ERROR_SEASON_LIMIT_THE_SAME_CLASS = '#system_messages:potapovQuests/select/server_error/SEASON_LIMIT_THE_SAME_CLASS'
+    POTAPOVQUESTS_REFUSE_SUCCESS = '#system_messages:potapovQuests/refuse/success'
+    POTAPOVQUESTS_REFUSE_QUESTS = '#system_messages:potapovQuests/refuse/quests'
+    POTAPOVQUESTS_REFUSE_NO_QUESTS = '#system_messages:potapovQuests/refuse/no_quests'
+    POTAPOVQUESTS_REFUSE_SERVER_ERROR = '#system_messages:potapovQuests/refuse/server_error'
+    POTAPOVQUESTS_REFUSE_SERVER_ERROR_LOCKED_BY_VEHICLE_QUEST = '#system_messages:potapovQuests/refuse/server_error/LOCKED_BY_VEHICLE_QUEST'
+    POTAPOVQUESTS_SELECT_SERVER_ERROR_FALLOUT_LOCKED_BY_VEHICLE_QUEST = '#system_messages:potapovQuests/select/server_error/fallout/LOCKED_BY_VEHICLE_QUEST'
+    POTAPOVQUESTS_REFUSE_SERVER_ERROR_FALLOUT_LOCKED_BY_VEHICLE_QUEST = '#system_messages:potapovQuests/refuse/server_error/fallout/LOCKED_BY_VEHICLE_QUEST'
+    POTAPOVQUESTS_REFUSE_DISABLED = '#system_messages:potapovQuests/refuse/DISABLED'
+    POTAPOVQUESTS_REWARD_REGULAR_SUCCESS = '#system_messages:potapovQuests/reward/regular/success'
+    POTAPOVQUESTS_REWARD_REGULAR_SERVER_ERROR = '#system_messages:potapovQuests/reward/regular/server_error'
+    POTAPOVQUESTS_REWARD_REGULAR_SERVER_ERROR_WRONG_ARGS_TYPE = '#system_messages:potapovQuests/reward/regular/server_error/WRONG_ARGS_TYPE'
+    POTAPOVQUESTS_REWARD_REGULAR_SERVER_ERROR_NO_REWARD = '#system_messages:potapovQuests/reward/regular/server_error/NO_REWARD'
+    POTAPOVQUESTS_REWARD_REGULAR_SERVER_ERROR_INVALID_STATE = '#system_messages:potapovQuests/reward/regular/server_error/INVALID_STATE'
+    POTAPOVQUESTS_REWARD_REGULAR_SERVER_ERROR_DISABLED = '#system_messages:potapovQuests/reward/regular/server_error/DISABLED'
+    POTAPOVQUESTS_REWARD_TANKWOMAN_SUCCESS = '#system_messages:potapovQuests/reward/tankwoman/success'
+    POTAPOVQUESTS_REWARD_TANKWOMAN_SERVER_ERROR = '#system_messages:potapovQuests/reward/tankwoman/server_error'
+    POTAPOVQUESTS_REWARD_TANKWOMAN_SERVER_ERROR_WRONG_ARGS_TYPE = '#system_messages:potapovQuests/reward/tankwoman/server_error/WRONG_ARGS_TYPE'
+    POTAPOVQUESTS_REWARD_TANKWOMAN_SERVER_ERROR_NO_REWARD = '#system_messages:potapovQuests/reward/tankwoman/server_error/NO_REWARD'
+    POTAPOVQUESTS_REWARD_TANKWOMAN_SERVER_ERROR_INVALID_STATE = '#system_messages:potapovQuests/reward/tankwoman/server_error/INVALID_STATE'
+    POTAPOVQUESTS_REWARD_TANKWOMAN_SERVER_ERROR_DISABLED = '#system_messages:potapovQuests/reward/tankwoman/server_error/DISABLED'
+    POTAPOVQUESTS_SELECT_DISABLED = '#system_messages:potapovQuests/select/DISABLED'
     UNIT_ERRORS_ALREADY_JOINED_UNIT = '#system_messages:unit/errors/ALREADY_JOINED_UNIT'
+    UNIT_ERRORS_CANT_CHANGE_DIVISION = '#system_messages:unit/errors/CANT_CHANGE_DIVISION'
+    UNIT_ERRORS_SORTIES_FORBIDDEN = '#system_messages:unit/errors/SORTIES_FORBIDDEN'
     UNIT_ERRORS_UNIT_MGR_ENTITY_CREATION_FAIL = '#system_messages:unit/errors/UNIT_MGR_ENTITY_CREATION_FAIL'
     UNIT_ERRORS_UNIT_ADD_FAIL = '#system_messages:unit/errors/UNIT_ADD_FAIL'
     UNIT_ERRORS_CANT_FIND_UNIT_MGR = '#system_messages:unit/errors/CANT_FIND_UNIT_MGR'
     UNIT_ERRORS_ADD_PLAYER_FAIL = '#system_messages:unit/errors/ADD_PLAYER_FAIL'
+    UNIT_ERRORS_NO_AVAILABLE_SLOTS = '#system_messages:unit/errors/NO_AVAILABLE_SLOTS'
     UNIT_ERRORS_NO_UNIT_MGR = '#system_messages:unit/errors/NO_UNIT_MGR'
     UNIT_ERRORS_WRONG_UNIT_REQUISITES = '#system_messages:unit/errors/WRONG_UNIT_REQUISITES'
     UNIT_ERRORS_REMOVE_PLAYER_FAIL = '#system_messages:unit/errors/REMOVE_PLAYER_FAIL'
@@ -487,20 +868,245 @@ class SYSTEM_MESSAGES(object):
     UNIT_ERRORS_GET_READY_VEHICLE_FAIL = '#system_messages:unit/errors/GET_READY_VEHICLE_FAIL'
     UNIT_ERRORS_COOLDOWN = '#system_messages:unit/errors/COOLDOWN'
     UNIT_ERRORS_BAD_POINTS_SUM = '#system_messages:unit/errors/BAD_POINTS_SUM'
+    UNIT_ERRORS_BAD_VEHICLE_LEVEL = '#system_messages:unit/errors/BAD_VEHICLE_LEVEL'
+    UNIT_WARNINGS_NO_CLAN_MEMBERS = '#system_messages:unit/warnings/NO_CLAN_MEMBERS'
+    UNIT_ERRORS_NO_PLAYER = '#system_messages:unit/errors/NO_PLAYER'
+    UNIT_ERRORS_SLOT_RESERVED = '#system_messages:unit/errors/SLOT_RESERVED'
+    UNIT_ERRORS_SLOT_OCCUPIED = '#system_messages:unit/errors/SLOT_OCCUPIED'
+    UNIT_ERRORS_TOO_MANY_CLOSED_SLOTS = '#system_messages:unit/errors/TOO_MANY_CLOSED_SLOTS'
+    UNIT_ERRORS_SLOT_NOT_CLOSED = '#system_messages:unit/errors/SLOT_NOT_CLOSED'
+    UNIT_WARNINGS_CANT_PICK_LEADER = '#system_messages:unit/warnings/CANT_PICK_LEADER'
+    UNIT_ERRORS_RESTRICT_LEGIONARIES = '#system_messages:unit/errors/RESTRICT_LEGIONARIES'
+    UNIT_ERRORS_RESTRICT_INVITED = '#system_messages:unit/errors/RESTRICT_INVITED'
+    UNIT_ERRORS_VEHICLE_MISMATCH = '#system_messages:unit/errors/VEHICLE_MISMATCH'
+    UNIT_ERRORS_NO_VEHICLES = '#system_messages:unit/errors/NO_VEHICLES'
+    UNIT_ERRORS_TOO_MANY_LEGIONARIES = '#system_messages:unit/errors/TOO_MANY_LEGIONARIES'
+    UNIT_ERRORS_VEHICLE_NOT_CHOSEN = '#system_messages:unit/errors/VEHICLE_NOT_CHOSEN'
+    UNIT_ERRORS_ALREADY_IN_SLOT = '#system_messages:unit/errors/ALREADY_IN_SLOT'
     UNIT_WARNINGS_KICKED_CANDIDATE = '#system_messages:unit/warnings/KICKED_CANDIDATE'
     UNIT_WARNINGS_KICKED_PLAYER = '#system_messages:unit/warnings/KICKED_PLAYER'
     UNIT_WARNINGS_UNIT_ASSEMBLER_TIMEOUT = '#system_messages:unit/warnings/UNIT_ASSEMBLER_TIMEOUT'
     UNIT_WARNINGS_KICKED_FROM_UNIT_ASSEMBLER = '#system_messages:unit/warnings/KICKED_FROM_UNIT_ASSEMBLER'
     UNIT_WARNINGS_INVITE_REMOVED = '#system_messages:unit/warnings/INVITE_REMOVED'
     UNIT_WARNINGS_ALREADY_INVITED = '#system_messages:unit/warnings/ALREADY_INVITED'
-    UNIT_INFO_OFFLINESTATUS = '#system_messages:unit/info/offlineStatus'
-    UNIT_INFO_ONLINESTATUS = '#system_messages:unit/info/onlineStatus'
+    UNIT_WARNINGS_WAITING_FOR_JOIN = '#system_messages:unit/warnings/WAITING_FOR_JOIN'
+    UNIT_WARNINGS_CLAN_CHANGED = '#system_messages:unit/warnings/CLAN_CHANGED'
+    UNIT_WARNINGS_FORT_BATTLE_END = '#system_messages:unit/warnings/FORT_BATTLE_END'
+    UNIT_NOTIFICATION_PLAYEROFFLINE = '#system_messages:unit/notification/playerOffline'
+    UNIT_NOTIFICATION_PLAYERONLINE = '#system_messages:unit/notification/playerOnline'
+    UNIT_NOTIFICATION_PLAYERADDED = '#system_messages:unit/notification/playerAdded'
+    UNIT_NOTIFICATION_PLAYERREMOVED = '#system_messages:unit/notification/playerRemoved'
+    UNIT_NOTIFICATION_GIVELEADERSHIP = '#system_messages:unit/notification/giveLeadership'
+    UNIT_NOTIFICATION_CHANGEDIVISION = '#system_messages:unit/notification/changeDivision'
+    UNIT_NOTIFICATION_DIVISIONTYPE_MIDDLE = '#system_messages:unit/notification/divisionType/MIDDLE'
+    UNIT_NOTIFICATION_DIVISIONTYPE_CHAMPION = '#system_messages:unit/notification/divisionType/CHAMPION'
+    UNIT_NOTIFICATION_DIVISIONTYPE_ABSOLUTE = '#system_messages:unit/notification/divisionType/ABSOLUTE'
     UNITBROWSER_ERRORS_BAD_ACCEPT_CONTEXT = '#system_messages:unitBrowser/errors/BAD_ACCEPT_CONTEXT'
+    PERIPHERY_ERRORS_ISNOTAVAILABLE = '#system_messages:periphery/errors/isNotAvailable'
+    UNIT_ERRORS_BAD_CLAN = '#system_messages:unit/errors/BAD_CLAN'
+    UNIT_ERRORS_BAD_ACCOUNT_TYPE = '#system_messages:unit/errors/BAD_ACCOUNT_TYPE'
+    UNIT_ERRORS_HAS_IN_ARENA_MEMBERS = '#system_messages:unit/errors/HAS_IN_ARENA_MEMBERS'
+    UNIT_ERRORS_ACCOUNT_RESTORED = '#system_messages:unit/errors/ACCOUNT_RESTORED'
+    UNIT_ERRORS_UNIT_RESTORED = '#system_messages:unit/errors/UNIT_RESTORED'
+    UNIT_ERRORS_OFFLINE_PLAYER = '#system_messages:unit/errors/OFFLINE_PLAYER'
+    UNIT_ERRORS_TIMEOUT = '#system_messages:unit/errors/TIMEOUT'
+    UNIT_ERRORS_BAD_ROSTER_PACK = '#system_messages:unit/errors/BAD_ROSTER_PACK'
+    UNIT_ERRORS_CLUB_CHECKOUT_FAIL = '#system_messages:unit/errors/CLUB_CHECKOUT_FAIL'
+    UNIT_ERRORS_PREV_RATED_BATTLE_IN_PROGRESS = '#system_messages:unit/errors/PREV_RATED_BATTLE_IN_PROGRESS'
+    IGR_CUSTOMIZATION_BEGIN = '#system_messages:igr/customization/begin'
+    IGR_CUSTOMIZATION_END = '#system_messages:igr/customization/end'
+    INFO_NOAVAILABLE = '#system_messages:info/noAvailable'
+    DRR_SCALE_STEP_UP = '#system_messages:drr_scale/step_up'
+    DRR_SCALE_STEP_DOWN = '#system_messages:drr_scale/step_down'
+    FORTIFICATION_FIXEDPLAYERTOBUILDING = '#system_messages:fortification/fixedPlayerToBuilding'
+    FORTIFICATION_MODERNIZATIONBUILDING = '#system_messages:fortification/modernizationBuilding'
+    FORTIFICATION_BUILDINGPROCESS = '#system_messages:fortification/buildingProcess'
+    FORTIFICATION_DEMOUNTBUILDING = '#system_messages:fortification/demountBuilding'
+    FORTIFICATION_DIRECTIONOPENED = '#system_messages:fortification/directionOpened'
+    FORTIFICATION_DIRECTIONCLOSED = '#system_messages:fortification/directionClosed'
+    FORTIFICATION_CREATED = '#system_messages:fortification/created'
+    FORTIFICATION_ADDORDER = '#system_messages:fortification/addOrder'
+    FORTIFICATION_ACTIVATEORDER = '#system_messages:fortification/activateOrder'
+    FORTIFICATION_TRANSPORT = '#system_messages:fortification/transport'
+    FORTIFICATION_DEFENCEHOURSET = '#system_messages:fortification/defenceHourSet'
+    FORTIFICATION_DEFENCEHOURSET_OFFDAY = '#system_messages:fortification/defenceHourSet/offDay'
+    FORTIFICATION_DEFENCEHOURSET_NOOFFDAY = '#system_messages:fortification/defenceHourSet/noOffDay'
+    FORTIFICATION_VACATIONSET = '#system_messages:fortification/vacationSet'
+    FORTIFICATION_DEFENCEHOURDEACTIVATED = '#system_messages:fortification/defenceHourDeactivated'
+    FORTIFICATION_FORTBATTLEFINISHED = '#system_messages:fortification/fortBattleFinished'
+    FORTIFICATION_NOTIFICATION_TURNEDOFF = '#system_messages:fortification/notification/turnedOff'
+    FORTIFICATION_NOTIFICATION_TURNEDON = '#system_messages:fortification/notification/turnedOn'
+    FORTIFICATION_ERRORS_UNKNOWN = '#system_messages:fortification/errors/UNKNOWN'
+    FORTIFICATION_ERRORS_BAD_METHOD = '#system_messages:fortification/errors/BAD_METHOD'
+    FORTIFICATION_ERRORS_BAD_SORTIE_TIME = '#system_messages:fortification/errors/BAD_SORTIE_TIME'
+    FORTIFICATION_ERRORS_NOT_CREATED = '#system_messages:fortification/errors/NOT_CREATED'
+    FORTIFICATION_ERRORS_ALREADY_CREATED = '#system_messages:fortification/errors/ALREADY_CREATED'
+    FORTIFICATION_ERRORS_NO_CLAN = '#system_messages:fortification/errors/NO_CLAN'
+    FORTIFICATION_ERRORS_DUPLICATE_BUILDING_TYPE = '#system_messages:fortification/errors/DUPLICATE_BUILDING_TYPE'
+    FORTIFICATION_ERRORS_WRONG_POS = '#system_messages:fortification/errors/WRONG_POS'
+    FORTIFICATION_ERRORS_NO_BUILDING = '#system_messages:fortification/errors/NO_BUILDING'
+    FORTIFICATION_ERRORS_NOT_ATTACHED_TO_BUILDING = '#system_messages:fortification/errors/NOT_ATTACHED_TO_BUILDING'
+    FORTIFICATION_ERRORS_STORAGE_OVERFLOW = '#system_messages:fortification/errors/STORAGE_OVERFLOW'
+    FORTIFICATION_ERRORS_EVENT_COOLDOWN = '#system_messages:fortification/errors/EVENT_COOLDOWN'
+    FORTIFICATION_ERRORS_DEFENCE_NOT_POSSIBLE = '#system_messages:fortification/errors/DEFENCE_NOT_POSSIBLE'
+    FORTIFICATION_ERRORS_DIR_NOT_OPEN = '#system_messages:fortification/errors/DIR_NOT_OPEN'
+    FORTIFICATION_ERRORS_DIR_ALREADY_OPEN = '#system_messages:fortification/errors/DIR_ALREADY_OPEN'
+    FORTIFICATION_ERRORS_NOT_ENOUGH_CLAN_MEMBERS = '#system_messages:fortification/errors/NOT_ENOUGH_CLAN_MEMBERS'
+    FORTIFICATION_ERRORS_DIR_OCCUPIED = '#system_messages:fortification/errors/DIR_OCCUPIED'
+    FORTIFICATION_ERRORS_BAD_DIR = '#system_messages:fortification/errors/BAD_DIR'
+    FORTIFICATION_ERRORS_BAD_SORTIE_ID = '#system_messages:fortification/errors/BAD_SORTIE_ID'
+    FORTIFICATION_ERRORS_TOO_MANY_PLAYERS_ATTACHED = '#system_messages:fortification/errors/TOO_MANY_PLAYERS_ATTACHED'
+    FORTIFICATION_ERRORS_ALREADY_ATTACHED = '#system_messages:fortification/errors/ALREADY_ATTACHED'
+    FORTIFICATION_ERRORS_NO_DEST_BUILDING = '#system_messages:fortification/errors/NO_DEST_BUILDING'
+    FORTIFICATION_ERRORS_NOT_ENOUGH_RESOURCE = '#system_messages:fortification/errors/NOT_ENOUGH_RESOURCE'
+    FORTIFICATION_ERRORS_CANT_UPGRADE = '#system_messages:fortification/errors/CANT_UPGRADE'
+    FORTIFICATION_ERRORS_FORT_LEVEL_TOO_LOW = '#system_messages:fortification/errors/FORT_LEVEL_TOO_LOW'
+    FORTIFICATION_ERRORS_TRANSPORT_COOLDOWN = '#system_messages:fortification/errors/TRANSPORT_COOLDOWN'
+    FORTIFICATION_ERRORS_TRANSPORT_LIMIT_EXCEEDED = '#system_messages:fortification/errors/TRANSPORT_LIMIT_EXCEEDED'
+    FORTIFICATION_ERRORS_BAD_VACATION_START = '#system_messages:fortification/errors/BAD_VACATION_START'
+    FORTIFICATION_ERRORS_BAD_VACATION_DURATION = '#system_messages:fortification/errors/BAD_VACATION_DURATION'
+    FORTIFICATION_ERRORS_NOT_A_CLAN_MEMBER = '#system_messages:fortification/errors/NOT_A_CLAN_MEMBER'
+    FORTIFICATION_ERRORS_INSUFFICIENT_CLAN_ROLE = '#system_messages:fortification/errors/INSUFFICIENT_CLAN_ROLE'
+    FORTIFICATION_ERRORS_ORDER_ALREADY_IN_PRODUCTION = '#system_messages:fortification/errors/ORDER_ALREADY_IN_PRODUCTION'
+    FORTIFICATION_ERRORS_ORDER_ALREADY_ACTIVATED = '#system_messages:fortification/errors/ORDER_ALREADY_ACTIVATED'
+    FORTIFICATION_ERRORS_TOO_MANY_ORDERS = '#system_messages:fortification/errors/TOO_MANY_ORDERS'
+    FORTIFICATION_ERRORS_BUILDING_NOT_READY = '#system_messages:fortification/errors/BUILDING_NOT_READY'
+    FORTIFICATION_ERRORS_WRONG_BUILDING = '#system_messages:fortification/errors/WRONG_BUILDING'
+    FORTIFICATION_ERRORS_START_SCENARIO_NOT_DONE = '#system_messages:fortification/errors/START_SCENARIO_NOT_DONE'
+    FORTIFICATION_ERRORS_CANT_TRANSPORT = '#system_messages:fortification/errors/CANT_TRANSPORT'
+    FORTIFICATION_ERRORS_NO_ORDER = '#system_messages:fortification/errors/NO_ORDER'
+    FORTIFICATION_ERRORS_NO_ORDER_DEF = '#system_messages:fortification/errors/NO_ORDER_DEF'
+    FORTIFICATION_ERRORS_NO_ORDER_LEVEL = '#system_messages:fortification/errors/NO_ORDER_LEVEL'
+    FORTIFICATION_ERRORS_BUILDINGS_STILL_PRESENT = '#system_messages:fortification/errors/BUILDINGS_STILL_PRESENT'
+    FORTIFICATION_ERRORS_DIRECTIONS_STILL_OPEN = '#system_messages:fortification/errors/DIRECTIONS_STILL_OPEN'
+    FORTIFICATION_ERRORS_TOO_MANY_SORTIES = '#system_messages:fortification/errors/TOO_MANY_SORTIES'
+    FORTIFICATION_ERRORS_METHOD_COOLDOWN = '#system_messages:fortification/errors/METHOD_COOLDOWN'
+    FORTIFICATION_ERRORS_BAD_RESOURCE_COUNT = '#system_messages:fortification/errors/BAD_RESOURCE_COUNT'
+    FORTIFICATION_ERRORS_CENTER_NOT_AVAILABLE = '#system_messages:fortification/errors/CENTER_NOT_AVAILABLE'
+    FORTIFICATION_ERRORS_BATTLE_INFO_NOT_AVAILABLE = '#system_messages:fortification/errors/BATTLE_INFO_NOT_AVAILABLE'
+    FORTIFICATION_ERRORS_DEF_HOUR_NOT_ACTIVE = '#system_messages:fortification/errors/DEF_HOUR_NOT_ACTIVE'
+    FORTIFICATION_ERRORS_NO_DATA_FOR_ACTIVATING_ORDER = '#system_messages:fortification/errors/NO_DATA_FOR_ACTIVATING_ORDER'
+    FORTIFICATION_ERRORS_FAILED_TO_BOOK_DIR = '#system_messages:fortification/errors/FAILED_TO_BOOK_DIR'
+    FORTIFICATION_ERRORS_DIR_LOCKED = '#system_messages:fortification/errors/DIR_LOCKED'
+    FORTIFICATION_ERRORS_BASE_DAMAGED = '#system_messages:fortification/errors/BASE_DAMAGED'
+    FORTIFICATION_ERRORS_ORDER_NOT_SUPPORTED = '#system_messages:fortification/errors/ORDER_NOT_SUPPORTED'
+    FORTIFICATION_ERRORS_POSITION_OCCUPIED = '#system_messages:fortification/errors/POSITION_OCCUPIED'
+    FORTIFICATION_ERRORS_BAD_SORTIE_DIVISION = '#system_messages:fortification/errors/BAD_SORTIE_DIVISION'
+    FORTIFICATION_ERRORS_PERIPHERY_NOT_CONNECTED = '#system_messages:fortification/errors/PERIPHERY_NOT_CONNECTED'
+    FORTIFICATION_ERRORS_TOO_FEW_OPEN_DIRS = '#system_messages:fortification/errors/TOO_FEW_OPEN_DIRS'
+    FORTIFICATION_ERRORS_SHUTDOWN_ALREADY_REQUESTED = '#system_messages:fortification/errors/SHUTDOWN_ALREADY_REQUESTED'
+    FORTIFICATION_ERRORS_SHUTDOWN_NOT_REQUESTED = '#system_messages:fortification/errors/SHUTDOWN_NOT_REQUESTED'
+    FORTIFICATION_ERRORS_NO_PRODUCTION_ORDER = '#system_messages:fortification/errors/NO_PRODUCTION_ORDER'
+    FORTIFICATION_ERRORS_ORDER_ALREADY_SUSPENDED = '#system_messages:fortification/errors/ORDER_ALREADY_SUSPENDED'
+    FORTIFICATION_ERRORS_ORDER_NOT_SUSPENDED = '#system_messages:fortification/errors/ORDER_NOT_SUSPENDED'
+    FORTIFICATION_ERRORS_GLOBAL_PRODUCTION_SUSPEND = '#system_messages:fortification/errors/GLOBAL_PRODUCTION_SUSPEND'
+    FORTIFICATION_ERRORS_BUILDING_DAMAGED = '#system_messages:fortification/errors/BUILDING_DAMAGED'
+    FORTIFICATION_ERRORS_BASE_NOT_DAMAGED = '#system_messages:fortification/errors/BASE_NOT_DAMAGED'
+    FORTIFICATION_ERRORS_DIRECTION_CONTESTED = '#system_messages:fortification/errors/DIRECTION_CONTESTED'
+    FORTIFICATION_ERRORS_BASE_DESTROYED = '#system_messages:fortification/errors/BASE_DESTROYED'
+    FORTIFICATION_ERRORS_BAD_ORDERS_COUNT = '#system_messages:fortification/errors/BAD_ORDERS_COUNT'
+    FORTIFICATION_ERRORS_BAD_HOUR_VALUE = '#system_messages:fortification/errors/BAD_HOUR_VALUE'
+    FORTIFICATION_ERRORS_BAD_DAY_VALUE = '#system_messages:fortification/errors/BAD_DAY_VALUE'
+    FORTIFICATION_ERRORS_BATTLE_DOES_NOT_EXIST = '#system_messages:fortification/errors/BATTLE_DOES_NOT_EXIST'
+    FORTIFICATION_ERRORS_UNIT_NOT_READY = '#system_messages:fortification/errors/UNIT_NOT_READY'
+    FORTIFICATION_ERRORS_BAD_FORT_BATTLE_ID = '#system_messages:fortification/errors/BAD_FORT_BATTLE_ID'
+    FORTIFICATION_ERRORS_WRONG_CLAN = '#system_messages:fortification/errors/WRONG_CLAN'
+    FORTIFICATION_ERRORS_ATTACK_DIR_BUSY = '#system_messages:fortification/errors/ATTACK_DIR_BUSY'
+    FORTIFICATION_ERRORS_DEFENCE_DIR_BUSY = '#system_messages:fortification/errors/DEFENCE_DIR_BUSY'
+    FORTIFICATION_ERRORS_NON_ALIGNED_TIMESTAMP = '#system_messages:fortification/errors/NON_ALIGNED_TIMESTAMP'
+    FORTIFICATION_ERRORS_CLAN_ON_VACATION = '#system_messages:fortification/errors/CLAN_ON_VACATION'
+    FORTIFICATION_ERRORS_CLAN_HAS_OFF_DAY = '#system_messages:fortification/errors/CLAN_HAS_OFF_DAY'
+    FORTIFICATION_ERRORS_DIR_NOT_OPEN_FOR_ATTACKS = '#system_messages:fortification/errors/DIR_NOT_OPEN_FOR_ATTACKS'
+    FORTIFICATION_ERRORS_ALREADY_PLANNED_ATTACK = '#system_messages:fortification/errors/ALREADY_PLANNED_ATTACK'
+    FORTIFICATION_ERRORS_ATTACK_COOLDOWN = '#system_messages:fortification/errors/ATTACK_COOLDOWN'
+    FORTIFICATION_ERRORS_ATTACK_PREORDER_FAILED = '#system_messages:fortification/errors/ATTACK_PREORDER_FAILED'
+    FORTIFICATION_ERRORS_SCR_DIR_LOCKED = '#system_messages:fortification/errors/SCR_DIR_LOCKED'
+    FORTIFICATION_ERRORS_DEST_DIR_LOCKED = '#system_messages:fortification/errors/DEST_DIR_LOCKED'
+    FORTIFICATION_ERRORS_NO_SUCH_ATTACK = '#system_messages:fortification/errors/NO_SUCH_ATTACK'
+    FORTIFICATION_ERRORS_ATTACK_NOT_PLANNED = '#system_messages:fortification/errors/ATTACK_NOT_PLANNED'
+    FORTIFICATION_ERRORS_DEFENCE_NOT_PLANNED = '#system_messages:fortification/errors/DEFENCE_NOT_PLANNED'
+    FORTIFICATION_ERRORS_ATTACKS_NOT_LOADED = '#system_messages:fortification/errors/ATTACKS_NOT_LOADED'
+    FORTIFICATION_ERRORS_ALREADY_FAVORITE = '#system_messages:fortification/errors/ALREADY_FAVORITE'
+    FORTIFICATION_ERRORS_BAD_CLAN_DBID = '#system_messages:fortification/errors/BAD_CLAN_DBID'
+    FORTIFICATION_ERRORS_NOT_FAVORITE = '#system_messages:fortification/errors/NOT_FAVORITE'
+    FORTIFICATION_ERRORS_BAD_DMG = '#system_messages:fortification/errors/BAD_DMG'
+    FORTIFICATION_ERRORS_CANT_CREATE_CLAN = '#system_messages:fortification/errors/CANT_CREATE_CLAN'
+    FORTIFICATION_ERRORS_CANT_LOOKUP_CLAN = '#system_messages:fortification/errors/CANT_LOOKUP_CLAN'
+    FORTIFICATION_ERRORS_WRONG_PERIPHERY = '#system_messages:fortification/errors/WRONG_PERIPHERY'
+    FORTIFICATION_ERRORS_FORT_DISABLED = '#system_messages:fortification/errors/FORT_DISABLED'
+    FORTIFICATION_ERRORS_TOO_MANY_DEFENCES = '#system_messages:fortification/errors/TOO_MANY_DEFENCES'
+    FORTIFICATION_ERRORS_CURFEW_HOUR = '#system_messages:fortification/errors/CURFEW_HOUR'
+    FORTIFICATION_ERRORS_JOIN_CTX_LOCKED = '#system_messages:fortification/errors/JOIN_CTX_LOCKED'
+    FORTIFICATION_ERRORS_ATTACK_TOO_LATE = '#system_messages:fortification/errors/ATTACK_TOO_LATE'
+    FORTIFICATION_ERRORS_FORBIDDEN_FORT_BATTLE_HOUR = '#system_messages:fortification/errors/FORBIDDEN_FORT_BATTLE_HOUR'
+    FORTIFICATION_ERRORS_BAD_SORTIE_PERIPHERY_ID = '#system_messages:fortification/errors/BAD_SORTIE_PERIPHERY_ID'
+    BUTTONS_GOTOPOLL = '#system_messages:buttons/goToPoll'
+    INVITE_STATUS_WRONG_CLAN = '#system_messages:invite/status/WRONG_CLAN'
+    INVITE_STATUS_LEGIONARIES_NOT_ALLOWED = '#system_messages:invite/status/LEGIONARIES_NOT_ALLOWED'
+    RALLY_LEAVEDISABLED = '#system_messages:rally/leaveDisabled'
+    SQUAD_LEAVEDISABLED = '#system_messages:squad/leaveDisabled'
+    BATTLERESULTS_SHARING_SUCCESS = '#system_messages:battleResults/sharing/success'
+    BATTLE_REQUEST_SEND_INVITES = '#system_messages:battle/request/SEND_INVITES'
+    TELECOM_NOTIFICATIONS_VEHICLERECEIVED_TITLE = '#system_messages:telecom/notifications/vehicleReceived/title'
+    TELECOM_NOTIFICATIONS_VEHICLERECEIVED_COMMENT = '#system_messages:telecom/notifications/vehicleReceived/comment'
+    TELECOM_NOTIFICATIONS_VEHICLERECEIVED_CREW = '#system_messages:telecom/notifications/vehicleReceived/crew'
+    TELECOM_NOTIFICATIONS_VEHICLEBLOCKED_TITLE = '#system_messages:telecom/notifications/vehicleBlocked/title'
+    TELECOM_NOTIFICATIONS_VEHICLEBLOCKED_COMMENT = '#system_messages:telecom/notifications/vehicleBlocked/comment'
+    TELECOM_NOTIFICATIONS_VEHICLEBLOCKED_SUBCOMMENT = '#system_messages:telecom/notifications/vehicleBlocked/subcomment'
+    TELECOM_NOTIFICATIONS_VEHICLEUNBLOCKED_TITLE = '#system_messages:telecom/notifications/vehicleUnblocked/title'
+    TELECOM_NOTIFICATIONS_VEHICLEUNBLOCKED_COMMENT = '#system_messages:telecom/notifications/vehicleUnblocked/comment'
+    TELECOM_NOTIFICATIONS_VEHICLEUNBLOCKED_SUBCOMMENT = '#system_messages:telecom/notifications/vehicleUnblocked/subcomment'
+    TELECOM_NOTIFICATIONS_VEHICLEREMOVED_TITLE = '#system_messages:telecom/notifications/vehicleRemoved/title'
+    TELECOM_NOTIFICATIONS_VEHICLEREMOVED_COMMENT = '#system_messages:telecom/notifications/vehicleRemoved/comment'
+    TELECOM_NOTIFICATIONS_VEHICLEREMOVED_SUBCOMMENT = '#system_messages:telecom/notifications/vehicleRemoved/subcomment'
+    PREBATTLE_REQUEST_NAME_ENUM = (PREBATTLE_REQUEST_NAME_CHANGE_SETTINGS,
+     PREBATTLE_REQUEST_NAME_CHANGE_ARENA_VOIP,
+     PREBATTLE_REQUEST_NAME_CHANGE_USER_STATUS,
+     PREBATTLE_REQUEST_NAME_SWAP_TEAMS,
+     PREBATTLE_REQUEST_NAME_SET_TEAM_STATE,
+     PREBATTLE_REQUEST_NAME_SET_PLAYER_STATE,
+     PREBATTLE_REQUEST_NAME_SEND_INVITE,
+     PREBATTLE_REQUEST_NAME_PREBATTLES_LIST,
+     PREBATTLE_REQUEST_NAME_CHANGE_UNIT_STATE,
+     PREBATTLE_REQUEST_NAME_UNITS_LIST,
+     PREBATTLE_REQUEST_NAME_CLOSE_SLOT,
+     PREBATTLE_REQUEST_NAME_CHANGE_RATED,
+     PREBATTLE_REQUEST_NAME_CHANGE_DIVISION,
+     PREBATTLE_REQUEST_NAME_SET_VEHICLE_LIST,
+     PREBATTLE_REQUEST_NAME_CHANGE_FALLOUT_QUEUE_TYPE)
+    FORTIFICATION_REQUEST_NAME_ENUM = (FORTIFICATION_REQUEST_NAME_CREATE_FORT,
+     FORTIFICATION_REQUEST_NAME_DELETE_FORT,
+     FORTIFICATION_REQUEST_NAME_OPEN_DIRECTION,
+     FORTIFICATION_REQUEST_NAME_CLOSE_DIRECTION,
+     FORTIFICATION_REQUEST_NAME_ADD_BUILDING,
+     FORTIFICATION_REQUEST_NAME_DELETE_BUILDING,
+     FORTIFICATION_REQUEST_NAME_TRANSPORTATION,
+     FORTIFICATION_REQUEST_NAME_ADD_ORDER,
+     FORTIFICATION_REQUEST_NAME_ACTIVATE_ORDER,
+     FORTIFICATION_REQUEST_NAME_ATTACH,
+     FORTIFICATION_REQUEST_NAME_UPGRADE,
+     FORTIFICATION_REQUEST_NAME_CREATE_SORTIE,
+     FORTIFICATION_REQUEST_NAME_REQUEST_SORTIE_UNIT,
+     FORTIFICATION_REQUEST_NAME_CHANGE_DEF_HOUR,
+     FORTIFICATION_REQUEST_NAME_CHANGE_OFF_DAY,
+     FORTIFICATION_REQUEST_NAME_CHANGE_PERIPHERY,
+     FORTIFICATION_REQUEST_NAME_CHANGE_VACATION,
+     FORTIFICATION_REQUEST_NAME_CHANGE_SETTINGS,
+     FORTIFICATION_REQUEST_NAME_SHUTDOWN_DEF_HOUR,
+     FORTIFICATION_REQUEST_NAME_CANCEL_SHUTDOWN_DEF_HOUR,
+     FORTIFICATION_REQUEST_NAME_REQUEST_PUBLIC_INFO,
+     FORTIFICATION_REQUEST_NAME_REQUEST_CLAN_CARD,
+     FORTIFICATION_REQUEST_NAME_ADD_FAVORITE,
+     FORTIFICATION_REQUEST_NAME_REMOVE_FAVORITE,
+     FORTIFICATION_REQUEST_NAME_PLAN_ATTACK)
     UNIT_ERRORS_ENUM = (UNIT_ERRORS_ALREADY_JOINED_UNIT,
+     UNIT_ERRORS_CANT_CHANGE_DIVISION,
+     UNIT_ERRORS_SORTIES_FORBIDDEN,
      UNIT_ERRORS_UNIT_MGR_ENTITY_CREATION_FAIL,
      UNIT_ERRORS_UNIT_ADD_FAIL,
      UNIT_ERRORS_CANT_FIND_UNIT_MGR,
      UNIT_ERRORS_ADD_PLAYER_FAIL,
+     UNIT_ERRORS_NO_AVAILABLE_SLOTS,
      UNIT_ERRORS_NO_UNIT_MGR,
      UNIT_ERRORS_WRONG_UNIT_REQUISITES,
      UNIT_ERRORS_REMOVE_PLAYER_FAIL,
@@ -520,24 +1126,163 @@ class SYSTEM_MESSAGES(object):
      UNIT_ERRORS_NOT_INVITED,
      UNIT_ERRORS_GET_READY_VEHICLE_FAIL,
      UNIT_ERRORS_COOLDOWN,
-     UNIT_ERRORS_BAD_POINTS_SUM)
-    UNITBROWSER_ERRORS_ENUM = UNITBROWSER_ERRORS_BAD_ACCEPT_CONTEXT
-    UNIT_WARNINGS_ENUM = (UNIT_WARNINGS_KICKED_CANDIDATE,
+     UNIT_ERRORS_BAD_POINTS_SUM,
+     UNIT_ERRORS_BAD_VEHICLE_LEVEL,
+     UNIT_ERRORS_NO_PLAYER,
+     UNIT_ERRORS_SLOT_RESERVED,
+     UNIT_ERRORS_SLOT_OCCUPIED,
+     UNIT_ERRORS_TOO_MANY_CLOSED_SLOTS,
+     UNIT_ERRORS_SLOT_NOT_CLOSED,
+     UNIT_ERRORS_RESTRICT_LEGIONARIES,
+     UNIT_ERRORS_RESTRICT_INVITED,
+     UNIT_ERRORS_VEHICLE_MISMATCH,
+     UNIT_ERRORS_NO_VEHICLES,
+     UNIT_ERRORS_TOO_MANY_LEGIONARIES,
+     UNIT_ERRORS_VEHICLE_NOT_CHOSEN,
+     UNIT_ERRORS_ALREADY_IN_SLOT,
+     UNIT_ERRORS_BAD_CLAN,
+     UNIT_ERRORS_BAD_ACCOUNT_TYPE,
+     UNIT_ERRORS_HAS_IN_ARENA_MEMBERS,
+     UNIT_ERRORS_ACCOUNT_RESTORED,
+     UNIT_ERRORS_UNIT_RESTORED,
+     UNIT_ERRORS_OFFLINE_PLAYER,
+     UNIT_ERRORS_TIMEOUT,
+     UNIT_ERRORS_BAD_ROSTER_PACK,
+     UNIT_ERRORS_CLUB_CHECKOUT_FAIL,
+     UNIT_ERRORS_PREV_RATED_BATTLE_IN_PROGRESS)
+    FORTIFICATION_ERRORS_ENUM = (FORTIFICATION_ERRORS_UNKNOWN,
+     FORTIFICATION_ERRORS_BAD_METHOD,
+     FORTIFICATION_ERRORS_BAD_SORTIE_TIME,
+     FORTIFICATION_ERRORS_NOT_CREATED,
+     FORTIFICATION_ERRORS_ALREADY_CREATED,
+     FORTIFICATION_ERRORS_NO_CLAN,
+     FORTIFICATION_ERRORS_DUPLICATE_BUILDING_TYPE,
+     FORTIFICATION_ERRORS_WRONG_POS,
+     FORTIFICATION_ERRORS_NO_BUILDING,
+     FORTIFICATION_ERRORS_NOT_ATTACHED_TO_BUILDING,
+     FORTIFICATION_ERRORS_STORAGE_OVERFLOW,
+     FORTIFICATION_ERRORS_EVENT_COOLDOWN,
+     FORTIFICATION_ERRORS_DEFENCE_NOT_POSSIBLE,
+     FORTIFICATION_ERRORS_DIR_NOT_OPEN,
+     FORTIFICATION_ERRORS_DIR_ALREADY_OPEN,
+     FORTIFICATION_ERRORS_NOT_ENOUGH_CLAN_MEMBERS,
+     FORTIFICATION_ERRORS_DIR_OCCUPIED,
+     FORTIFICATION_ERRORS_BAD_DIR,
+     FORTIFICATION_ERRORS_BAD_SORTIE_ID,
+     FORTIFICATION_ERRORS_TOO_MANY_PLAYERS_ATTACHED,
+     FORTIFICATION_ERRORS_ALREADY_ATTACHED,
+     FORTIFICATION_ERRORS_NO_DEST_BUILDING,
+     FORTIFICATION_ERRORS_NOT_ENOUGH_RESOURCE,
+     FORTIFICATION_ERRORS_CANT_UPGRADE,
+     FORTIFICATION_ERRORS_FORT_LEVEL_TOO_LOW,
+     FORTIFICATION_ERRORS_TRANSPORT_COOLDOWN,
+     FORTIFICATION_ERRORS_TRANSPORT_LIMIT_EXCEEDED,
+     FORTIFICATION_ERRORS_BAD_VACATION_START,
+     FORTIFICATION_ERRORS_BAD_VACATION_DURATION,
+     FORTIFICATION_ERRORS_NOT_A_CLAN_MEMBER,
+     FORTIFICATION_ERRORS_INSUFFICIENT_CLAN_ROLE,
+     FORTIFICATION_ERRORS_ORDER_ALREADY_IN_PRODUCTION,
+     FORTIFICATION_ERRORS_ORDER_ALREADY_ACTIVATED,
+     FORTIFICATION_ERRORS_TOO_MANY_ORDERS,
+     FORTIFICATION_ERRORS_BUILDING_NOT_READY,
+     FORTIFICATION_ERRORS_WRONG_BUILDING,
+     FORTIFICATION_ERRORS_START_SCENARIO_NOT_DONE,
+     FORTIFICATION_ERRORS_CANT_TRANSPORT,
+     FORTIFICATION_ERRORS_NO_ORDER,
+     FORTIFICATION_ERRORS_NO_ORDER_DEF,
+     FORTIFICATION_ERRORS_NO_ORDER_LEVEL,
+     FORTIFICATION_ERRORS_BUILDINGS_STILL_PRESENT,
+     FORTIFICATION_ERRORS_DIRECTIONS_STILL_OPEN,
+     FORTIFICATION_ERRORS_TOO_MANY_SORTIES,
+     FORTIFICATION_ERRORS_METHOD_COOLDOWN,
+     FORTIFICATION_ERRORS_BAD_RESOURCE_COUNT,
+     FORTIFICATION_ERRORS_CENTER_NOT_AVAILABLE,
+     FORTIFICATION_ERRORS_BATTLE_INFO_NOT_AVAILABLE,
+     FORTIFICATION_ERRORS_DEF_HOUR_NOT_ACTIVE,
+     FORTIFICATION_ERRORS_NO_DATA_FOR_ACTIVATING_ORDER,
+     FORTIFICATION_ERRORS_FAILED_TO_BOOK_DIR,
+     FORTIFICATION_ERRORS_DIR_LOCKED,
+     FORTIFICATION_ERRORS_BASE_DAMAGED,
+     FORTIFICATION_ERRORS_ORDER_NOT_SUPPORTED,
+     FORTIFICATION_ERRORS_POSITION_OCCUPIED,
+     FORTIFICATION_ERRORS_BAD_SORTIE_DIVISION,
+     FORTIFICATION_ERRORS_PERIPHERY_NOT_CONNECTED,
+     FORTIFICATION_ERRORS_TOO_FEW_OPEN_DIRS,
+     FORTIFICATION_ERRORS_SHUTDOWN_ALREADY_REQUESTED,
+     FORTIFICATION_ERRORS_SHUTDOWN_NOT_REQUESTED,
+     FORTIFICATION_ERRORS_NO_PRODUCTION_ORDER,
+     FORTIFICATION_ERRORS_ORDER_ALREADY_SUSPENDED,
+     FORTIFICATION_ERRORS_ORDER_NOT_SUSPENDED,
+     FORTIFICATION_ERRORS_GLOBAL_PRODUCTION_SUSPEND,
+     FORTIFICATION_ERRORS_BUILDING_DAMAGED,
+     FORTIFICATION_ERRORS_BASE_NOT_DAMAGED,
+     FORTIFICATION_ERRORS_DIRECTION_CONTESTED,
+     FORTIFICATION_ERRORS_BASE_DESTROYED,
+     FORTIFICATION_ERRORS_BAD_ORDERS_COUNT,
+     FORTIFICATION_ERRORS_BAD_HOUR_VALUE,
+     FORTIFICATION_ERRORS_BAD_DAY_VALUE,
+     FORTIFICATION_ERRORS_BATTLE_DOES_NOT_EXIST,
+     FORTIFICATION_ERRORS_UNIT_NOT_READY,
+     FORTIFICATION_ERRORS_BAD_FORT_BATTLE_ID,
+     FORTIFICATION_ERRORS_WRONG_CLAN,
+     FORTIFICATION_ERRORS_ATTACK_DIR_BUSY,
+     FORTIFICATION_ERRORS_DEFENCE_DIR_BUSY,
+     FORTIFICATION_ERRORS_NON_ALIGNED_TIMESTAMP,
+     FORTIFICATION_ERRORS_CLAN_ON_VACATION,
+     FORTIFICATION_ERRORS_CLAN_HAS_OFF_DAY,
+     FORTIFICATION_ERRORS_DIR_NOT_OPEN_FOR_ATTACKS,
+     FORTIFICATION_ERRORS_ALREADY_PLANNED_ATTACK,
+     FORTIFICATION_ERRORS_ATTACK_COOLDOWN,
+     FORTIFICATION_ERRORS_ATTACK_PREORDER_FAILED,
+     FORTIFICATION_ERRORS_SCR_DIR_LOCKED,
+     FORTIFICATION_ERRORS_DEST_DIR_LOCKED,
+     FORTIFICATION_ERRORS_NO_SUCH_ATTACK,
+     FORTIFICATION_ERRORS_ATTACK_NOT_PLANNED,
+     FORTIFICATION_ERRORS_DEFENCE_NOT_PLANNED,
+     FORTIFICATION_ERRORS_ATTACKS_NOT_LOADED,
+     FORTIFICATION_ERRORS_ALREADY_FAVORITE,
+     FORTIFICATION_ERRORS_BAD_CLAN_DBID,
+     FORTIFICATION_ERRORS_NOT_FAVORITE,
+     FORTIFICATION_ERRORS_BAD_DMG,
+     FORTIFICATION_ERRORS_CANT_CREATE_CLAN,
+     FORTIFICATION_ERRORS_CANT_LOOKUP_CLAN,
+     FORTIFICATION_ERRORS_WRONG_PERIPHERY,
+     FORTIFICATION_ERRORS_FORT_DISABLED,
+     FORTIFICATION_ERRORS_TOO_MANY_DEFENCES,
+     FORTIFICATION_ERRORS_CURFEW_HOUR,
+     FORTIFICATION_ERRORS_JOIN_CTX_LOCKED,
+     FORTIFICATION_ERRORS_ATTACK_TOO_LATE,
+     FORTIFICATION_ERRORS_FORBIDDEN_FORT_BATTLE_HOUR,
+     FORTIFICATION_ERRORS_BAD_SORTIE_PERIPHERY_ID)
+    UNIT_NOTIFICATION_DIVISIONTYPE_ENUM = (UNIT_NOTIFICATION_DIVISIONTYPE_MIDDLE, UNIT_NOTIFICATION_DIVISIONTYPE_CHAMPION, UNIT_NOTIFICATION_DIVISIONTYPE_ABSOLUTE)
+    UNITBROWSER_ERRORS_ENUM = (UNITBROWSER_ERRORS_BAD_ACCEPT_CONTEXT,)
+    UNIT_NOTIFICATION_ENUM = (UNIT_NOTIFICATION_PLAYEROFFLINE,
+     UNIT_NOTIFICATION_PLAYERONLINE,
+     UNIT_NOTIFICATION_PLAYERADDED,
+     UNIT_NOTIFICATION_PLAYERREMOVED,
+     UNIT_NOTIFICATION_GIVELEADERSHIP,
+     UNIT_NOTIFICATION_CHANGEDIVISION)
+    UNIT_WARNINGS_ENUM = (UNIT_WARNINGS_NO_CLAN_MEMBERS,
+     UNIT_WARNINGS_CANT_PICK_LEADER,
+     UNIT_WARNINGS_KICKED_CANDIDATE,
      UNIT_WARNINGS_KICKED_PLAYER,
      UNIT_WARNINGS_UNIT_ASSEMBLER_TIMEOUT,
      UNIT_WARNINGS_KICKED_FROM_UNIT_ASSEMBLER,
      UNIT_WARNINGS_INVITE_REMOVED,
-     UNIT_WARNINGS_ALREADY_INVITED)
+     UNIT_WARNINGS_ALREADY_INVITED,
+     UNIT_WARNINGS_WAITING_FOR_JOIN,
+     UNIT_WARNINGS_CLAN_CHANGED,
+     UNIT_WARNINGS_FORT_BATTLE_END)
     CUSTOMIZATION_VEHICLE_ENUM = (CUSTOMIZATION_VEHICLE_LOCKED,
      CUSTOMIZATION_VEHICLE_DAMAGED,
      CUSTOMIZATION_VEHICLE_DESTROYED,
      CUSTOMIZATION_VEHICLE_EXPLODED)
     all_ENUM = (REPAIR_SUCCESS,
-     REPAIR_CREDIT_ERROR,
+     REPAIR_CREDITS_ERROR,
      REPAIR_SERVER_ERROR,
-     CHARGE_CREDIT_ERROR_GOLD,
-     CHARGE_CREDIT_ERROR_CREDITS,
-     CHARGE_CREDIT_ERROR,
+     CHARGE_CREDITS_ERROR_GOLD,
+     CHARGE_CREDITS_ERROR_CREDITS,
+     CHARGE_CREDITS_ERROR,
      CHARGE_MONEY_SPENT,
      CHARGE_SUCCESS,
      CHARGE_SERVER_ERROR,
@@ -549,6 +1294,23 @@ class SYSTEM_MESSAGES(object):
      PREMIUM_SERVER_ERROR,
      PREMIUM_NOT_ENOUGH_GOLD,
      PREMIUM_WALLET_NOT_AVAILABLE,
+     PREMIUM_POST_BATTLE_PREMIUM,
+     BOOSTER_ACTIVATE_SUCCESS,
+     BOOSTER_ACTIVATE_SERVER_ERROR,
+     BOOSTER_ACTIVATE_NO_BOOSTERS,
+     BOOSTER_ACTIVATE_ALREADY_USED,
+     BOOSTER_ACTIVATE_DISABLED,
+     BOOSTER_ACTIVATE_EXCEPTION,
+     BOOSTER_ACTIVATE_WRONG_ARGS,
+     BOOSTER_BUY_SUCCESS,
+     BOOSTER_BUY_SERVER_ERROR,
+     BOOSTER_BUY_SERVER_ERROR_CENTERDOWN,
+     BOOSTER_BUY_NOT_ENOUGH_CREDITS,
+     BOOSTER_BUY_NOT_ENOUGH_GOLD,
+     BOOSTER_BUY_WALLET_NOT_AVAILABLE,
+     BOOSTER_SELL_SUCCESS,
+     BOOSTER_SELL_SERVER_ERROR,
+     BOOSTER_SELL_SERVER_ERROR_CENTERDOWN,
      UPGRADETANKMAN_SUCCESS,
      UPGRADETANKMAN_SERVER_ERROR,
      ARENA_START_ERRORS_JOIN_TIME_OUT,
@@ -559,7 +1321,6 @@ class SYSTEM_MESSAGES(object):
      ARENA_START_ERRORS_JOIN_WRONG_VEHICLE,
      ARENA_START_ERRORS_JOIN_TEAM_IS_FULL,
      ARENA_START_ERRORS_JOIN_WRONG_ARGS,
-     ARENA_START_ERRORS_JOIN_CAPTCHA,
      ARENA_START_ERRORS_JOIN_WRONG_ARENA_STATE,
      ARENA_START_ERRORS_JOIN_CANNOT_CREATE,
      ARENA_START_ERRORS_JOIN_PRIVACY,
@@ -567,6 +1328,8 @@ class SYSTEM_MESSAGES(object):
      ARENA_START_ERRORS_JOIN_COOLDOWN,
      ARENA_START_ERRORS_JOIN_NO_VEHICLE,
      ARENA_START_ERRORS_JOIN_NO_READYVEHICLE,
+     ARENA_START_ERRORS_JOIN_WRONG_BATTLE_ID,
+     ARENA_START_ERRORS_JOIN_EVENT_DISABLED,
      PREBATTLE_KICK_TYPE_SQUAD,
      PREBATTLE_KICK_TYPE_TEAM,
      PREBATTLE_KICK_TYPE_UNKNOWN,
@@ -588,15 +1351,24 @@ class SYSTEM_MESSAGES(object):
      PREBATTLE_VEHICLEINVALID_LIMITS_COMPONENTS,
      PREBATTLE_VEHICLEINVALID_LIMITS_AMMO,
      PREBATTLE_VEHICLEINVALID_LIMITS_SHELLS,
+     PREBATTLE_VEHICLEINVALID_LIMITS_TAGS,
+     PREBATTLE_VEHICLEINVALID_LIMITS_NOT_SUPPORTED,
+     PREBATTLE_VEHICLEINVALID_NO_SELECTEDVEHICLE,
      PREBATTLE_VEHICLEINVALID_NO_READYVEHICLE,
+     PREBATTLE_VEHICLEINVALID_VEHICLENOTSUPPORTED,
      PREBATTLE_VEHICLEINVALID_NOTSETREADYSTATUS,
+     PREBATTLE_VEHICLEINVALID_FALLOUTONLY,
      PREBATTLE_VEHICLEINVALID_LIMITS_NATIONS,
      PREBATTLE_VEHICLEINVALID_LIMITS_CLASSES,
      PREBATTLE_TEAMINVALID_LIMIT_MINCOUNT,
      PREBATTLE_TEAMINVALID_LIMIT_TOTALLEVEL,
      PREBATTLE_TEAMINVALID_LIMITS_VEHICLES,
      PREBATTLE_TEAMINVALID_LIMITS_LEVEL,
+     PREBATTLE_TEAMINVALID_OBSERVERS,
+     PREBATTLE_TEAMINVALID_EVENT_BATTLE,
      PREBATTLE_HASLOCKEDSTATE,
+     PREBATTLE_INVITES_SENDINVITE_NAME,
+     PREBATTLE_INVITES_SENDINVITE,
      ARENA_START_ERRORS_KICK_ARENA_CREATION_FAILURE,
      ARENA_START_ERRORS_KICK_AVATAR_CREATION_FAILURE,
      ARENA_START_ERRORS_KICK_VEHICLE_CREATION_FAILURE,
@@ -639,6 +1411,7 @@ class SYSTEM_MESSAGES(object):
      WINDOW_BUTTONS_CLOSE,
      CONNECTED,
      DISCONNECTED,
+     ROAMING_NOT_ALLOWED,
      SERVER_SHUT_DOWN,
      UNLOCKS_VEHICLE_UNLOCK_SUCCESS,
      UNLOCKS_ITEM_UNLOCK_SUCCESS,
@@ -646,12 +1419,16 @@ class SYSTEM_MESSAGES(object):
      UNLOCKS_ITEM_ALREADY_UNLOCKED,
      UNLOCKS_VEHICLE_SERVER_ERROR,
      UNLOCKS_ITEM_SERVER_ERROR,
-     UNLOCKS_IN_PROCESSING,
+     UNLOCKS_VEHICLE_IN_PROCESSING,
+     UNLOCKS_ITEM_IN_PROCESSING,
      UNLOCKS_DRAWFAILED,
      SHOP_VEHICLE_NOT_ENOUGH_MONEY,
+     SHOP_VEHICLE_NOT_ENOUGH_MONEY_FOR_RENT,
+     SHOP_VEHICLE_COMMON_RENT_OR_BUY_ERROR,
      SHOP_ITEM_NOT_ENOUGH_MONEY,
      SHOP_VEHICLE_NOT_FOUND,
      SHOP_ITEM_NOT_FOUND,
+     SHOP_ITEM_COMMON_RENT_OR_BUY_ERROR,
      SHOP_ITEM_BUY_SUCCESS,
      SHOP_ITEM_BUY_SERVER_ERROR,
      SHOP_ITEM_BUY_AND_EQUIP_IN_PROCESSING,
@@ -668,6 +1445,7 @@ class SYSTEM_MESSAGES(object):
      SQUAD_CREATEERROR,
      SQUAD_NOTSETREADYSTATUS,
      SQUAD_KICKEDFROMQUEUE,
+     SQUAD_NOTVALIDDELETED,
      COMPANY_MEMBERJOINED,
      COMPANY_MEMBERLEAVE,
      COMPANY_MEMBERREADY,
@@ -708,7 +1486,9 @@ class SYSTEM_MESSAGES(object):
      CUSTOMIZATION_CAMOUFLAGE_DROP_SERVER_ERROR,
      CUSTOMIZATION_CAMOUFLAGE_CHANGE_SUCCESS_CREDITS,
      CUSTOMIZATION_CAMOUFLAGE_CHANGE_SUCCESS_GOLD,
+     CUSTOMIZATION_CAMOUFLAGE_CHANGE_SUCCESS_FREE,
      CUSTOMIZATION_CAMOUFLAGE_DROP_SUCCESS,
+     CUSTOMIZATION_CAMOUFLAGE_STORED_SUCCESS,
      CUSTOMIZATION_EMBLEM_NOT_SELECTED,
      CUSTOMIZATION_EMBLEM_DAYS_NOT_SELECTED,
      CUSTOMIZATION_EMBLEM_COST_NOT_FOUND,
@@ -718,7 +1498,9 @@ class SYSTEM_MESSAGES(object):
      CUSTOMIZATION_EMBLEM_DROP_SERVER_ERROR,
      CUSTOMIZATION_EMBLEM_CHANGE_SUCCESS_CREDITS,
      CUSTOMIZATION_EMBLEM_CHANGE_SUCCESS_GOLD,
+     CUSTOMIZATION_EMBLEM_CHANGE_SUCCESS_FREE,
      CUSTOMIZATION_EMBLEM_DROP_SUCCESS,
+     CUSTOMIZATION_EMBLEM_STORED_SUCCESS,
      CUSTOMIZATION_INSCRIPTION_NOT_SELECTED,
      CUSTOMIZATION_INSCRIPTION_DAYS_NOT_SELECTED,
      CUSTOMIZATION_INSCRIPTION_COST_NOT_FOUND,
@@ -728,7 +1510,19 @@ class SYSTEM_MESSAGES(object):
      CUSTOMIZATION_INSCRIPTION_DROP_SERVER_ERROR,
      CUSTOMIZATION_INSCRIPTION_CHANGE_SUCCESS_CREDITS,
      CUSTOMIZATION_INSCRIPTION_CHANGE_SUCCESS_GOLD,
+     CUSTOMIZATION_INSCRIPTION_CHANGE_SUCCESS_FREE,
      CUSTOMIZATION_INSCRIPTION_DROP_SUCCESS,
+     CUSTOMIZATION_INSCRIPTION_STORED_SUCCESS,
+     CUSTOMIZATION_IGR_TYPE_CHANGED_ERROR,
+     CUSTOMIZATION_ADDED_CAMOUFLAGES,
+     CUSTOMIZATION_ADDED_EMBLEMS,
+     CUSTOMIZATION_ADDED_INSCRIPTIONS,
+     CUSTOMIZATION_REMOVED_CAMOUFLAGES,
+     CUSTOMIZATION_REMOVED_EMBLEMS,
+     CUSTOMIZATION_REMOVED_INSCRIPTIONS,
+     CUSTOMIZATION_ADDED_CAMOUFLAGESVALUE,
+     CUSTOMIZATION_ADDED_EMBLEMSVALUE,
+     CUSTOMIZATION_ADDED_INSCRIPTIONSVALUE,
      CHECKOUT_ERROR,
      ANOTHER_PERIPHERY,
      SHOP_RESYNC,
@@ -755,8 +1549,9 @@ class SYSTEM_MESSAGES(object):
      LOGIN_TO_OTHER_GAME_WOWP,
      LOGIN_TO_OTHER_GAME_WOTG,
      LOGIN_TO_OTHER_GAME_WOWS,
-     LOGIN_TO_OTHER_GAME_WOTBLITZ,
+     LOGIN_TO_OTHER_GAME_WOTB,
      LOGIN_TO_OTHER_GAME_UNKNOWN,
+     LOGIN_TO_OTHER_GAME_WEB,
      RECRUIT_WINDOW_SERVER_ERROR,
      RECRUIT_WINDOW_SUCCESS,
      RECRUIT_WINDOW_FINANCIAL_SUCCESS,
@@ -793,6 +1588,7 @@ class SYSTEM_MESSAGES(object):
      BUY_AND_REEQUIP_TANKMAN_NOT_ENOUGH_GOLD,
      BUY_AND_REEQUIP_TANKMAN_WALLET_NOT_AVAILABLE,
      BUY_AND_REEQUIP_TANKMAN_FREE_TANKMEN_LIMIT,
+     BUY_AND_REEQUIP_TANKMAN_NOT_ENOUGH_SPACE,
      DISMISS_TANKMAN_SUCCESS,
      DISMISS_TANKMAN_SERVER_ERROR,
      DISMISS_TANKMAN_INVALID_VEHICLE,
@@ -810,12 +1606,27 @@ class SYSTEM_MESSAGES(object):
      UNLOAD_CREW_INVALID_VEHICLE,
      UNLOAD_CREW_VEHICLE_NEED_REPAIR,
      UNLOAD_CREW_VEHICLE_LOCKED,
+     RETURN_CREW_SUCCESS,
+     RETURN_CREW_SERVER_ERROR,
+     RETURN_CREW_NOT_ENOUGH_SPACE,
+     RETURN_CREW_INVALID_VEHICLE,
+     RETURN_CREW_VEHICLE_NEED_REPAIR,
+     RETURN_CREW_VEHICLE_LOCKED,
      RETRAINING_TANKMAN_SUCCESS,
      RETRAINING_TANKMAN_FINANCIAL_SUCCESS,
      RETRAINING_TANKMAN_SERVER_ERROR,
      RETRAINING_TANKMAN_INVALID_VEHICLE,
      RETRAINING_TANKMAN_VEHICLE_NEED_REPAIR,
      RETRAINING_TANKMAN_VEHICLE_LOCKED,
+     RETRAINING_TANKMAN_INVALID_OPERATION,
+     RETRAINING_CREW_SUCCESS,
+     RETRAINING_CREW_FINANCIAL_SUCCESS,
+     RETRAINING_CREW_SERVER_ERROR,
+     RETRAINING_CREW_INVALID_VEHICLE,
+     RETRAINING_CREW_VEHICLE_NEED_REPAIR,
+     RETRAINING_CREW_VEHICLE_LOCKED,
+     RETRAINING_CREW_EMPTY_LIST,
+     RETRAINING_CREW_INVALID_OPERATION,
      ADD_TANKMAN_SKILL_SUCCESS,
      ADD_TANKMAN_SKILL_SERVER_ERROR,
      ADD_TANKMAN_SKILL_INVALID_VEHICLE,
@@ -826,6 +1637,16 @@ class SYSTEM_MESSAGES(object):
      DROP_TANKMAN_SKILL_INVALID_VEHICLE,
      DROP_TANKMAN_SKILL_VEHICLE_NEED_REPAIR,
      DROP_TANKMAN_SKILL_VEHICLE_LOCKED,
+     CHANGE_TANKMAN_ROLE_SUCCESS,
+     CHANGE_TANKMAN_ROLE_INSTALLED,
+     CHANGE_TANKMAN_ROLE_SLOT_IS_TAKEN,
+     CHANGE_TANKMAN_ROLE_NO_VEHICLE,
+     CHANGE_TANKMAN_ROLE_SERVER_ERROR,
+     CHANGE_TANKMAN_ROLE_NOT_ENOUGH_GOLD,
+     CHANGE_TANKMAN_ROLE_NOT_ENOUGH_CREDITS,
+     CHANGE_TANKMAN_ROLE_WALLET_NOT_AVAILABLE,
+     CHANGE_TANKMAN_ROLE_INVALID_VEHICLE,
+     CHANGE_TANKMAN_ROLE_INVALID_ROLE,
      FREE_XP_TO_TMAN_SKILL_SUCCESS,
      FREE_XP_TO_TMAN_SKILL_SERVER_ERROR,
      FREE_XP_TO_TMAN_SKILL_ERROR_WRONG_ARGS_TYPE,
@@ -846,6 +1667,13 @@ class SYSTEM_MESSAGES(object):
      VEHICLE_BUY_NOT_ENOUGH_CREDITS,
      VEHICLE_BUY_NOT_ENOUGH_GOLD,
      VEHICLE_BUY_WALLET_NOT_AVAILABLE,
+     VEHICLE_RENT_SUCCESS,
+     VEHICLE_RENT_SERVER_ERROR,
+     VEHICLE_RENT_INVALID_VEHICLE,
+     VEHICLE_RENT_SERVER_ERROR_CENTERDOWN,
+     VEHICLE_RENT_NOT_ENOUGH_CREDITS,
+     VEHICLE_RENT_NOT_ENOUGH_GOLD,
+     VEHICLE_RENT_WALLET_NOT_AVAILABLE,
      VEHICLE_SLOT_BUY_SUCCESS,
      VEHICLE_SLOT_BUY_NOT_ENOUGH_GOLD,
      VEHICLE_SLOT_BUY_WALLET_NOT_AVAILABLE,
@@ -854,6 +1682,7 @@ class SYSTEM_MESSAGES(object):
      VEHICLE_SELL_SUCCESS_DISMANTLING,
      VEHICLE_SELL_SERVER_ERROR,
      VEHICLE_SELL_INVALID_VEHICLE,
+     VEHICLE_SELL_VEHICLE_CANNOT_BE_SOLD,
      VEHICLE_SELL_VEHICLE_NEED_REPAIR,
      VEHICLE_SELL_VEHICLE_LOCKED,
      VEHICLE_SELL_NOT_ENOUGH_CREDITS,
@@ -861,12 +1690,27 @@ class SYSTEM_MESSAGES(object):
      VEHICLE_SELL_WALLET_NOT_AVAILABLE,
      VEHICLE_SELL_VEHICLE_SELL_LIMIT,
      VEHICLE_SELL_NOT_ENOUGH_SPACE,
+     VEHICLE_REMOVE_SUCCESS,
+     VEHICLE_REMOVE_SUCCESS_DISMANTLING,
+     VEHICLE_REMOVE_SERVER_ERROR,
+     VEHICLE_REMOVE_INVALID_VEHICLE,
+     VEHICLE_REMOVE_VEHICLE_CANNOT_BE_SOLD,
+     VEHICLE_REMOVE_VEHICLE_NEED_REPAIR,
+     VEHICLE_REMOVE_VEHICLE_LOCKED,
+     VEHICLE_REMOVE_NOT_ENOUGH_CREDITS,
+     VEHICLE_REMOVE_NOT_ENOUGH_GOLD,
+     VEHICLE_REMOVE_WALLET_NOT_AVAILABLE,
+     VEHICLE_REMOVE_VEHICLE_SELL_LIMIT,
+     VEHICLE_REMOVE_NOT_ENOUGH_SPACE,
      VEHICLE_TMENXP_ACCELERATOR_SUCCESSFALSE,
      VEHICLE_TMENXP_ACCELERATOR_SUCCESSTRUE,
      VEHICLE_TMENXP_ACCELERATOR_INVALID_VEHICLE,
      VEHICLE_TMENXP_ACCELERATOR_VEHICLE_NEED_REPAIR,
      VEHICLE_TMENXP_ACCELERATOR_VEHICLE_LOCKED,
      VEHICLE_TMENXP_ACCELERATOR_SERVER_ERROR,
+     VEHICLE_REPAIR_SUCCESS,
+     VEHICLE_REPAIR_NOT_ENOUGH_CREDITS,
+     VEHICLE_REPAIR_SERVER_ERROR,
      BUY_TANKMEN_BERTHS_SUCCESS,
      BUY_TANKMEN_BERTHS_SERVER_ERROR,
      BUY_TANKMEN_BERTHS_NOT_ENOUGH_CREDITS,
@@ -886,6 +1730,20 @@ class SYSTEM_MESSAGES(object):
      MODULE_BUY_WALLET_NOT_AVAILABLE,
      MODULE_BUY_SERVER_ERROR,
      MODULE_BUY_SERVER_ERROR_CENTERDOWN,
+     MODULE_BUY_VEHICLE_NEED_REPAIR,
+     MODULE_BUY_VEHICLE_LOCKED,
+     MODULE_BUY_INVALID_VEHICLE,
+     MODULE_BUY_ERROR_WRONG_NATION,
+     MODULE_BUY_ERROR_NOT_FOR_THIS_VEHICLE_TYPE,
+     MODULE_BUY_ERROR_NOT_FOR_CURRENT_VEHICLE,
+     MODULE_BUY_ERROR_NO_GUN,
+     MODULE_BUY_ERROR_WRONG_ITEM_TYPE,
+     MODULE_BUY_ERROR_TOO_HEAVY,
+     MODULE_BUY_ERROR_TOO_HEAVY_CHASSIS,
+     MODULE_BUY_ERROR_NEED_TURRET,
+     MODULE_BUY_ERROR_NEED_GUN,
+     MODULE_BUY_ERROR_IS_CURRENT,
+     MODULE_BUY_ERROR_NOT_WITH_INSTALLED_EQUIPMENT,
      ARTEFACT_BUY_SUCCESS,
      ARTEFACT_BUY_INVALID_MODULE,
      ARTEFACT_BUY_NOT_ENOUGH_CREDITS,
@@ -893,6 +1751,11 @@ class SYSTEM_MESSAGES(object):
      ARTEFACT_BUY_WALLET_NOT_AVAILABLE,
      ARTEFACT_BUY_SERVER_ERROR,
      ARTEFACT_BUY_SERVER_ERROR_CENTERDOWN,
+     ARTEFACT_BUY_ERROR_TOO_HEAVY,
+     ARTEFACT_BUY_VEHICLE_NEED_REPAIR,
+     ARTEFACT_BUY_VEHICLE_LOCKED,
+     ARTEFACT_BUY_INVALID_VEHICLE,
+     ARTEFACT_BUY_ERROR_NOT_FOR_THIS_VEHICLE_TYPE,
      SHELL_SELL_SUCCESS,
      SHELL_SELL_INVALID_MODULE,
      SHELL_SELL_SERVER_ERROR,
@@ -916,6 +1779,7 @@ class SYSTEM_MESSAGES(object):
      MODULE_APPLY_ERROR_TOO_HEAVY,
      MODULE_APPLY_ERROR_TOO_HEAVY_CHASSIS,
      MODULE_APPLY_ERROR_NEED_TURRET,
+     MODULE_APPLY_ERROR_NEED_GUN,
      MODULE_APPLY_ERROR_IS_CURRENT,
      MODULE_APPLY_ERROR_NOT_WITH_INSTALLED_EQUIPMENT,
      MODULE_APPLY_INCOMPATIBLEEQS,
@@ -963,9 +1827,12 @@ class SYSTEM_MESSAGES(object):
      LAYOUT_APPLY_CANNOT_EQUIP_EQUIPMENT,
      LAYOUT_APPLY_COMPONENT_IS_NOT_IN_SHOP,
      LAYOUT_APPLY_WALLET_NOT_AVAILABLE,
-     PREBATTLE_REQUEST_ISINCOOLDOWN,
+     LAYOUT_APPLY_INVALID_VEHICLE,
+     LAYOUT_APPLY_VEHICLE_LOCKED,
+     REQUEST_ISINCOOLDOWN,
      PREBATTLE_REQUEST_NAME_CHANGE_SETTINGS,
      PREBATTLE_REQUEST_NAME_CHANGE_ARENA_VOIP,
+     PREBATTLE_REQUEST_NAME_CHANGE_USER_STATUS,
      PREBATTLE_REQUEST_NAME_SWAP_TEAMS,
      PREBATTLE_REQUEST_NAME_SET_TEAM_STATE,
      PREBATTLE_REQUEST_NAME_SET_PLAYER_STATE,
@@ -973,6 +1840,221 @@ class SYSTEM_MESSAGES(object):
      PREBATTLE_REQUEST_NAME_PREBATTLES_LIST,
      PREBATTLE_REQUEST_NAME_CHANGE_UNIT_STATE,
      PREBATTLE_REQUEST_NAME_UNITS_LIST,
+     PREBATTLE_REQUEST_NAME_CLOSE_SLOT,
+     PREBATTLE_REQUEST_NAME_CHANGE_RATED,
+     PREBATTLE_REQUEST_NAME_CHANGE_DIVISION,
+     PREBATTLE_REQUEST_NAME_SET_VEHICLE_LIST,
+     PREBATTLE_REQUEST_NAME_CHANGE_FALLOUT_QUEUE_TYPE,
+     FORTIFICATION_REQUEST_NAME_CREATE_FORT,
+     FORTIFICATION_REQUEST_NAME_DELETE_FORT,
+     FORTIFICATION_REQUEST_NAME_OPEN_DIRECTION,
+     FORTIFICATION_REQUEST_NAME_CLOSE_DIRECTION,
+     FORTIFICATION_REQUEST_NAME_ADD_BUILDING,
+     FORTIFICATION_REQUEST_NAME_DELETE_BUILDING,
+     FORTIFICATION_REQUEST_NAME_TRANSPORTATION,
+     FORTIFICATION_REQUEST_NAME_ADD_ORDER,
+     FORTIFICATION_REQUEST_NAME_ACTIVATE_ORDER,
+     FORTIFICATION_REQUEST_NAME_ATTACH,
+     FORTIFICATION_REQUEST_NAME_UPGRADE,
+     FORTIFICATION_REQUEST_NAME_CREATE_SORTIE,
+     FORTIFICATION_REQUEST_NAME_REQUEST_SORTIE_UNIT,
+     FORTIFICATION_REQUEST_NAME_CHANGE_DEF_HOUR,
+     FORTIFICATION_REQUEST_NAME_CHANGE_OFF_DAY,
+     FORTIFICATION_REQUEST_NAME_CHANGE_PERIPHERY,
+     FORTIFICATION_REQUEST_NAME_CHANGE_VACATION,
+     FORTIFICATION_REQUEST_NAME_CHANGE_SETTINGS,
+     FORTIFICATION_REQUEST_NAME_SHUTDOWN_DEF_HOUR,
+     FORTIFICATION_REQUEST_NAME_CANCEL_SHUTDOWN_DEF_HOUR,
+     FORTIFICATION_REQUEST_NAME_REQUEST_PUBLIC_INFO,
+     FORTIFICATION_REQUEST_NAME_REQUEST_CLAN_CARD,
+     FORTIFICATION_REQUEST_NAME_ADD_FAVORITE,
+     FORTIFICATION_REQUEST_NAME_REMOVE_FAVORITE,
+     FORTIFICATION_REQUEST_NAME_PLAN_ATTACK,
+     CLUB_REQUEST_NAME_SUBSCRIBE,
+     CLUB_REQUEST_NAME_UNSUBSCRIBE,
+     CLUB_REQUEST_NAME_CREATE_CLUB,
+     CLUB_REQUEST_NAME_GET_MY_CLUBS,
+     CLUB_REQUEST_NAME_GET_MY_CLUBS_HISTORY,
+     CLUB_REQUEST_NAME_DESTROY_CLUB,
+     CLUB_REQUEST_NAME_LEAVE_CLUB,
+     CLUB_REQUEST_NAME_GET_CLUB,
+     CLUB_REQUEST_NAME_OPEN_CLUB,
+     CLUB_REQUEST_NAME_CLOSE_CLUB,
+     CLUB_REQUEST_NAME_GET_CLUBS,
+     CLUB_REQUEST_NAME_CHANGE_CLUB_NAME,
+     CLUB_REQUEST_NAME_CHANGE_CLUB_EMBLEM,
+     CLUB_REQUEST_NAME_SEND_INVITE,
+     CLUB_REQUEST_NAME_REVOKE_INVITE,
+     CLUB_REQUEST_NAME_ACCEPT_INVITE,
+     CLUB_REQUEST_NAME_DECLINE_INVITE,
+     CLUB_REQUEST_NAME_SEND_APPLICATION,
+     CLUB_REQUEST_NAME_REVOKE_APPLICATION,
+     CLUB_REQUEST_NAME_ACCEPT_APPLICATION,
+     CLUB_REQUEST_NAME_DECLINE_APPLICATION,
+     CLUB_REQUEST_NAME_JOIN_UNIT,
+     CLUB_REQUEST_NAME_GET_APPLICATIONS,
+     CLUB_REQUEST_NAME_GET_CLUB_APPLICANTS,
+     CLUB_REQUEST_NAME_GET_INVITES,
+     CLUB_REQUEST_NAME_TRANSFER_OWNERSHIP,
+     CLUB_REQUEST_NAME_ASSIGN_OFFICER,
+     CLUB_REQUEST_NAME_ASSIGN_PRIVATE,
+     CLUB_REQUEST_NAME_KICK_MEMBER,
+     CLUB_REQUEST_NAME_SET_APPLICANT_REQUIREMENTS,
+     CLUBS_REQUEST_SUCCESS_APPLICATION_SENT,
+     CLUBS_REQUEST_SUCCESS_APPLICATION_REVOKE,
+     CLUBS_REQUEST_SUCCESS_APPLICATION_ACCEPT,
+     CLUBS_REQUEST_SUCCESS_APPLICATION_DECLINE,
+     CLUBS_REQUEST_SUCCESS_INVITE_SENT,
+     CLUBS_REQUEST_SUCCESS_INVITES_SENT,
+     CLUBS_REQUEST_SUCCESS_INVITES_SENT_NAMES_SUCCESS,
+     CLUBS_REQUEST_SUCCESS_INVITES_SENT_NAMES_ERROR,
+     CLUBS_REQUEST_SUCCESS_INVITE_REVOKE,
+     CLUBS_REQUEST_SUCCESS_CREATECLUB,
+     CLUBS_REQUEST_SUCCESS_LEAVECLUB,
+     CLUBS_REQUEST_SUCCESS_DESTROYCLUB,
+     CLUBS_REQUEST_SUCCESS_OPENCLUB,
+     CLUBS_REQUEST_SUCCESS_CLOSECLUB,
+     CLUBS_REQUEST_SUCCESS_USERS_ASSIGNPRIVATE,
+     CLUBS_REQUEST_SUCCESS_USERS_ASSIGNOFFICER,
+     CLUBS_REQUEST_SUCCESS_USERS_TRANSFEROWNERSHIP,
+     CLUBS_REQUEST_SUCCESS_USERS_KICK,
+     CLUBS_REQUEST_ERRORS_DEFAULT,
+     CLUBS_REQUEST_ERRORS_SOME_ERROR_ON_ESTB_SIDE__SEE_SERVER_LOG_FOR_DETAILS_,
+     CLUBS_REQUEST_ERRORS_ACCOUNT_ALREADY_OWNS_THE_CLUB_,
+     CLUBS_REQUEST_ERRORS_ACCOUNT_ALREADY_A_CLUB_MEMBER_,
+     CLUBS_REQUEST_ERRORS_NO_CLUB_FOUND_,
+     CLUBS_REQUEST_ERRORS_ACCOUNT_NOT_A_CLUB_MEMBER_,
+     CLUBS_REQUEST_ERRORS_FORBIDDEN_OPERATION_FOR_NON_EMPTY_CLUB_,
+     CLUBS_REQUEST_ERRORS_THIS_OPERATION_IS_FORBIDDEN_FOR_CLUB_OWNER_,
+     CLUBS_REQUEST_ERRORS_FORBIDDEN_OPERATION_BECAUSE_APPLICANTS_LIMIT_REACHED_,
+     CLUBS_REQUEST_ERRORS_FORBIDDEN_OPERATION_BECAUSE_MEMBERS_LIMIT_REACHED_,
+     CLUBS_REQUEST_ERRORS_INVITE_TO_THE_CLUB_ALREADY_SENT_TO_THIS_PLAYER_,
+     CLUBS_REQUEST_ERRORS_INVITE_TO_THE_CLUB_NOT_FOUND_FOR_THIS_PLAYER_,
+     CLUBS_REQUEST_ERRORS_ACCOUNT_NOT_A_CLUB_APPLICANT_,
+     CLUBS_REQUEST_ERRORS_INCORRECT_PARAMS_PASSED_TO_THE_HANDLER_,
+     CLUBS_REQUEST_ERRORS_HANDLER_RESPONSE_NOT_REGISTERED_,
+     CLUBS_REQUEST_ERRORS_APPLICATIONS_TO_THE_CLOSED_CLUB_ARE_FORBIDDEN_,
+     CLUBS_REQUEST_ERRORS_NONE_OF_THE_SUB_REQUESTS_WAS_NOT_COMPLETED_SUCCESSFULLY_,
+     CLUBS_REQUEST_ERRORS_THIS_EMBLEM_NOT_REGISTERED_IN_EMULATOR_,
+     CLUBS_REQUEST_ERRORS_COMMAND_FAILED_BY_TIMEOUT_,
+     CLUBS_REQUEST_ERRORS_UNKNOWN_OR_UNEXPECTED_ERROR_,
+     CLUBS_REQUEST_ERRORS_ACCOUNT_NOT_FOUND_FOR_GIVEN_ID_,
+     CLUBS_REQUEST_ERRORS_ACCOUNT_FOR_GIVEN_ID_IS_BANNED_,
+     CLUBS_REQUEST_ERRORS_INTERNAL_ERROR_IN_SPA__,
+     CLUBS_REQUEST_ERRORS_FORBIDDEN_OPERATION_FOR_THIS_ACCOUNT_,
+     CLUBS_REQUEST_ERRORS_INACTIVE_CLUB_,
+     CLUBS_REQUEST_ERRORS_INACTIVE_APPLICATION_,
+     CLUBS_REQUEST_ERRORS_INACTIVE_INVITE_,
+     CLUBS_REQUEST_ERRORS_TOO_MANY_REQUESTS_ARE_IN_THE_PENDING_STATE_,
+     CLUBS_REQUEST_ERRORS_TOO_MANY_INVITES_SENT_TO_THAT_PLAYER_,
+     CLUBS_REQUEST_ERRORS_THIS_CLUB_NAME_IS_ALREADY_TAKEN_,
+     CLUBS_REQUEST_ERRORS_INCORRECT_CHECKOUT_TOKEN_,
+     CLUBS_REQUEST_ERRORS_CLUB_IS_LOCKED_,
+     CLUBS_REQUEST_ERRORS_ATTEMPT_TO_ACCESS_TO_THE_INCORRECT_URL_,
+     CLUBS_REQUEST_ERRORS_APPLICATION_FROM_THIS_ACCOUNT_ALREADY_EXISTS_,
+     CLUBS_REQUEST_ERRORS_WRONG_OBTAINED_WEB_DATA_FORMAT__PLEASE_SEE_SERVER_LOGS_,
+     CLUBS_REQUEST_ERRORS_THIS_OPERATION_IS_RESTRICTED_ON_WEB_SIDE_,
+     CLUBS_REQUEST_ERRORS_WEB_API_IS_NOT_AVAILABLE_AT_THIS_MOMENT_,
+     CLUBS_REQUEST_ERRORS_THIS_CLUB_IS_NOT_IN_THE_LADDER_,
+     CLUBS_REQUEST_ERRORS_UNITMGR_NOT_AVAILABLE,
+     CLUBS_REQUEST_ERRORS_TEAM_DOES_NOT_EXIST,
+     CLUBS_REQUEST_ERRORS_TEAM_IS_FULL,
+     CLUBS_REQUEST_ERRORS_TEAM_IS_NOT_ACTIVE,
+     CLUBS_REQUEST_ERRORS_TEAM_ALREADY_EXIST,
+     CLUBS_REQUEST_ERRORS_TEAM_MEMBERS_COUNT_ERROR,
+     CLUBS_REQUEST_ERRORS_TEAM_DOES_NOT_HAVE_OWNER,
+     CLUBS_REQUEST_ERRORS_TEAM_DOSSIER_WAS_LOCKED,
+     CLUBS_REQUEST_ERRORS_TEAM_ALREADY_UNLOCKED,
+     CLUBS_REQUEST_ERRORS_TEAM_LOCK_TOKEN_ERROR,
+     CLUBS_REQUEST_ERRORS_EMBLEM_DOES_NOT_EXIST,
+     CLUBS_REQUEST_ERRORS_WGESTB_COOLDOWN,
+     CLUBS_REQUEST_ERRORS_CHANGE_TEAM_NAME_COOLDOWN,
+     CLUBS_REQUEST_ERRORS_CHANGE_TEAM_TAG_COOLDOWN,
+     CLUBS_REQUEST_ERRORS_TEAM_LEAVE_COOLDOWN,
+     CLUBS_REQUEST_ERRORS_CANCEL_APPLICATION_COOLDOWN,
+     CLUBS_REQUEST_ERRORS_CREATE_TEAM_AFTER_LEAVE_COOLDOWN,
+     CLUBS_REQUEST_ERRORS_CREATE_TEAM_AFTER_DEACTIVATION_COOLDOWN,
+     CLUBS_REQUEST_ERRORS_JOIN_TEAM_AFTER_DEACTIVATION_COOLDOWN,
+     CLUBS_REQUEST_ERRORS_SAME_TEAM_APPLICATION_COOLDOWN,
+     CLUBS_REQUEST_ERRORS_MEMBERSHIP_APPLICATION_NOT_NEEDED,
+     CLUBS_REQUEST_ERRORS_APPLICATION_FOR_USER_EXCEEDED,
+     CLUBS_REQUEST_ERRORS_ACCOUNT_BANNED,
+     CLUBS_REQUEST_ERRORS_ACCOUNT_NOT_IN_TEAM,
+     CLUBS_REQUEST_ERRORS_ACCOUNT_ALREADY_IN_TEAM,
+     CLUBS_REQUEST_ERRORS_ACCOUNT_TEAMS_LIMIT_EXCEEDED,
+     CLUBS_REQUEST_ERRORS_ACCOUNT_IS_TEAM_OWNER,
+     CLUBS_REQUEST_ERRORS_OWNER_TEAMS_LIMIT_EXCEEDED,
+     CLUBS_REQUEST_ERRORS_INVITE_DOES_NOT_EXIST,
+     CLUBS_REQUEST_ERRORS_INVITE_IS_NOT_ACTIVE,
+     CLUBS_REQUEST_ERRORS_HAS_NO_CLUB,
+     CLUBS_REQUEST_ERRORS_TOO_MANY_INVITES_PER_CALL,
+     CLUBS_REQUEST_ERRORS_TEAM_ACTIVE_PROPOSALS_EXCEEDED,
+     CLUBS_REQUEST_ERRORS_NOT_ENOUGH_RATED_BATTLES,
+     CLUBS_REQUEST_ERRORS_HAVE_NO_RIGHTS,
+     CLUBS_REQUEST_ERRORS_CLUBS_ARE_DISABLED,
+     CLUBS_REQUEST_ERRORS_TIME_OUT,
+     CLUBS_REQUEST_ERRORS_SENDINVITE_IGNORED,
+     CLUBS_REQUEST_ERRORS_SENDAPP_IGNORED,
+     CLUBS_REQUEST_ERRORS_JOINUNIT_WEBUNAVAILABLE,
+     CLANS_ISCLANPROFILEDISABLED,
+     CLANS_REQUEST_ERRORS_FORBIDDEN_ACCOUNT_TYPE,
+     CLANS_REQUEST_ERRORS_CANT_SEND_INVITES,
+     CLANS_REQUEST_ERRORS_CLAN_CONSCRIPTION_CLOSED,
+     CLANS_REQUEST_ERRORS_CLAN_IS_FULL,
+     CLANS_REQUEST_ERRORS_DEFAULT,
+     CLANS_REQUEST_ERRORS_USER_IS_NOT_AUTHENTIFICATED,
+     CLANS_REQUEST_ERRORS_FORBIDDEN,
+     CLANS_REQUEST_ERRORS_BAD_REQUEST,
+     CLANS_REQUEST_ERRORS_EXPORTER_ERROR_WAS_OCCURRED,
+     CLANS_REQUEST_ERRORS_SPA_ERROR_WAS_OCCURRED,
+     CLANS_REQUEST_ERRORS_GLOBAL_MAP_ERROR_WAS_OCCURRED,
+     CLANS_REQUEST_ERRORS_WGRS_ERROR_WAS_OCCURRED,
+     CLANS_REQUEST_ERRORS_WGCCFE_ERROR_WAS_OCCURRED,
+     CLANS_REQUEST_ERRORS_CLAN_IS_DISBANDED,
+     CLANS_REQUEST_ERRORS_STRONGHOLD_IS_NOT_FOUND,
+     CLANS_REQUEST_ERRORS_WGCCBE_ERROR_WAS_OCCURRED,
+     CLANS_REQUEST_ERRORS_ACCOUNT_IS_BANNED,
+     CLANS_REQUEST_ERRORS_ACCOUNT_IN_UNKNOWN,
+     CLANS_REQUEST_ERRORS_CLAN_DOES_NOT_EXIST,
+     CLANS_REQUEST_ERRORS_CLAN_IS_FULL_,
+     CLANS_REQUEST_ERRORS_ACCOUNT_IS_IN_CLAN_ALREADY,
+     CLANS_REQUEST_ERRORS_ACCOUNT_IS_NOT_IN_CLAN,
+     CLANS_REQUEST_ERRORS_ACCOUNT_ALREADY_INVITED,
+     CLANS_REQUEST_ERRORS_ACCOUNT_IN_COOLDOWN,
+     CLANS_REQUEST_ERRORS_RECRUITING_POLICY_MISMATCH,
+     CLANS_REQUEST_ERRORS_ACCOUNT_DOES_NOT_MEET_REQUIREMENTS,
+     CLANS_REQUEST_ERRORS_TOO_MANY_INVITES,
+     CLANS_REQUEST_ERRORS_INVITE_DOES_NOT_EXIST,
+     CLANS_REQUEST_ERRORS_INVITE_IS_NOT_ACTIVE,
+     CLANS_REQUEST_ERRORS_TOO_MANY_APPLICATIONS,
+     CLANS_REQUEST_ERRORS_APPLICATION_DOES_NOT_EXIST,
+     CLANS_REQUEST_ERRORS_APPLICATION_IS_NOT_ACTIVE,
+     CLANS_REQUEST_ERRORS_CLAN_IS_NOT_ACTIVE,
+     CLANS_NOTIFICATIONS_FROM,
+     CLANS_NOTIFICATIONS_ACCEPT,
+     CLANS_NOTIFICATIONS_DECLINE,
+     CLANS_NOTIFICATIONS_INFO,
+     CLANS_NOTIFICATIONS_INVITE,
+     CLANS_NOTIFICATIONS_INVITE_ACCEPTED,
+     CLANS_NOTIFICATIONS_INVITE_DECLINED,
+     CLANS_NOTIFICATIONS_INVITE_EXPIRED,
+     CLANS_NOTIFICATIONS_REQUEST,
+     CLANS_NOTIFICATIONS_REQUEST_ACCEPTED,
+     CLANS_NOTIFICATIONS_REQUEST_DECLINED,
+     CLANS_NOTIFICATIONS_INVITES,
+     CLANS_NOTIFICATIONS_INVITES_TURNOFF,
+     CLANS_NOTIFICATIONS_INVITES_WATCHINVITES,
+     CLANS_NOTIFICATIONS_REQUESTS,
+     CLANS_NOTIFICATIONS_REQUESTS_WATCHREQUESTS,
+     CLANS_NOTIFICATIONS_REQUESTSENT,
+     CLANS_NOTIFICATIONS_INVITESENT,
+     CLANS_NOTIFICATIONS_INVITESSENT,
+     CLANS_NOTIFICATIONS_INVITESENDERROR,
+     CLANS_NOTIFICATIONS_INVITESSENDERROR,
+     CLANS_NOTIFICATIONS_PERSONAL_APPACCEPTED,
+     CLANS_NOTIFICATIONS_PERSONAL_APPDECLINED,
+     CLANS_NOTIFICATIONS_INVITEACCEPTED,
+     CLANS_NOTIFICATIONS_INVITEDECLINED,
      EXCHANGE_SUCCESS,
      EXCHANGE_NOT_ENOUGH_GOLD,
      EXCHANGE_WALLET_NOT_AVAILABLE,
@@ -981,17 +2063,55 @@ class SYSTEM_MESSAGES(object):
      EXCHANGEXP_NOT_ENOUGH_GOLD,
      EXCHANGEXP_WALLET_NOT_AVAILABLE,
      EXCHANGEXP_SERVER_ERROR,
+     QUESTS_NOQUESTSWITHGIVENID,
+     QUEUE_ISINQUEUE,
      WALLET_AVAILABLE,
      WALLET_AVAILABLE_GOLD,
      WALLET_AVAILABLE_FREEXP,
      WALLET_NOT_AVAILABLE,
      WALLET_NOT_AVAILABLE_GOLD,
      WALLET_NOT_AVAILABLE_FREEXP,
+     POTAPOVQUESTS_SELECT_SUCCESS,
+     POTAPOVQUESTS_SELECT_SERVER_ERROR,
+     POTAPOVQUESTS_SELECT_SERVER_ERROR_WRONG_ARGS_TYPE,
+     POTAPOVQUESTS_SELECT_SERVER_ERROR_WRONG_ARGS,
+     POTAPOVQUESTS_SELECT_SERVER_ERROR_NOT_ENOUGH_SLOTS,
+     POTAPOVQUESTS_SELECT_SERVER_ERROR_NOT_GOTTEN_REWARD,
+     POTAPOVQUESTS_SELECT_SERVER_ERROR_NOT_BOUGHT_TILE,
+     POTAPOVQUESTS_SELECT_SERVER_ERROR_QUEST_ALREADY_COMPLETED,
+     POTAPOVQUESTS_SELECT_SERVER_ERROR_NOT_UNLOCKED_QUEST,
+     POTAPOVQUESTS_SELECT_SERVER_ERROR_TOO_MANY_QUESTS_IN_CHAIN,
+     POTAPOVQUESTS_SELECT_SERVER_ERROR_LOCKED_BY_VEHICLE_QUEST,
+     POTAPOVQUESTS_SELECT_SERVER_ERROR_SEASON_LIMIT_THE_SAME_CLASS,
+     POTAPOVQUESTS_REFUSE_SUCCESS,
+     POTAPOVQUESTS_REFUSE_QUESTS,
+     POTAPOVQUESTS_REFUSE_NO_QUESTS,
+     POTAPOVQUESTS_REFUSE_SERVER_ERROR,
+     POTAPOVQUESTS_REFUSE_SERVER_ERROR_LOCKED_BY_VEHICLE_QUEST,
+     POTAPOVQUESTS_SELECT_SERVER_ERROR_FALLOUT_LOCKED_BY_VEHICLE_QUEST,
+     POTAPOVQUESTS_REFUSE_SERVER_ERROR_FALLOUT_LOCKED_BY_VEHICLE_QUEST,
+     POTAPOVQUESTS_REFUSE_DISABLED,
+     POTAPOVQUESTS_REWARD_REGULAR_SUCCESS,
+     POTAPOVQUESTS_REWARD_REGULAR_SERVER_ERROR,
+     POTAPOVQUESTS_REWARD_REGULAR_SERVER_ERROR_WRONG_ARGS_TYPE,
+     POTAPOVQUESTS_REWARD_REGULAR_SERVER_ERROR_NO_REWARD,
+     POTAPOVQUESTS_REWARD_REGULAR_SERVER_ERROR_INVALID_STATE,
+     POTAPOVQUESTS_REWARD_REGULAR_SERVER_ERROR_DISABLED,
+     POTAPOVQUESTS_REWARD_TANKWOMAN_SUCCESS,
+     POTAPOVQUESTS_REWARD_TANKWOMAN_SERVER_ERROR,
+     POTAPOVQUESTS_REWARD_TANKWOMAN_SERVER_ERROR_WRONG_ARGS_TYPE,
+     POTAPOVQUESTS_REWARD_TANKWOMAN_SERVER_ERROR_NO_REWARD,
+     POTAPOVQUESTS_REWARD_TANKWOMAN_SERVER_ERROR_INVALID_STATE,
+     POTAPOVQUESTS_REWARD_TANKWOMAN_SERVER_ERROR_DISABLED,
+     POTAPOVQUESTS_SELECT_DISABLED,
      UNIT_ERRORS_ALREADY_JOINED_UNIT,
+     UNIT_ERRORS_CANT_CHANGE_DIVISION,
+     UNIT_ERRORS_SORTIES_FORBIDDEN,
      UNIT_ERRORS_UNIT_MGR_ENTITY_CREATION_FAIL,
      UNIT_ERRORS_UNIT_ADD_FAIL,
      UNIT_ERRORS_CANT_FIND_UNIT_MGR,
      UNIT_ERRORS_ADD_PLAYER_FAIL,
+     UNIT_ERRORS_NO_AVAILABLE_SLOTS,
      UNIT_ERRORS_NO_UNIT_MGR,
      UNIT_ERRORS_WRONG_UNIT_REQUISITES,
      UNIT_ERRORS_REMOVE_PLAYER_FAIL,
@@ -1012,18 +2132,230 @@ class SYSTEM_MESSAGES(object):
      UNIT_ERRORS_GET_READY_VEHICLE_FAIL,
      UNIT_ERRORS_COOLDOWN,
      UNIT_ERRORS_BAD_POINTS_SUM,
+     UNIT_ERRORS_BAD_VEHICLE_LEVEL,
+     UNIT_WARNINGS_NO_CLAN_MEMBERS,
+     UNIT_ERRORS_NO_PLAYER,
+     UNIT_ERRORS_SLOT_RESERVED,
+     UNIT_ERRORS_SLOT_OCCUPIED,
+     UNIT_ERRORS_TOO_MANY_CLOSED_SLOTS,
+     UNIT_ERRORS_SLOT_NOT_CLOSED,
+     UNIT_WARNINGS_CANT_PICK_LEADER,
+     UNIT_ERRORS_RESTRICT_LEGIONARIES,
+     UNIT_ERRORS_RESTRICT_INVITED,
+     UNIT_ERRORS_VEHICLE_MISMATCH,
+     UNIT_ERRORS_NO_VEHICLES,
+     UNIT_ERRORS_TOO_MANY_LEGIONARIES,
+     UNIT_ERRORS_VEHICLE_NOT_CHOSEN,
+     UNIT_ERRORS_ALREADY_IN_SLOT,
      UNIT_WARNINGS_KICKED_CANDIDATE,
      UNIT_WARNINGS_KICKED_PLAYER,
      UNIT_WARNINGS_UNIT_ASSEMBLER_TIMEOUT,
      UNIT_WARNINGS_KICKED_FROM_UNIT_ASSEMBLER,
      UNIT_WARNINGS_INVITE_REMOVED,
      UNIT_WARNINGS_ALREADY_INVITED,
-     UNIT_INFO_OFFLINESTATUS,
-     UNIT_INFO_ONLINESTATUS,
-     UNITBROWSER_ERRORS_BAD_ACCEPT_CONTEXT)
+     UNIT_WARNINGS_WAITING_FOR_JOIN,
+     UNIT_WARNINGS_CLAN_CHANGED,
+     UNIT_WARNINGS_FORT_BATTLE_END,
+     UNIT_NOTIFICATION_PLAYEROFFLINE,
+     UNIT_NOTIFICATION_PLAYERONLINE,
+     UNIT_NOTIFICATION_PLAYERADDED,
+     UNIT_NOTIFICATION_PLAYERREMOVED,
+     UNIT_NOTIFICATION_GIVELEADERSHIP,
+     UNIT_NOTIFICATION_CHANGEDIVISION,
+     UNIT_NOTIFICATION_DIVISIONTYPE_MIDDLE,
+     UNIT_NOTIFICATION_DIVISIONTYPE_CHAMPION,
+     UNIT_NOTIFICATION_DIVISIONTYPE_ABSOLUTE,
+     UNITBROWSER_ERRORS_BAD_ACCEPT_CONTEXT,
+     PERIPHERY_ERRORS_ISNOTAVAILABLE,
+     UNIT_ERRORS_BAD_CLAN,
+     UNIT_ERRORS_BAD_ACCOUNT_TYPE,
+     UNIT_ERRORS_HAS_IN_ARENA_MEMBERS,
+     UNIT_ERRORS_ACCOUNT_RESTORED,
+     UNIT_ERRORS_UNIT_RESTORED,
+     UNIT_ERRORS_OFFLINE_PLAYER,
+     UNIT_ERRORS_TIMEOUT,
+     UNIT_ERRORS_BAD_ROSTER_PACK,
+     UNIT_ERRORS_CLUB_CHECKOUT_FAIL,
+     UNIT_ERRORS_PREV_RATED_BATTLE_IN_PROGRESS,
+     IGR_CUSTOMIZATION_BEGIN,
+     IGR_CUSTOMIZATION_END,
+     INFO_NOAVAILABLE,
+     DRR_SCALE_STEP_UP,
+     DRR_SCALE_STEP_DOWN,
+     FORTIFICATION_FIXEDPLAYERTOBUILDING,
+     FORTIFICATION_MODERNIZATIONBUILDING,
+     FORTIFICATION_BUILDINGPROCESS,
+     FORTIFICATION_DEMOUNTBUILDING,
+     FORTIFICATION_DIRECTIONOPENED,
+     FORTIFICATION_DIRECTIONCLOSED,
+     FORTIFICATION_CREATED,
+     FORTIFICATION_ADDORDER,
+     FORTIFICATION_ACTIVATEORDER,
+     FORTIFICATION_TRANSPORT,
+     FORTIFICATION_DEFENCEHOURSET,
+     FORTIFICATION_DEFENCEHOURSET_OFFDAY,
+     FORTIFICATION_DEFENCEHOURSET_NOOFFDAY,
+     FORTIFICATION_VACATIONSET,
+     FORTIFICATION_DEFENCEHOURDEACTIVATED,
+     FORTIFICATION_FORTBATTLEFINISHED,
+     FORTIFICATION_NOTIFICATION_TURNEDOFF,
+     FORTIFICATION_NOTIFICATION_TURNEDON,
+     FORTIFICATION_ERRORS_UNKNOWN,
+     FORTIFICATION_ERRORS_BAD_METHOD,
+     FORTIFICATION_ERRORS_BAD_SORTIE_TIME,
+     FORTIFICATION_ERRORS_NOT_CREATED,
+     FORTIFICATION_ERRORS_ALREADY_CREATED,
+     FORTIFICATION_ERRORS_NO_CLAN,
+     FORTIFICATION_ERRORS_DUPLICATE_BUILDING_TYPE,
+     FORTIFICATION_ERRORS_WRONG_POS,
+     FORTIFICATION_ERRORS_NO_BUILDING,
+     FORTIFICATION_ERRORS_NOT_ATTACHED_TO_BUILDING,
+     FORTIFICATION_ERRORS_STORAGE_OVERFLOW,
+     FORTIFICATION_ERRORS_EVENT_COOLDOWN,
+     FORTIFICATION_ERRORS_DEFENCE_NOT_POSSIBLE,
+     FORTIFICATION_ERRORS_DIR_NOT_OPEN,
+     FORTIFICATION_ERRORS_DIR_ALREADY_OPEN,
+     FORTIFICATION_ERRORS_NOT_ENOUGH_CLAN_MEMBERS,
+     FORTIFICATION_ERRORS_DIR_OCCUPIED,
+     FORTIFICATION_ERRORS_BAD_DIR,
+     FORTIFICATION_ERRORS_BAD_SORTIE_ID,
+     FORTIFICATION_ERRORS_TOO_MANY_PLAYERS_ATTACHED,
+     FORTIFICATION_ERRORS_ALREADY_ATTACHED,
+     FORTIFICATION_ERRORS_NO_DEST_BUILDING,
+     FORTIFICATION_ERRORS_NOT_ENOUGH_RESOURCE,
+     FORTIFICATION_ERRORS_CANT_UPGRADE,
+     FORTIFICATION_ERRORS_FORT_LEVEL_TOO_LOW,
+     FORTIFICATION_ERRORS_TRANSPORT_COOLDOWN,
+     FORTIFICATION_ERRORS_TRANSPORT_LIMIT_EXCEEDED,
+     FORTIFICATION_ERRORS_BAD_VACATION_START,
+     FORTIFICATION_ERRORS_BAD_VACATION_DURATION,
+     FORTIFICATION_ERRORS_NOT_A_CLAN_MEMBER,
+     FORTIFICATION_ERRORS_INSUFFICIENT_CLAN_ROLE,
+     FORTIFICATION_ERRORS_ORDER_ALREADY_IN_PRODUCTION,
+     FORTIFICATION_ERRORS_ORDER_ALREADY_ACTIVATED,
+     FORTIFICATION_ERRORS_TOO_MANY_ORDERS,
+     FORTIFICATION_ERRORS_BUILDING_NOT_READY,
+     FORTIFICATION_ERRORS_WRONG_BUILDING,
+     FORTIFICATION_ERRORS_START_SCENARIO_NOT_DONE,
+     FORTIFICATION_ERRORS_CANT_TRANSPORT,
+     FORTIFICATION_ERRORS_NO_ORDER,
+     FORTIFICATION_ERRORS_NO_ORDER_DEF,
+     FORTIFICATION_ERRORS_NO_ORDER_LEVEL,
+     FORTIFICATION_ERRORS_BUILDINGS_STILL_PRESENT,
+     FORTIFICATION_ERRORS_DIRECTIONS_STILL_OPEN,
+     FORTIFICATION_ERRORS_TOO_MANY_SORTIES,
+     FORTIFICATION_ERRORS_METHOD_COOLDOWN,
+     FORTIFICATION_ERRORS_BAD_RESOURCE_COUNT,
+     FORTIFICATION_ERRORS_CENTER_NOT_AVAILABLE,
+     FORTIFICATION_ERRORS_BATTLE_INFO_NOT_AVAILABLE,
+     FORTIFICATION_ERRORS_DEF_HOUR_NOT_ACTIVE,
+     FORTIFICATION_ERRORS_NO_DATA_FOR_ACTIVATING_ORDER,
+     FORTIFICATION_ERRORS_FAILED_TO_BOOK_DIR,
+     FORTIFICATION_ERRORS_DIR_LOCKED,
+     FORTIFICATION_ERRORS_BASE_DAMAGED,
+     FORTIFICATION_ERRORS_ORDER_NOT_SUPPORTED,
+     FORTIFICATION_ERRORS_POSITION_OCCUPIED,
+     FORTIFICATION_ERRORS_BAD_SORTIE_DIVISION,
+     FORTIFICATION_ERRORS_PERIPHERY_NOT_CONNECTED,
+     FORTIFICATION_ERRORS_TOO_FEW_OPEN_DIRS,
+     FORTIFICATION_ERRORS_SHUTDOWN_ALREADY_REQUESTED,
+     FORTIFICATION_ERRORS_SHUTDOWN_NOT_REQUESTED,
+     FORTIFICATION_ERRORS_NO_PRODUCTION_ORDER,
+     FORTIFICATION_ERRORS_ORDER_ALREADY_SUSPENDED,
+     FORTIFICATION_ERRORS_ORDER_NOT_SUSPENDED,
+     FORTIFICATION_ERRORS_GLOBAL_PRODUCTION_SUSPEND,
+     FORTIFICATION_ERRORS_BUILDING_DAMAGED,
+     FORTIFICATION_ERRORS_BASE_NOT_DAMAGED,
+     FORTIFICATION_ERRORS_DIRECTION_CONTESTED,
+     FORTIFICATION_ERRORS_BASE_DESTROYED,
+     FORTIFICATION_ERRORS_BAD_ORDERS_COUNT,
+     FORTIFICATION_ERRORS_BAD_HOUR_VALUE,
+     FORTIFICATION_ERRORS_BAD_DAY_VALUE,
+     FORTIFICATION_ERRORS_BATTLE_DOES_NOT_EXIST,
+     FORTIFICATION_ERRORS_UNIT_NOT_READY,
+     FORTIFICATION_ERRORS_BAD_FORT_BATTLE_ID,
+     FORTIFICATION_ERRORS_WRONG_CLAN,
+     FORTIFICATION_ERRORS_ATTACK_DIR_BUSY,
+     FORTIFICATION_ERRORS_DEFENCE_DIR_BUSY,
+     FORTIFICATION_ERRORS_NON_ALIGNED_TIMESTAMP,
+     FORTIFICATION_ERRORS_CLAN_ON_VACATION,
+     FORTIFICATION_ERRORS_CLAN_HAS_OFF_DAY,
+     FORTIFICATION_ERRORS_DIR_NOT_OPEN_FOR_ATTACKS,
+     FORTIFICATION_ERRORS_ALREADY_PLANNED_ATTACK,
+     FORTIFICATION_ERRORS_ATTACK_COOLDOWN,
+     FORTIFICATION_ERRORS_ATTACK_PREORDER_FAILED,
+     FORTIFICATION_ERRORS_SCR_DIR_LOCKED,
+     FORTIFICATION_ERRORS_DEST_DIR_LOCKED,
+     FORTIFICATION_ERRORS_NO_SUCH_ATTACK,
+     FORTIFICATION_ERRORS_ATTACK_NOT_PLANNED,
+     FORTIFICATION_ERRORS_DEFENCE_NOT_PLANNED,
+     FORTIFICATION_ERRORS_ATTACKS_NOT_LOADED,
+     FORTIFICATION_ERRORS_ALREADY_FAVORITE,
+     FORTIFICATION_ERRORS_BAD_CLAN_DBID,
+     FORTIFICATION_ERRORS_NOT_FAVORITE,
+     FORTIFICATION_ERRORS_BAD_DMG,
+     FORTIFICATION_ERRORS_CANT_CREATE_CLAN,
+     FORTIFICATION_ERRORS_CANT_LOOKUP_CLAN,
+     FORTIFICATION_ERRORS_WRONG_PERIPHERY,
+     FORTIFICATION_ERRORS_FORT_DISABLED,
+     FORTIFICATION_ERRORS_TOO_MANY_DEFENCES,
+     FORTIFICATION_ERRORS_CURFEW_HOUR,
+     FORTIFICATION_ERRORS_JOIN_CTX_LOCKED,
+     FORTIFICATION_ERRORS_ATTACK_TOO_LATE,
+     FORTIFICATION_ERRORS_FORBIDDEN_FORT_BATTLE_HOUR,
+     FORTIFICATION_ERRORS_BAD_SORTIE_PERIPHERY_ID,
+     BUTTONS_GOTOPOLL,
+     INVITE_STATUS_WRONG_CLAN,
+     INVITE_STATUS_LEGIONARIES_NOT_ALLOWED,
+     RALLY_LEAVEDISABLED,
+     SQUAD_LEAVEDISABLED,
+     BATTLERESULTS_SHARING_SUCCESS,
+     BATTLE_REQUEST_SEND_INVITES,
+     TELECOM_NOTIFICATIONS_VEHICLERECEIVED_TITLE,
+     TELECOM_NOTIFICATIONS_VEHICLERECEIVED_COMMENT,
+     TELECOM_NOTIFICATIONS_VEHICLERECEIVED_CREW,
+     TELECOM_NOTIFICATIONS_VEHICLEBLOCKED_TITLE,
+     TELECOM_NOTIFICATIONS_VEHICLEBLOCKED_COMMENT,
+     TELECOM_NOTIFICATIONS_VEHICLEBLOCKED_SUBCOMMENT,
+     TELECOM_NOTIFICATIONS_VEHICLEUNBLOCKED_TITLE,
+     TELECOM_NOTIFICATIONS_VEHICLEUNBLOCKED_COMMENT,
+     TELECOM_NOTIFICATIONS_VEHICLEUNBLOCKED_SUBCOMMENT,
+     TELECOM_NOTIFICATIONS_VEHICLEREMOVED_TITLE,
+     TELECOM_NOTIFICATIONS_VEHICLEREMOVED_COMMENT,
+     TELECOM_NOTIFICATIONS_VEHICLEREMOVED_SUBCOMMENT)
+
+    @staticmethod
+    def prebattle_request_name(key):
+        """
+        :param key:
+        :return String:
+        """
+        outcome = '#system_messages:prebattle/request/name/%s' % key
+        if outcome not in SYSTEM_MESSAGES.PREBATTLE_REQUEST_NAME_ENUM:
+            LOG_WARNING('locale key "' + outcome + '" was not found')
+            return None
+        else:
+            return outcome
+
+    @staticmethod
+    def fortification_request_name(key):
+        """
+        :param key:
+        :return String:
+        """
+        outcome = '#system_messages:fortification/request/name/%s' % key
+        if outcome not in SYSTEM_MESSAGES.FORTIFICATION_REQUEST_NAME_ENUM:
+            LOG_WARNING('locale key "' + outcome + '" was not found')
+            return None
+        else:
+            return outcome
 
     @staticmethod
     def unit_errors(key):
+        """
+        :param key:
+        :return String:
+        """
         outcome = '#system_messages:unit/errors/%s' % key
         if outcome not in SYSTEM_MESSAGES.UNIT_ERRORS_ENUM:
             LOG_WARNING('locale key "' + outcome + '" was not found')
@@ -1032,7 +2364,37 @@ class SYSTEM_MESSAGES(object):
             return outcome
 
     @staticmethod
+    def fortification_errors(key):
+        """
+        :param key:
+        :return String:
+        """
+        outcome = '#system_messages:fortification/errors/%s' % key
+        if outcome not in SYSTEM_MESSAGES.FORTIFICATION_ERRORS_ENUM:
+            LOG_WARNING('locale key "' + outcome + '" was not found')
+            return None
+        else:
+            return outcome
+
+    @staticmethod
+    def unit_notification_divisiontype(key):
+        """
+        :param key:
+        :return String:
+        """
+        outcome = '#system_messages:unit/notification/divisionType/%s' % key
+        if outcome not in SYSTEM_MESSAGES.UNIT_NOTIFICATION_DIVISIONTYPE_ENUM:
+            LOG_WARNING('locale key "' + outcome + '" was not found')
+            return None
+        else:
+            return outcome
+
+    @staticmethod
     def unitbrowser_errors(key):
+        """
+        :param key:
+        :return String:
+        """
         outcome = '#system_messages:unitBrowser/errors/%s' % key
         if outcome not in SYSTEM_MESSAGES.UNITBROWSER_ERRORS_ENUM:
             LOG_WARNING('locale key "' + outcome + '" was not found')
@@ -1041,7 +2403,24 @@ class SYSTEM_MESSAGES(object):
             return outcome
 
     @staticmethod
+    def unit_notification(key):
+        """
+        :param key:
+        :return String:
+        """
+        outcome = '#system_messages:unit/notification/%s' % key
+        if outcome not in SYSTEM_MESSAGES.UNIT_NOTIFICATION_ENUM:
+            LOG_WARNING('locale key "' + outcome + '" was not found')
+            return None
+        else:
+            return outcome
+
+    @staticmethod
     def unit_warnings(key):
+        """
+        :param key:
+        :return String:
+        """
         outcome = '#system_messages:unit/warnings/%s' % key
         if outcome not in SYSTEM_MESSAGES.UNIT_WARNINGS_ENUM:
             LOG_WARNING('locale key "' + outcome + '" was not found')
@@ -1051,17 +2430,23 @@ class SYSTEM_MESSAGES(object):
 
     @staticmethod
     def customization_vehicle(key):
+        """
+        :param key:
+        :return String:
+        """
         outcome = '#system_messages:customization/vehicle_%s' % key
         if outcome not in SYSTEM_MESSAGES.CUSTOMIZATION_VEHICLE_ENUM:
-            raise Exception, 'locale key "' + outcome + '" was not found'
+            raise Exception('locale key "' + outcome + '" was not found')
         return outcome
 
     @staticmethod
     def all(key):
+        """
+        :param key:
+        :return String:
+        """
         outcome = '#system_messages:%s' % key
         if outcome not in SYSTEM_MESSAGES.all_ENUM:
-            raise Exception, 'locale key "' + outcome + '" was not found'
+            raise Exception('locale key "' + outcome + '" was not found')
         return outcome
-# okay decompyling res/scripts/client/gui/scaleform/locale/system_messages.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:37 EST
+# okay decompiling ./res/scripts/client/gui/scaleform/locale/system_messages.pyc

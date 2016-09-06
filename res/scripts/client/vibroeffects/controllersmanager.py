@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/Vibroeffects/ControllersManager.py
 from Controllers.HitController import HitController
 from Controllers.DeathController import DeathController
 from Controllers.EngineController import EngineController
@@ -73,3 +75,4 @@ class ControllersManager:
         else:
             self.__engineVibrationCtrl.setTurn('')
         self.__engineVibrationCtrl.update(vehicle)
+# okay decompiling ./res/scripts/client/vibroeffects/controllersmanager.pyc

@@ -1,15 +1,40 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/GraphicsPresets.py
 import BigWorld
 import ResMgr
+from operator import itemgetter
 from MemoryCriticalController import g_critMemHandler
 from debug_utils import LOG_ERROR, LOG_DEBUG
-from gui import SystemMessages
+from gui import SystemMessages, GUI_SETTINGS
 from helpers import i18n
+from account_helpers.settings_core.settings_constants import GRAPHICS
 graphicsPresetsResource = 'system/data/graphics_settings_presets.xml'
 
 class GraphicsPresets:
     CUSTOM_PRESET_KEY = 'CUSTOM'
-    GRAPHICS_QUALITY_SETTINGS = ('RENDER_PIPELINE', 'TEXTURE_QUALITY', 'DECALS_QUALITY', 'OBJECT_LOD', 'FAR_PLANE', 'TERRAIN_QUALITY', 'SHADOWS_QUALITY', 'LIGHTING_QUALITY', 'SPEEDTREE_QUALITY', 'FLORA_QUALITY', 'WATER_QUALITY', 'EFFECTS_QUALITY', 'POST_PROCESSING_QUALITY', 'SNIPER_MODE_EFFECTS_QUALITY', 'VEHICLE_DUST_ENABLED', 'SNIPER_MODE_GRASS_ENABLED', 'VEHICLE_TRACES_ENABLED', 'SNIPER_MODE_SWINGING_ENABLED')
-    GRAPHICS_QUALITY_SETTINGS_PRESETS_EXCLUDE = ('SNIPER_MODE_SWINGING_ENABLED',)
+    GRAPHICS_QUALITY_SETTINGS = ('RENDER_PIPELINE',
+     'TEXTURE_QUALITY',
+     'DECALS_QUALITY',
+     'OBJECT_LOD',
+     'FAR_PLANE',
+     'TERRAIN_QUALITY',
+     'SHADOWS_QUALITY',
+     'LIGHTING_QUALITY',
+     'SPEEDTREE_QUALITY',
+     'FLORA_QUALITY',
+     'WATER_QUALITY',
+     'EFFECTS_QUALITY',
+     'POST_PROCESSING_QUALITY',
+     'MOTION_BLUR_QUALITY',
+     'SNIPER_MODE_EFFECTS_QUALITY',
+     'VEHICLE_DUST_ENABLED',
+     'SNIPER_MODE_GRASS_ENABLED',
+     'VEHICLE_TRACES_ENABLED',
+     'SNIPER_MODE_SWINGING_ENABLED',
+     'COLOR_GRADING_TECHNIQUE',
+     'SEMITRANSPARENT_LEAVES_ENABLED',
+     GRAPHICS.DRR_AUTOSCALER_ENABLED)
+    GRAPHICS_QUALITY_SETTINGS_PRESETS_EXCLUDE = ('SNIPER_MODE_SWINGING_ENABLED', 'COLOR_GRADING_TECHNIQUE')
 
     def __init__(self):
         section = ResMgr.openSection(graphicsPresetsResource)
@@ -31,7 +56,7 @@ class GraphicsPresets:
         self.checkCurrentPreset()
         return
 
-    def checkCurrentPreset(self, needRefresh = False):
+    def checkCurrentPreset(self, needRefresh=False):
         if needRefresh:
             self.__currentSetings = None
         self.selectedPresetKey = GraphicsPresets.CUSTOM_PRESET_KEY
@@ -79,17 +104,18 @@ class GraphicsPresets:
         qualitySettings = {'quality': {},
          'presets': None,
          'qualityOrder': GraphicsPresets.GRAPHICS_QUALITY_SETTINGS}
-        for label, index, values, _, advanced, _, _ in graphQualitySettings:
-            if label in GraphicsPresets.GRAPHICS_QUALITY_SETTINGS:
+        for settingName, index, values, _, advanced, _, _ in graphQualitySettings:
+            if settingName in GraphicsPresets.GRAPHICS_QUALITY_SETTINGS:
                 options = []
                 for i, val in enumerate(values):
                     valueLabel, supportFlag, advanced, _ = val
-                    if supportFlag:
-                        options.append({'label': '#settings:graphicsQuality/' + valueLabel,
-                         'data': i,
-                         'advanced': advanced})
+                    options.append({'label': '#settings:graphicsSettingsOptions/' + valueLabel,
+                     'data': i,
+                     'advanced': advanced,
+                     'supported': supportFlag})
 
-                qualitySettings['quality'][label] = {'value': index,
+                options = sorted(options, key=itemgetter('data'), reverse=True)
+                qualitySettings['quality'][settingName] = {'value': index,
                  'options': options}
 
         presets = {'current': self.__presetsKeys.index(self.selectedPresetKey),
@@ -99,12 +125,20 @@ class GraphicsPresets:
              'key': presetKey,
              'settings': {}}
             settings = self.__presets.get(presetKey, {})
-            for label, value in settings.items():
-                if label in GraphicsPresets.GRAPHICS_QUALITY_SETTINGS:
-                    preset['settings'][label] = value
+            isSupported = True
+            for settingName, value in settings.items():
+                if not self.settingIsSupported(settingName, value):
+                    allowedPresetSettings = GUI_SETTINGS.allowedNotSupportedGraphicSettings.get(preset['key'], [])
+                    if settingName not in allowedPresetSettings:
+                        isSupported = False
+                        break
+                if settingName in GraphicsPresets.GRAPHICS_QUALITY_SETTINGS:
+                    preset['settings'][settingName] = value
 
-            presets['values'].append(preset)
+            if isSupported:
+                presets['values'].append(preset)
 
+        presets['values'] = sorted(presets['values'], key=itemgetter('index'), reverse=True)
         qualitySettings['presets'] = presets
         return qualitySettings
 
@@ -204,3 +238,4 @@ class GraphicsPresets:
         if delayedSettings:
             return 'hasPendingSettings'
         return 'apply'
+# okay decompiling ./res/scripts/client/gui/graphicspresets.pyc

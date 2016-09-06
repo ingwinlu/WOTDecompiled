@@ -1,6 +1,6 @@
-# 2013.11.15 11:25:27 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/AvatarInputHandler/mathUtils.py
-import BigWorld
+import Event
 import Math
 from Math import Vector2, Vector3, Matrix
 import random
@@ -41,13 +41,8 @@ def createSRTMatrix(scale, rotation, translation):
     return result
 
 
-def clamp(minVal, maxVal, val):
-    if minVal > val:
-        return minVal
-    if maxVal < val:
-        return maxVal
-    return val
-
+clamp = lambda minVal, maxVal, val: if val < minVal:
+minVal(maxVal if val > maxVal else val)
 
 def clampVector3(minVal, maxVal, val):
     return Vector3(clamp(minVal.x, maxVal.x, val.x), clamp(minVal.y, maxVal.y, val.y), clamp(minVal.z, maxVal.z, val.z))
@@ -67,14 +62,80 @@ def matrixScale(vector, scaleCoeff):
     return Vector3(vector.x * scaleCoeff.x, vector.y * scaleCoeff.y, vector.z * scaleCoeff.z)
 
 
-def almostZero(val, epsilon = 0.0004):
+def almostZero(val, epsilon=0.0004):
     return -epsilon < val < epsilon
+
+
+def lerp(a, b, t):
+    return a + (b - a) * t
+
+
+def squareIn(a, b, t):
+    return a + (b - a) * t * t
+
+
+def squareOut(a, b, t):
+    return a + (b - a) * (-t * t + 2 * t)
+
+
+class Easing(object):
+    value = property(lambda self: self.__value)
+    a = property(lambda self: self.__a)
+    b = property(lambda self: self.__b)
+    t = property(lambda self: self.__t)
+    stopped = property(lambda self: self.__stopped)
+
+    def __init__(self, a, b, interpolationFunc, duration):
+        self.__func = interpolationFunc
+        self.reset(a, b, duration)
+
+    def reset(self, a, b, duration):
+        assert duration > 0.0
+        self.__a = a
+        self.__b = b
+        self.__t = 0.0
+        self.__duration = duration
+        self.__value = a
+        self.__stopped = False
+
+    def update(self, deltaTime):
+        self.__t += deltaTime / self.__duration
+        if self.__t > 1.0:
+            self.__t = 1.0
+            self.__stopped = True
+            self.__value = self.__b
+        else:
+            self.__value = self.__func(self.__a, self.__b, self.__t)
+        return self.__value
+
+    @staticmethod
+    def linearEasing(a, b, duration):
+        return Easing(a, b, lerp, duration)
+
+    @staticmethod
+    def squareEasing(a, b, duration):
+        return Easing(a, b, squareOut, duration)
+
+    @staticmethod
+    def exponentialEasing(start, end, duration):
+        func = lambda a, b, t: b + (a - b) * math.pow(0.0001, t)
+        return Easing(start, end, func, duration)
+
+
+class MatrixProviders:
+
+    @staticmethod
+    def product(a, b):
+        m = Math.MatrixProduct()
+        m.a = a
+        m.b = b
+        return m
 
 
 class RandomVectors:
 
     @staticmethod
-    def random2(magnitude = 1.0, randomGenerator = None):
+    def random2(magnitude=1.0, randomGenerator=None):
         if randomGenerator is None:
             randomGenerator = random
         u = randomGenerator.random()
@@ -82,12 +143,12 @@ class RandomVectors:
         return Vector2(math.sin(yaw) * magnitude, math.cos(yaw) * magnitude)
 
     @staticmethod
-    def random3Flat(magnitude = 1.0, randomGenerator = None):
+    def random3Flat(magnitude=1.0, randomGenerator=None):
         randomVec2 = RandomVectors.random2(magnitude, randomGenerator)
         return Vector3(randomVec2.x, 0.0, randomVec2.y)
 
     @staticmethod
-    def random3(magnitude = 1.0, randomGenerator = None):
+    def random3(magnitude=1.0, randomGenerator=None):
         if randomGenerator is None:
             randomGenerator = random
         u = randomGenerator.random()
@@ -100,7 +161,7 @@ class RandomVectors:
 
 class FIRFilter(object):
 
-    def __init__(self, coeffs = None):
+    def __init__(self, coeffs=None):
         self.coeffs = coeffs
         self.values = [ Vector3(0) for x in xrange(len(self.coeffs)) ]
         self.__id = 0
@@ -162,6 +223,20 @@ class RangeFilter(object):
         if valueLength > self.maxLength:
             valueToAdd *= self.maxLength / valueLength
         return self.filter.add(valueToAdd)
-# okay decompyling res/scripts/client/avatarinputhandler/mathutils.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:25:27 EST
+
+
+def reduceToPI(inAngle):
+    outAngle = math.fmod(inAngle, 2.0 * math.pi)
+    if outAngle >= math.pi:
+        outAngle -= 2.0 * math.pi
+    elif outAngle <= -math.pi:
+        outAngle += 2.0 * math.pi
+    return outAngle
+
+
+def reduceTo2PI(inAngle):
+    outAngle = math.fmod(inAngle, 2.0 * math.pi)
+    if outAngle < 0.0:
+        outAngle += 2.0 * math.pi
+    return outAngle
+# okay decompiling ./res/scripts/client/avatarinputhandler/mathutils.pyc

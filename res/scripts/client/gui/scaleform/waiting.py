@@ -1,14 +1,24 @@
-# 2013.11.15 11:26:46 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/Waiting.py
 import BigWorld
-import Keys
 from helpers import i18n
-from debug_utils import LOG_DEBUG, LOG_WARNING
 
-class Waiting:
+class Waiting(object):
+    __wainingViewGetter = None
     __waitingStack = []
     __suspendStack = []
     __isVisible = False
+
+    @classmethod
+    def setWainingViewGetter(cls, getter):
+        cls.__wainingViewGetter = getter
+
+    @classmethod
+    def getWaitingView(cls):
+        view = None
+        if callable(cls.__wainingViewGetter):
+            view = cls.__wainingViewGetter()
+        return view
 
     @classmethod
     def isVisible(cls):
@@ -19,17 +29,18 @@ class Waiting:
         return msg in cls.__waitingStack
 
     @staticmethod
-    def show(message, isSingle = False, interruptCallback = lambda : None):
+    def show(message, isSingle=False, interruptCallback=lambda : None):
         BigWorld.Screener.setEnabled(False)
-        if isSingle:
-            if not message in Waiting.__waitingStack:
-                Waiting.__waitingStack.append(message)
-            from gui.WindowsManager import g_windowsManager
-            if g_windowsManager.window is not None:
-                waitingView = g_windowsManager.window.waitingManager
-                waitingView is not None and waitingView.showS(i18n.makeString('#waiting:%s' % message))
-                Waiting.__isVisible = True
-                waitingView.setCallback(interruptCallback)
+        if not (isSingle and message in Waiting.__waitingStack):
+            Waiting.__waitingStack.append(message)
+        view = Waiting.getWaitingView()
+        if view is not None:
+            view.showS(i18n.makeString('#waiting:%s' % message))
+            Waiting.__isVisible = True
+            view.setCallback(interruptCallback)
+            from gui.shared.events import LobbySimpleEvent
+            from gui.shared import EVENT_BUS_SCOPE
+            view.fireEvent(LobbySimpleEvent(LobbySimpleEvent.WAITING_SHOWN), scope=EVENT_BUS_SCOPE.LOBBY)
         return
 
     @staticmethod
@@ -70,17 +81,21 @@ class Waiting:
     @staticmethod
     def close():
         BigWorld.Screener.setEnabled(True)
-        from gui.WindowsManager import g_windowsManager
-        if g_windowsManager.window is not None and g_windowsManager.window.waitingManager is not None:
-            g_windowsManager.window.waitingManager.close()
+        view = Waiting.getWaitingView()
+        if view:
+            view.close()
         Waiting.__isVisible = False
         Waiting.__waitingStack = []
-        return
 
     @staticmethod
     def rollback():
         Waiting.__suspendStack = []
         Waiting.close()
-# okay decompyling res/scripts/client/gui/scaleform/waiting.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:46 EST
+
+    @staticmethod
+    def cancelCallback():
+        view = Waiting.getWaitingView()
+        if view is not None:
+            view.cancelCallback()
+        return
+# okay decompiling ./res/scripts/client/gui/scaleform/waiting.pyc

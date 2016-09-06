@@ -1,25 +1,26 @@
-import BigWorld, MusicController, SoundGroups
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/tutorial/gui/Scaleform/offbattle/pop_ups.py
 from tutorial.gui.Scaleform.meta.TutorialBattleNoResultsMeta import TutorialBattleNoResultsMeta
-from tutorial.gui.Scaleform.pop_ups import TutorialDialog, TutorialWindow
 from tutorial.gui.Scaleform.meta.TutorialBattleStatisticMeta import TutorialBattleStatisticMeta
+from tutorial.gui.Scaleform.pop_ups import TutorialDialog, TutorialWindow
 
-class TutorialVideoDialog(TutorialDialog):
+class TutorialConfirmRefuseDialog(TutorialDialog):
+
+    def __init__(self, content):
+        super(TutorialConfirmRefuseDialog, self).__init__(content)
+        self._cache.setStartOnNextLogin(True)
+        self._content['doStartOnNextLogin'] = True
+
+    def setStartOnNextLogin(self, value):
+        self._cache.setStartOnNextLogin(value)
 
     def _populate(self):
-        self.__setSoundMuted(False)
-        super(TutorialVideoDialog, self)._populate()
-
-    def _dispose(self):
-        super(TutorialVideoDialog, self)._dispose()
-        self.__setSoundMuted(True)
-
-    def __setSoundMuted(self, isMuted):
-        BigWorld.wg_setMovieSoundMuted(isMuted)
-        SoundGroups.g_instance.enableAmbientAndMusic(isMuted)
-        if isMuted:
-            MusicController.g_musicController.play(MusicController.MUSIC_EVENT_LOBBY)
-        else:
-            MusicController.g_musicController.stop()
+        super(TutorialConfirmRefuseDialog, self)._populate()
+        data = self._content
+        self.as_setContentS({'title': data['title'],
+         'message': data['message'],
+         'checkBoxLabel': data['checkBoxLabel'],
+         'doStartOnNextLogin': data['doStartOnNextLogin']})
 
 
 class TutorialBattleStatisticWindow(TutorialWindow, TutorialBattleStatisticMeta):
@@ -40,3 +41,4 @@ class TutorialBattleNoResultWindow(TutorialWindow, TutorialBattleNoResultsMeta):
     def _populate(self):
         super(TutorialBattleNoResultWindow, self)._populate()
         self.as_setDataS(self._content.copy())
+# okay decompiling ./res/scripts/client/tutorial/gui/scaleform/offbattle/pop_ups.pyc

@@ -1,10 +1,25 @@
-# 2013.11.15 11:26:30 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/locale/DIALOGS.py
 
 
 class DIALOGS(object):
+    """
+    DO NOT MODIFY!
+    Generated with yaml.
+    __author__ = 'yaml_processor'
+    null
+    """
     GATHERINGXPFORM_SORTBY_VEHICLE = '#dialogs:gatheringXPForm/sortBy/vehicle'
     GATHERINGXPFORM_SORTBY_XP = '#dialogs:gatheringXPForm/sortBy/xp'
+    GRAPHICSPRESETNOTINSTALLED = '#dialogs:graphicsPresetNotInstalled'
+    GATHERINGXPFORM_SORTBY_SELECTION = '#dialogs:gatheringXPForm/sortBy/selection'
+    INTERVIEWQUIT_TITLE = '#dialogs:interviewQuit/title'
+    INTERVIEWQUIT_MESSAGE = '#dialogs:interviewQuit/message'
+    INTERVIEWQUIT_SUBMIT = '#dialogs:interviewQuit/submit'
+    INTERVIEWQUIT_CANCEL = '#dialogs:interviewQuit/cancel'
+    LEGALINFOWINDOW_TITLE = '#dialogs:legalInfoWindow/title'
+    COMMON_SUBMIT = '#dialogs:common/submit'
+    COMMON_CANCEL = '#dialogs:common/cancel'
     COMMON_CONFIRM_SUBMIT = '#dialogs:common/confirm/submit'
     COMMON_CONFIRM_CANCEL = '#dialogs:common/confirm/cancel'
     COMMON_ERROR_CANCEL = '#dialogs:common/error/cancel'
@@ -20,6 +35,18 @@ class DIALOGS(object):
     QUITBATTLE_MESSAGE = '#dialogs:quitBattle/message'
     QUITBATTLE_SUBMIT = '#dialogs:quitBattle/submit'
     QUITBATTLE_CANCEL = '#dialogs:quitBattle/cancel'
+    QUITBATTLE_DESERTER_TITLE = '#dialogs:quitBattle/deserter/title'
+    QUITBATTLE_DESERTER_MESSAGE = '#dialogs:quitBattle/deserter/message'
+    QUITBATTLE_DESERTER_SUBMIT = '#dialogs:quitBattle/deserter/submit'
+    QUITBATTLE_DESERTER_CANCEL = '#dialogs:quitBattle/deserter/cancel'
+    QUITBATTLEIGR_TITLE = '#dialogs:quitBattleIGR/title'
+    QUITBATTLEIGR_MESSAGE = '#dialogs:quitBattleIGR/message'
+    QUITBATTLEIGR_SUBMIT = '#dialogs:quitBattleIGR/submit'
+    QUITBATTLEIGR_CANCEL = '#dialogs:quitBattleIGR/cancel'
+    QUITBATTLEIGR_DESERTER_TITLE = '#dialogs:quitBattleIGR/deserter/title'
+    QUITBATTLEIGR_DESERTER_MESSAGE = '#dialogs:quitBattleIGR/deserter/message'
+    QUITBATTLEIGR_DESERTER_SUBMIT = '#dialogs:quitBattleIGR/deserter/submit'
+    QUITBATTLEIGR_DESERTER_CANCEL = '#dialogs:quitBattleIGR/deserter/cancel'
     QUITPREBATTLE_TITLE = '#dialogs:quitPreBattle/title'
     QUITPREBATTLE_MESSAGE = '#dialogs:quitPreBattle/message'
     QUITPREBATTLE_SUBMIT = '#dialogs:quitPreBattle/submit'
@@ -29,6 +56,10 @@ class DIALOGS(object):
     GRAPHICSPRESETRESTARTCONFIRMATION_SUBMIT = '#dialogs:graphicsPresetRestartConfirmation/submit'
     GRAPHICSPRESETRESTARTCONFIRMATION_DELAY = '#dialogs:graphicsPresetRestartConfirmation/delay'
     GRAPHICSPRESETRESTARTCONFIRMATION_CANCEL = '#dialogs:graphicsPresetRestartConfirmation/cancel'
+    GRAPHICSPRESETNOTINSTALLED_TITLE = GRAPHICSPRESETNOTINSTALLED + '/title'
+    GRAPHICSPRESETNOTINSTALLED_MESSAGE = GRAPHICSPRESETNOTINSTALLED + '/message'
+    GRAPHICSPRESETNOTINSTALLED_CANCEL = GRAPHICSPRESETNOTINSTALLED + '/cancel'
+    GRAPHICSPRESETNOTINSTALLED_SUBMIT = GRAPHICSPRESETNOTINSTALLED + '/submit'
     GRAPHICSPRESETDELAYEDCONFIRMATION_TITLE = '#dialogs:graphicsPresetDelayedConfirmation/title'
     GRAPHICSPRESETDELAYEDCONFIRMATION_MESSAGE = '#dialogs:graphicsPresetDelayedConfirmation/message'
     GRAPHICSPRESETDELAYEDCONFIRMATION_SUBMIT = '#dialogs:graphicsPresetDelayedConfirmation/submit'
@@ -40,6 +71,10 @@ class DIALOGS(object):
     GRAPHICSPRESETNOTPOSSIBLE_TITLE = '#dialogs:graphicsPresetNotPossible/title'
     GRAPHICSPRESETNOTPOSSIBLE_MESSAGE = '#dialogs:graphicsPresetNotPossible/message'
     GRAPHICSPRESETNOTPOSSIBLE_CANCEL = '#dialogs:graphicsPresetNotPossible/cancel'
+    GRAPHICSCHANGECONFIRMATION_TITLE = '#dialogs:graphicsChangeConfirmation/title'
+    GRAPHICSCHANGECONFIRMATION_MESSAGE = '#dialogs:graphicsChangeConfirmation/message'
+    GRAPHICSCHANGECONFIRMATION_SUBMIT = '#dialogs:graphicsChangeConfirmation/submit'
+    GRAPHICSCHANGECONFIRMATION_CANCEL = '#dialogs:graphicsChangeConfirmation/cancel'
     WATERQUALITYNOTPOSSIBLE_TITLE = '#dialogs:waterQualityNotPossible/title'
     WATERQUALITYNOTPOSSIBLE_MESSAGE = '#dialogs:waterQualityNotPossible/message'
     WATERQUALITYNOTPOSSIBLE_CANCEL = '#dialogs:waterQualityNotPossible/cancel'
@@ -51,16 +86,25 @@ class DIALOGS(object):
     PREMIUMCONTINUECONFIRMATION_MESSAGE = '#dialogs:premiumContinueConfirmation/message'
     PREMIUMCONTINUECONFIRMATION_SUBMIT = '#dialogs:premiumContinueConfirmation/submit'
     PREMIUMCONTINUECONFIRMATION_CANCEL = '#dialogs:premiumContinueConfirmation/cancel'
+    BUYPREMWITHOUTBENEFITSCONFIRMATION_TITLE = '#dialogs:buyPremWithoutBenefitsConfirmation/title'
+    BUYPREMWITHOUTBENEFITSCONFIRMATION_MESSAGE = '#dialogs:buyPremWithoutBenefitsConfirmation/message'
+    BUYPREMWITHOUTBENEFITSCONFIRMATION_SUBMIT = '#dialogs:buyPremWithoutBenefitsConfirmation/submit'
+    BUYPREMWITHOUTBENEFITSCONFIRMATION_CANCEL = '#dialogs:buyPremWithoutBenefitsConfirmation/cancel'
     BUYINSTALLCONFIRMATION_TITLE = '#dialogs:buyInstallConfirmation/title'
     BUYINSTALLCONFIRMATION_MESSAGECOMBINE = '#dialogs:buyInstallConfirmation/messageCombine'
     BUYINSTALLCONFIRMATION_MESSAGE = '#dialogs:buyInstallConfirmation/message'
-    BUYINSTALLCONFIRMATION_CONFLICTEDMESSAGE = '#dialogs:buyInstallConfirmation/conflictedMessage'
+    BUYINSTALLCONFIRMATION_CONFLICTEDMESSAGE_PREFIX = '#dialogs:buyInstallConfirmation/conflictedMessage/prefix'
+    BUYINSTALLCONFIRMATION_CONFLICTEDMESSAGE_HIGHLIGHTENTEXT = '#dialogs:buyInstallConfirmation/conflictedMessage/highlightenText'
+    BUYINSTALLCONFIRMATION_CONFLICTEDMESSAGE_POSTFIX = '#dialogs:buyInstallConfirmation/conflictedMessage/postfix'
     BUYINSTALLCONFIRMATION_SUBMIT = '#dialogs:buyInstallConfirmation/submit'
     BUYINSTALLCONFIRMATION_CANCEL = '#dialogs:buyInstallConfirmation/cancel'
     CHANGECONFIRMATIONNOTREMOVABLE_TITLE = '#dialogs:changeConfirmationNotRemovable/title'
     CHANGECONFIRMATIONNOTREMOVABLE_MESSAGECOMBINE = '#dialogs:changeConfirmationNotRemovable/messageCombine'
     CHANGECONFIRMATIONNOTREMOVABLE_SUBMIT = '#dialogs:changeConfirmationNotRemovable/submit'
     CHANGECONFIRMATIONNOTREMOVABLE_CANCEL = '#dialogs:changeConfirmationNotRemovable/cancel'
+    RALLY_COMPANYTIMEFINISHED_TITLE = '#dialogs:rally/companyTimeFinished/title'
+    RALLY_COMPANYTIMEFINISHED_MESSAGE = '#dialogs:rally/companyTimeFinished/message'
+    RALLY_COMPANYTIMEFINISHED_CANCEL = '#dialogs:rally/companyTimeFinished/cancel'
     INSTALLCONFIRMATIONNOTREMOVABLE_TITLE = '#dialogs:installConfirmationNotRemovable/title'
     INSTALLCONFIRMATIONNOTREMOVABLE_MESSAGE = '#dialogs:installConfirmationNotRemovable/message'
     INSTALLCONFIRMATIONNOTREMOVABLE_SUBMIT = '#dialogs:installConfirmationNotRemovable/submit'
@@ -123,6 +167,14 @@ class DIALOGS(object):
     BUYSLOTCONFIRMATION_MESSAGE = '#dialogs:buySlotConfirmation/message'
     BUYSLOTCONFIRMATION_SUBMIT = '#dialogs:buySlotConfirmation/submit'
     BUYSLOTCONFIRMATION_CANCEL = '#dialogs:buySlotConfirmation/cancel'
+    FREESLOTCONFIRMATION_TITLE = '#dialogs:freeSlotConfirmation/title'
+    FREESLOTCONFIRMATION_MESSAGE = '#dialogs:freeSlotConfirmation/message'
+    FREESLOTCONFIRMATION_SUBMIT = '#dialogs:freeSlotConfirmation/submit'
+    FREESLOTCONFIRMATION_CANCEL = '#dialogs:freeSlotConfirmation/cancel'
+    REPLACEPASSPORT_UNIQUE_TITLE = '#dialogs:replacePassport/unique/title'
+    REPLACEPASSPORT_UNIQUE_MESSAGE = '#dialogs:replacePassport/unique/message'
+    REPLACEPASSPORT_UNIQUE_SUBMIT = '#dialogs:replacePassport/unique/submit'
+    REPLACEPASSPORT_UNIQUE_CANCEL = '#dialogs:replacePassport/unique/cancel'
     REPLACEPASSPORTCONFIRMATION_TITLE = '#dialogs:replacePassportConfirmation/title'
     REPLACEPASSPORTCONFIRMATION_MESSAGE = '#dialogs:replacePassportConfirmation/message'
     REPLACEPASSPORTCONFIRMATION_SUBMIT = '#dialogs:replacePassportConfirmation/submit'
@@ -164,6 +216,8 @@ class DIALOGS(object):
     RECRUITWINDOW_NATIONDROPDOWN_USSR = '#dialogs:recruitWindow/nationDropdown/ussr'
     RECRUITWINDOW_NATIONDROPDOWN_GERMANY = '#dialogs:recruitWindow/nationDropdown/germany'
     RECRUITWINDOW_NATIONDROPDOWN_USA = '#dialogs:recruitWindow/nationDropdown/usa'
+    RECRUITWINDOW_NATIONDROPDOWN_CZECH = '#dialogs:recruitWindow/nationDropdown/czech'
+    RECRUITWINDOW_NATIONDROPDOWN_SWEDEN = '#dialogs:recruitWindow/nationDropdown/sweden'
     RECRUITWINDOW_SPECIALIZATION = '#dialogs:recruitWindow/specialization'
     RECRUITWINDOW_VEHICLECLASS = '#dialogs:recruitWindow/vehicleClass'
     RECRUITWINDOW_VEHICLECLASSDROPDOWN_ALL = '#dialogs:recruitWindow/vehicleClassDropdown/all'
@@ -185,10 +239,12 @@ class DIALOGS(object):
     BUYVEHICLEDIALOG_PRICELABEL = '#dialogs:buyVehicleDialog/priceLabel'
     BUYVEHICLEDIALOG_AMMOCHECKBOX = '#dialogs:buyVehicleDialog/ammoCheckbox'
     BUYVEHICLEDIALOG_SLOTCHECKBOX = '#dialogs:buyVehicleDialog/slotCheckbox'
+    BUYVEHICLEDIALOG_FREERENTSLOT = '#dialogs:buyVehicleDialog/freeRentSlot'
     BUYVEHICLEDIALOG_TANKMENLABEL = '#dialogs:buyVehicleDialog/tankmenLabel'
     BUYVEHICLEDIALOG_TANKMEN = '#dialogs:buyVehicleDialog/tankmen'
     BUYVEHICLEDIALOG_WARNING = '#dialogs:buyVehicleDialog/warning'
     BUYVEHICLEDIALOG_TANKMENCHECKBOX = '#dialogs:buyVehicleDialog/tankmenCheckbox'
+    BUYVEHICLEDIALOG_CREWINVEHICLE = '#dialogs:buyVehicleDialog/crewInVehicle'
     BUYVEHICLEDIALOG_TOTALLABEL = '#dialogs:buyVehicleDialog/totalLabel'
     BUYVEHICLEDIALOG_EXPANDBTNLABEL = '#dialogs:buyVehicleDialog/expandBtnLabel'
     BUYVEHICLEDIALOG_ROLLUPBTNLABEL = '#dialogs:buyVehicleDialog/rollupBtnLabel'
@@ -214,6 +270,10 @@ class DIALOGS(object):
     CONFIRMBUYANDINSTALL_CONFLICTEDEQS = '#dialogs:confirmBuyAndInstall/conflictedEqs'
     CONFIRMBUYANDINSTALL_SUBMIT = '#dialogs:confirmBuyAndInstall/submit'
     CONFIRMBUYANDINSTALL_CANCEL = '#dialogs:confirmBuyAndInstall/cancel'
+    CONFIRMBUYNOTINSTALL_TITLE = '#dialogs:confirmBuyNotInstall/title'
+    CONFIRMBUYNOTINSTALL_MESSAGE = '#dialogs:confirmBuyNotInstall/message'
+    CONFIRMBUYNOTINSTALL_SUBMIT = '#dialogs:confirmBuyNotInstall/submit'
+    CONFIRMBUYNOTINSTALL_CANCEL = '#dialogs:confirmBuyNotInstall/cancel'
     POSTMORTEM_TITLE = '#dialogs:postmortem/title'
     POSTMORTEM_MESSAGE = '#dialogs:postmortem/message'
     POSTMORTEM_SUBMIT = '#dialogs:postmortem/submit'
@@ -256,6 +316,30 @@ class DIALOGS(object):
     SQUADHAVENOTREADYPLAYERS_MESSAGE = '#dialogs:squadHaveNotReadyPlayers/message'
     SQUADHAVENOTREADYPLAYERS_SUBMIT = '#dialogs:squadHaveNotReadyPlayers/submit'
     SQUADHAVENOTREADYPLAYERS_CANCEL = '#dialogs:squadHaveNotReadyPlayers/cancel'
+    SQUADHAVENOTREADYPLAYERSAUTO_TITLE = '#dialogs:squadHaveNotReadyPlayersAuto/title'
+    SQUADHAVENOTREADYPLAYERSAUTO_MESSAGE = '#dialogs:squadHaveNotReadyPlayersAuto/message'
+    SQUADHAVENOTREADYPLAYERSAUTO_SUBMIT = '#dialogs:squadHaveNotReadyPlayersAuto/submit'
+    SQUADHAVENOTREADYPLAYERSAUTO_CANCEL = '#dialogs:squadHaveNotReadyPlayersAuto/cancel'
+    SQUADHAVENOTREADYPLAYERAUTO_TITLE = '#dialogs:squadHaveNotReadyPlayerAuto/title'
+    SQUADHAVENOTREADYPLAYERAUTO_MESSAGE = '#dialogs:squadHaveNotReadyPlayerAuto/message'
+    SQUADHAVENOTREADYPLAYERAUTO_SUBMIT = '#dialogs:squadHaveNotReadyPlayerAuto/submit'
+    SQUADHAVENOTREADYPLAYERAUTO_CANCEL = '#dialogs:squadHaveNotReadyPlayerAuto/cancel'
+    SQUADHAVENOTREADYPLAYER_TITLE = '#dialogs:squadHaveNotReadyPlayer/title'
+    SQUADHAVENOTREADYPLAYER_MESSAGE = '#dialogs:squadHaveNotReadyPlayer/message'
+    SQUADHAVENOTREADYPLAYER_SUBMIT = '#dialogs:squadHaveNotReadyPlayer/submit'
+    SQUADHAVENOTREADYPLAYER_CANCEL = '#dialogs:squadHaveNotReadyPlayer/cancel'
+    SQUADHAVENOPLAYERS_TITLE = '#dialogs:squadHaveNoPlayers/title'
+    SQUADHAVENOPLAYERS_MESSAGE = '#dialogs:squadHaveNoPlayers/message'
+    SQUADHAVENOPLAYERS_SUBMIT = '#dialogs:squadHaveNoPlayers/submit'
+    SQUADHAVENOPLAYERS_CANCEL = '#dialogs:squadHaveNoPlayers/cancel'
+    SQUADHAVENOPLAYERSAUTO_TITLE = '#dialogs:squadHaveNoPlayersAuto/title'
+    SQUADHAVENOPLAYERSAUTO_MESSAGE = '#dialogs:squadHaveNoPlayersAuto/message'
+    SQUADHAVENOPLAYERSAUTO_SUBMIT = '#dialogs:squadHaveNoPlayersAuto/submit'
+    SQUADHAVENOPLAYERSAUTO_CANCEL = '#dialogs:squadHaveNoPlayersAuto/cancel'
+    SQUADHAVENOPLAYERAUTO_TITLE = '#dialogs:squadHaveNoPlayerAuto/title'
+    SQUADHAVENOPLAYERAUTO_MESSAGE = '#dialogs:squadHaveNoPlayerAuto/message'
+    SQUADHAVENOPLAYERAUTO_SUBMIT = '#dialogs:squadHaveNoPlayerAuto/submit'
+    SQUADHAVENOPLAYERAUTO_CANCEL = '#dialogs:squadHaveNoPlayerAuto/cancel'
     SQUADHAVEPLAYERSINBATTLE_TITLE = '#dialogs:squadHavePlayersInBattle/title'
     SQUADHAVEPLAYERSINBATTLE_MESSAGE = '#dialogs:squadHavePlayersInBattle/message'
     SQUADHAVEPLAYERSINBATTLE_CANCEL = '#dialogs:squadHavePlayersInBattle/cancel'
@@ -286,8 +370,8 @@ class DIALOGS(object):
     GATHERINGXPFORM_TOTALLABEL = '#dialogs:gatheringXPForm/totalLabel'
     GATHERINGXPFORM_SELECTALLLABEL = '#dialogs:gatheringXPForm/selectAllLabel'
     GATHERINGXPFORM_TOTALXP = '#dialogs:gatheringXPForm/totalXP'
-    GATHERINGXPFORM_SORTBY_SELECTION_HEADER = '#dialogs:gatheringXPForm/sortBy/selection/header'
-    GATHERINGXPFORM_SORTBY_SELECTION_BODY = '#dialogs:gatheringXPForm/sortBy/selection/body'
+    GATHERINGXPFORM_SORTBY_SELECTION_HEADER = GATHERINGXPFORM_SORTBY_SELECTION + '/header'
+    GATHERINGXPFORM_SORTBY_SELECTION_BODY = GATHERINGXPFORM_SORTBY_SELECTION + '/body'
     GATHERINGXPFORM_SORTBY_VEHICLE_HEADER = GATHERINGXPFORM_SORTBY_VEHICLE + '/header'
     GATHERINGXPFORM_SORTBY_VEHICLE_BODY = GATHERINGXPFORM_SORTBY_VEHICLE + '/body'
     GATHERINGXPFORM_SORTBY_XP_HEADER = GATHERINGXPFORM_SORTBY_XP + '/header'
@@ -300,6 +384,7 @@ class DIALOGS(object):
     GATHERINGXPFORM_BTNCANCEL = '#dialogs:gatheringXPForm/btnCancel'
     EXCHANGEXPCONFIRMATION_TITLE = '#dialogs:exchangeXPConfirmation/title'
     EXCHANGEXPCONFIRMATION_MESSAGE = '#dialogs:exchangeXPConfirmation/message'
+    EXCHANGEXPCONFIRMATION_AVAILABLE_FORFREE_MESSAGE = '#dialogs:exchangeXPConfirmation/available/forFree/message'
     EXCHANGEXPCONFIRMATION_SUBMIT = '#dialogs:exchangeXPConfirmation/submit'
     EXCHANGEXPCONFIRMATION_CANCEL = '#dialogs:exchangeXPConfirmation/cancel'
     EXCHANGEGOLDCONFIRMATION_TITLE = '#dialogs:exchangeGoldConfirmation/title'
@@ -376,6 +461,7 @@ class DIALOGS(object):
     MESSENGER_USERINFONOTAVAILABLE_MESSAGE = '#dialogs:messenger/userInfoNotAvailable/message'
     MESSENGER_USERINFONOTAVAILABLE_SUBMIT = '#dialogs:messenger/userInfoNotAvailable/submit'
     MESSENGER_USERINFONOTAVAILABLE_CANCEL = '#dialogs:messenger/userInfoNotAvailable/cancel'
+    VEHICLEREMOVEDIALOG_TITLE = '#dialogs:vehicleRemoveDialog/title'
     VEHICLESELLDIALOG_TITLE = '#dialogs:vehicleSellDialog/title'
     VEHICLESELLDIALOG_MESSAGE = '#dialogs:vehicleSellDialog/message'
     VEHICLESELLDIALOG_VEHICLETYPE_LIGHTTANK = '#dialogs:vehicleSellDialog/vehicleType/lightTank'
@@ -396,6 +482,7 @@ class DIALOGS(object):
     VEHICLESELLDIALOG_INVENTORY = '#dialogs:vehicleSellDialog/inventory'
     VEHICLESELLDIALOG_NOTINSTALLED_MODULES = '#dialogs:vehicleSellDialog/notInstalled/modules'
     VEHICLESELLDIALOG_COUNT = '#dialogs:vehicleSellDialog/count'
+    VEHICLESELLDIALOG_REMOVE = '#dialogs:vehicleSellDialog/remove'
     VEHICLESELLDIALOG_SUBMIT = '#dialogs:vehicleSellDialog/submit'
     VEHICLESELLDIALOG_CANCEL = '#dialogs:vehicleSellDialog/cancel'
     VEHICLESELLDIALOG_CONTENT_TANKMENFIELD = '#dialogs:vehicleSellDialog/content/tankmenField'
@@ -415,22 +502,42 @@ class DIALOGS(object):
     CUSTOMIZATION_CAMOUFLAGEDROP_MESSAGE = '#dialogs:customization/camouflageDrop/message'
     CUSTOMIZATION_CAMOUFLAGEDROP_SUBMIT = '#dialogs:customization/camouflageDrop/submit'
     CUSTOMIZATION_CAMOUFLAGEDROP_CANCEL = '#dialogs:customization/camouflageDrop/cancel'
+    CUSTOMIZATION_CAMOUFLAGEDISMOUNT_TITLE = '#dialogs:customization/camouflageDismount/title'
+    CUSTOMIZATION_CAMOUFLAGEDISMOUNT_MESSAGE = '#dialogs:customization/camouflageDismount/message'
+    CUSTOMIZATION_CAMOUFLAGEDISMOUNT_SUBMIT = '#dialogs:customization/camouflageDismount/submit'
+    CUSTOMIZATION_CAMOUFLAGEDISMOUNT_CANCEL = '#dialogs:customization/camouflageDismount/cancel'
     CUSTOMIZATION_EMBLEMLEFTDROP_TITLE = '#dialogs:customization/emblemLeftDrop/title'
     CUSTOMIZATION_EMBLEMLEFTDROP_MESSAGE = '#dialogs:customization/emblemLeftDrop/message'
     CUSTOMIZATION_EMBLEMLEFTDROP_SUBMIT = '#dialogs:customization/emblemLeftDrop/submit'
     CUSTOMIZATION_EMBLEMLEFTDROP_CANCEL = '#dialogs:customization/emblemLeftDrop/cancel'
+    CUSTOMIZATION_EMBLEMLEFTDISMOUNT_TITLE = '#dialogs:customization/emblemLeftDismount/title'
+    CUSTOMIZATION_EMBLEMLEFTDISMOUNT_MESSAGE = '#dialogs:customization/emblemLeftDismount/message'
+    CUSTOMIZATION_EMBLEMLEFTDISMOUNT_SUBMIT = '#dialogs:customization/emblemLeftDismount/submit'
+    CUSTOMIZATION_EMBLEMLEFTDISMOUNT_CANCEL = '#dialogs:customization/emblemLeftDismount/cancel'
     CUSTOMIZATION_EMBLEMRIGHTDROP_TITLE = '#dialogs:customization/emblemRightDrop/title'
     CUSTOMIZATION_EMBLEMRIGHTDROP_MESSAGE = '#dialogs:customization/emblemRightDrop/message'
     CUSTOMIZATION_EMBLEMRIGHTDROP_SUBMIT = '#dialogs:customization/emblemRightDrop/submit'
     CUSTOMIZATION_EMBLEMRIGHTDROP_CANCEL = '#dialogs:customization/emblemRightDrop/cancel'
+    CUSTOMIZATION_EMBLEMRIGHTDISMOUNT_TITLE = '#dialogs:customization/emblemRightDismount/title'
+    CUSTOMIZATION_EMBLEMRIGHTDISMOUNT_MESSAGE = '#dialogs:customization/emblemRightDismount/message'
+    CUSTOMIZATION_EMBLEMRIGHTDISMOUNT_SUBMIT = '#dialogs:customization/emblemRightDismount/submit'
+    CUSTOMIZATION_EMBLEMRIGHTDISMOUNT_CANCEL = '#dialogs:customization/emblemRightDismount/cancel'
     CUSTOMIZATION_INSCRIPTIONLEFTDROP_TITLE = '#dialogs:customization/inscriptionLeftDrop/title'
     CUSTOMIZATION_INSCRIPTIONLEFTDROP_MESSAGE = '#dialogs:customization/inscriptionLeftDrop/message'
     CUSTOMIZATION_INSCRIPTIONLEFTDROP_SUBMIT = '#dialogs:customization/inscriptionLeftDrop/submit'
     CUSTOMIZATION_INSCRIPTIONLEFTDROP_CANCEL = '#dialogs:customization/inscriptionLeftDrop/cancel'
+    CUSTOMIZATION_INSCRIPTIONLEFTDISMOUNT_TITLE = '#dialogs:customization/inscriptionLeftDismount/title'
+    CUSTOMIZATION_INSCRIPTIONLEFTDISMOUNT_MESSAGE = '#dialogs:customization/inscriptionLeftDismount/message'
+    CUSTOMIZATION_INSCRIPTIONLEFTDISMOUNT_SUBMIT = '#dialogs:customization/inscriptionLeftDismount/submit'
+    CUSTOMIZATION_INSCRIPTIONLEFTDISMOUNT_CANCEL = '#dialogs:customization/inscriptionLeftDismount/cancel'
     CUSTOMIZATION_INSCRIPTIONRIGHTDROP_TITLE = '#dialogs:customization/inscriptionRightDrop/title'
     CUSTOMIZATION_INSCRIPTIONRIGHTDROP_MESSAGE = '#dialogs:customization/inscriptionRightDrop/message'
     CUSTOMIZATION_INSCRIPTIONRIGHTDROP_SUBMIT = '#dialogs:customization/inscriptionRightDrop/submit'
     CUSTOMIZATION_INSCRIPTIONRIGHTDROP_CANCEL = '#dialogs:customization/inscriptionRightDrop/cancel'
+    CUSTOMIZATION_INSCRIPTIONRIGHTDISMOUNT_TITLE = '#dialogs:customization/inscriptionRightDismount/title'
+    CUSTOMIZATION_INSCRIPTIONRIGHTDISMOUNT_MESSAGE = '#dialogs:customization/inscriptionRightDismount/message'
+    CUSTOMIZATION_INSCRIPTIONRIGHTDISMOUNT_SUBMIT = '#dialogs:customization/inscriptionRightDismount/submit'
+    CUSTOMIZATION_INSCRIPTIONRIGHTDISMOUNT_CANCEL = '#dialogs:customization/inscriptionRightDismount/cancel'
     CUSTOMIZATION_HORNDROP_TITLE = '#dialogs:customization/hornDrop/title'
     CUSTOMIZATION_HORNDROP_MESSAGE = '#dialogs:customization/hornDrop/message'
     CUSTOMIZATION_HORNDROP_SUBMIT = '#dialogs:customization/hornDrop/submit'
@@ -438,6 +545,8 @@ class DIALOGS(object):
     CUSTOMIZATION_SELECTNEWITEMS_TITLE = '#dialogs:customization/selectNewItems/title'
     CUSTOMIZATION_SELECTNEWITEMS_MESSAGE = '#dialogs:customization/selectNewItems/message'
     CUSTOMIZATION_SELECTNEWITEMS_CANCEL = '#dialogs:customization/selectNewItems/cancel'
+    CUSTOMIZATION_CHANGECONFIRMATION_BUY = '#dialogs:customization/changeConfirmation/buy'
+    CUSTOMIZATION_CHANGECONFIRMATION_CHANGE = '#dialogs:customization/changeConfirmation/change'
     CUSTOMIZATION_CHANGECONFIRMATION_TITLE = '#dialogs:customization/changeConfirmation/title'
     CUSTOMIZATION_CHANGECONFIRMATION_MESSAGE = '#dialogs:customization/changeConfirmation/message'
     CUSTOMIZATION_CHANGECONFIRMATION_SUBMIT = '#dialogs:customization/changeConfirmation/submit'
@@ -461,15 +570,6 @@ class DIALOGS(object):
     UPDATENEEDED_MESSAGE = '#dialogs:updateNeeded/message'
     UPDATENEEDED_SUBMIT = '#dialogs:updateNeeded/submit'
     UPDATENEEDED_CANCEL = '#dialogs:updateNeeded/cancel'
-    EXITCURRENTPREBATTLE_TITLE = '#dialogs:exitCurrentPrebattle/title'
-    EXITCURRENTPREBATTLE_MESSAGE = '#dialogs:exitCurrentPrebattle/message'
-    EXITCURRENTPREBATTLE_CUSTOMMESSAGE_SQUAD = '#dialogs:exitCurrentPrebattle/customMessage/SQUAD'
-    EXITCURRENTPREBATTLE_CUSTOMMESSAGE_TRAINING = '#dialogs:exitCurrentPrebattle/customMessage/TRAINING'
-    EXITCURRENTPREBATTLE_CUSTOMMESSAGE_COMPANY = '#dialogs:exitCurrentPrebattle/customMessage/COMPANY'
-    EXITCURRENTPREBATTLE_CUSTOMMESSAGE_TOURNAMENT = '#dialogs:exitCurrentPrebattle/customMessage/TOURNAMENT'
-    EXITCURRENTPREBATTLE_CUSTOMMESSAGE_CLAN = '#dialogs:exitCurrentPrebattle/customMessage/CLAN'
-    EXITCURRENTPREBATTLE_SUBMIT = '#dialogs:exitCurrentPrebattle/submit'
-    EXITCURRENTPREBATTLE_CANCEL = '#dialogs:exitCurrentPrebattle/cancel'
     REPLAYNOTIFICATION_TITLE = '#dialogs:replayNotification/title'
     REPLAYNOTIFICATION_MESSAGE = '#dialogs:replayNotification/message'
     REPLAYNOTIFICATION_SUBMIT = '#dialogs:replayNotification/submit'
@@ -477,6 +577,16 @@ class DIALOGS(object):
     REPLAYSTOPPED_TITLE = '#dialogs:replayStopped/title'
     REPLAYSTOPPED_MESSAGE = '#dialogs:replayStopped/message'
     REPLAYSTOPPED_CANCEL = '#dialogs:replayStopped/cancel'
+    PUNISHMENTWINDOW_TITLE = '#dialogs:punishmentWindow/title'
+    PUNISHMENTWINDOW_MSGTITLE_WARNING = '#dialogs:punishmentWindow/msgTitle/warning'
+    PUNISHMENTWINDOW_MSGTITLE_PENALTY = '#dialogs:punishmentWindow/msgTitle/penalty'
+    PUNISHMENTWINDOW_MESSAGE_WARNING = '#dialogs:punishmentWindow/message/warning'
+    PUNISHMENTWINDOW_MESSAGE_PENALTY = '#dialogs:punishmentWindow/message/penalty'
+    PUNISHMENTWINDOW_MESSAGE_EXTRA_PENALTY = '#dialogs:punishmentWindow/message/extra/penalty'
+    PUNISHMENTWINDOW_CANCEL = '#dialogs:punishmentWindow/cancel'
+    PUNISHMENTWINDOW_REASON_DESERTER = '#dialogs:punishmentWindow/reason/deserter'
+    PUNISHMENTWINDOW_REASON_SUICIDE = '#dialogs:punishmentWindow/reason/suicide'
+    PUNISHMENTWINDOW_REASON_AFK = '#dialogs:punishmentWindow/reason/afk'
     SKILLDROPWINDOW_TITLE = '#dialogs:skillDropWindow/title'
     SKILLDROPWINDOW_MESSAGE = '#dialogs:skillDropWindow/message'
     SKILLDROPWINDOW_SUBMIT = '#dialogs:skillDropWindow/submit'
@@ -492,14 +602,18 @@ class DIALOGS(object):
     SHOPSYNCERROR_TITLE = '#dialogs:shopSyncError/title'
     SHOPSYNCERROR_MESSAGE = '#dialogs:shopSyncError/message'
     SHOPSYNCERROR_CANCEL = '#dialogs:shopSyncError/cancel'
-    CREATEANACCOUNT_TITLE = '#dialogs:createAnAccount/title'
-    CREATEANACCOUNT_MESSAGE = '#dialogs:createAnAccount/message'
-    CREATEANACCOUNT_SUBMIT = '#dialogs:createAnAccount/submit'
-    CREATEANACCOUNT_NOTE = '#dialogs:createAnAccount/note'
     RESETGRAPHICS_TITLE = '#dialogs:resetGraphics/title'
     RESETGRAPHICS_MESSAGE = '#dialogs:resetGraphics/message'
     RESETGRAPHICS_SUBMIT = '#dialogs:resetGraphics/submit'
     RESETGRAPHICS_CANCEL = '#dialogs:resetGraphics/cancel'
+    CHANGEGRAPHICS_TITLE = '#dialogs:changeGraphics/title'
+    CHANGEGRAPHICS_MESSAGE = '#dialogs:changeGraphics/message'
+    CHANGEGRAPHICS_SUBMIT = '#dialogs:changeGraphics/submit'
+    CHANGEGRAPHICS_CANCEL = '#dialogs:changeGraphics/cancel'
+    LOWFPSWARNING_TITLE = '#dialogs:lowFpsWarning/title'
+    LOWFPSWARNING_MESSAGE = '#dialogs:lowFpsWarning/message'
+    LOWFPSWARNING_SUBMIT = '#dialogs:lowFpsWarning/submit'
+    LOWFPSWARNING_CANCEL = '#dialogs:lowFpsWarning/cancel'
     KOREAPARENTNOTIFICATION_TITLE = '#dialogs:koreaParentNotification/title'
     KOREAPARENTNOTIFICATION_MESSAGE = '#dialogs:koreaParentNotification/message'
     KOREAPARENTNOTIFICATION_SUBMIT = '#dialogs:koreaParentNotification/submit'
@@ -512,30 +626,77 @@ class DIALOGS(object):
     TANKMANRETRAINING_UNKNOWNVEHICLE_MESSAGE = '#dialogs:tankmanRetraining/unknownVehicle/message'
     TANKMANRETRAINING_UNKNOWNVEHICLE_SUBMIT = '#dialogs:tankmanRetraining/unknownVehicle/submit'
     TANKMANRETRAINING_UNKNOWNVEHICLE_CANCEL = '#dialogs:tankmanRetraining/unknownVehicle/cancel'
-    SENDINVITES_PREBATTLE_TITLE = '#dialogs:sendInvites/prebattle/title'
-    SENDINVITES_TRAINING_TITLE = '#dialogs:sendInvites/training/title'
-    SENDINVITES_SQUAD_TITLE = '#dialogs:sendInvites/squad/title'
-    SENDINVITES_COMPANY_TITLE = '#dialogs:sendInvites/company/title'
-    SENDINVITES_UNIT_TITLE = '#dialogs:sendInvites/unit/title'
-    CYBERSPORT_CLOSECONFIRMATION_TITLE = '#dialogs:cyberSport/closeConfirmation/title'
-    CYBERSPORT_CLOSECONFIRMATION_MESSAGE = '#dialogs:cyberSport/closeConfirmation/message'
-    CYBERSPORT_CLOSECONFIRMATION_SUBMIT = '#dialogs:cyberSport/closeConfirmation/submit'
-    CYBERSPORT_CLOSECONFIRMATION_CANCEL = '#dialogs:cyberSport/closeConfirmation/cancel'
-    CYBERSPORT_LEAVEUNIT_TITLE = '#dialogs:cyberSport/leaveUnit/title'
-    CYBERSPORT_LEAVEUNIT_MESSAGE = '#dialogs:cyberSport/leaveUnit/message'
-    CYBERSPORT_LEAVEUNIT_SUBMIT = '#dialogs:cyberSport/leaveUnit/submit'
-    CYBERSPORT_LEAVEUNIT_CANCEL = '#dialogs:cyberSport/leaveUnit/cancel'
-    CYBERSPORT_LEAVEUNITDISABLED_TITLE = '#dialogs:cyberSport/leaveUnitDisabled/title'
-    CYBERSPORT_LEAVEUNITDISABLED_MESSAGE = '#dialogs:cyberSport/leaveUnitDisabled/message'
-    CYBERSPORT_LEAVEUNITDISABLED_CANCEL = '#dialogs:cyberSport/leaveUnitDisabled/cancel'
-    CYBERSPORT_AUTOSEARCH_TITLE = '#dialogs:cyberSport/autoSearch/title'
-    CYBERSPORT_AUTOSEARCH_MESSAGE = '#dialogs:cyberSport/autoSearch/message'
-    CYBERSPORT_AUTOSEARCH_SUBMIT = '#dialogs:cyberSport/autoSearch/submit'
-    CYBERSPORT_AUTOSEARCH_CANCEL = '#dialogs:cyberSport/autoSearch/cancel'
-    CYBERSPORT_STARTBATTLE_TITLE = '#dialogs:cyberSport/startBattle/title'
-    CYBERSPORT_STARTBATTLE_MESSAGE = '#dialogs:cyberSport/startBattle/message'
-    CYBERSPORT_STARTBATTLE_SUBMIT = '#dialogs:cyberSport/startBattle/submit'
-    CYBERSPORT_STARTBATTLE_CANCEL = '#dialogs:cyberSport/startBattle/cancel'
+    TANKMANCHAGEROLE_UNKNOWNVEHICLE_TITLE = '#dialogs:tankmanChageRole/unknownVehicle/title'
+    TANKMANCHAGEROLE_UNKNOWNVEHICLE_MESSAGE = '#dialogs:tankmanChageRole/unknownVehicle/message'
+    TANKMANCHAGEROLE_UNKNOWNVEHICLE_SUBMIT = '#dialogs:tankmanChageRole/unknownVehicle/submit'
+    TANKMANCHAGEROLE_UNKNOWNVEHICLE_CANCEL = '#dialogs:tankmanChageRole/unknownVehicle/cancel'
+    SENDINVITES_COMMON_TITLE = '#dialogs:sendInvites/common/title'
+    RALLY_AUTOSEARCH_TITLE = '#dialogs:rally/autoSearch/title'
+    RALLY_AUTOSEARCH_MESSAGE = '#dialogs:rally/autoSearch/message'
+    RALLY_AUTOSEARCH_SUBMIT = '#dialogs:rally/autoSearch/submit'
+    RALLY_AUTOSEARCH_CANCEL = '#dialogs:rally/autoSearch/cancel'
+    RALLY_STARTBATTLE_TITLE = '#dialogs:rally/startBattle/title'
+    RALLY_STARTBATTLE_MESSAGE = '#dialogs:rally/startBattle/message'
+    RALLY_STARTBATTLE_SUBMIT = '#dialogs:rally/startBattle/submit'
+    RALLY_STARTBATTLE_CANCEL = '#dialogs:rally/startBattle/cancel'
+    RALLY_CHANGEPERIPHERY_TITLE = '#dialogs:rally/changePeriphery/title'
+    RALLY_CHANGEPERIPHERY_MESSAGE = '#dialogs:rally/changePeriphery/message'
+    RALLY_CHANGEPERIPHERY_SUBMIT = '#dialogs:rally/changePeriphery/submit'
+    RALLY_CHANGEPERIPHERY_CANCEL = '#dialogs:rally/changePeriphery/cancel'
+    RALLY_GOTOANOTHER_TITLE = '#dialogs:rally/goToAnother/title'
+    RALLY_GOTOANOTHER_MESSAGE = '#dialogs:rally/goToAnother/message'
+    RALLY_GOTOANOTHER_SUBMIT = '#dialogs:rally/goToAnother/submit'
+    RALLY_GOTOANOTHER_CANCEL = '#dialogs:rally/goToAnother/cancel'
+    RALLY_GOTOSQUAD_TITLE = '#dialogs:rally/goToSquad/title'
+    RALLY_GOTOSQUAD_MESSAGE = '#dialogs:rally/goToSquad/message'
+    RALLY_GOTOSQUAD_SUBMIT = '#dialogs:rally/goToSquad/submit'
+    RALLY_GOTOSQUAD_CANCEL = '#dialogs:rally/goToSquad/cancel'
+    SQUAD_GOTOSQUAD_TITLE = '#dialogs:squad/goToSquad/title'
+    SQUAD_GOTOSQUAD_MESSAGE = '#dialogs:squad/goToSquad/message'
+    SQUAD_GOTOSQUAD_SUBMIT = '#dialogs:squad/goToSquad/submit'
+    SQUAD_GOTOSQUAD_CANCEL = '#dialogs:squad/goToSquad/cancel'
+    SANDBOX_GOTOANOTHER_TITLE = '#dialogs:sandBox/goToAnother/title'
+    SANDBOX_GOTOANOTHER_MESSAGE = '#dialogs:sandBox/goToAnother/message'
+    SANDBOX_GOTOANOTHER_SUBMIT = '#dialogs:sandBox/goToAnother/submit'
+    SANDBOX_GOTOANOTHER_CANCEL = '#dialogs:sandBox/goToAnother/cancel'
+    SANDBOX_GOTOSQUAD_TITLE = '#dialogs:sandBox/goToSquad/title'
+    SANDBOX_GOTOSQUAD_MESSAGE = '#dialogs:sandBox/goToSquad/message'
+    SANDBOX_GOTOSQUAD_SUBMIT = '#dialogs:sandBox/goToSquad/submit'
+    SANDBOX_GOTOSQUAD_CANCEL = '#dialogs:sandBox/goToSquad/cancel'
+    RALLY_GOTOBATTLETUTORIAL_TITLE = '#dialogs:rally/goToBattleTutorial/title'
+    RALLY_GOTOBATTLETUTORIAL_MESSAGE = '#dialogs:rally/goToBattleTutorial/message'
+    RALLY_GOTOBATTLETUTORIAL_SUBMIT = '#dialogs:rally/goToBattleTutorial/submit'
+    RALLY_GOTOBATTLETUTORIAL_CANCEL = '#dialogs:rally/goToBattleTutorial/cancel'
+    SANDBOX_GOTOBATTLETUTORIAL_TITLE = '#dialogs:sandBox/goToBattleTutorial/title'
+    SANDBOX_GOTOBATTLETUTORIAL_MESSAGE = '#dialogs:sandBox/goToBattleTutorial/message'
+    SANDBOX_GOTOBATTLETUTORIAL_SUBMIT = '#dialogs:sandBox/goToBattleTutorial/submit'
+    SANDBOX_GOTOBATTLETUTORIAL_CANCEL = '#dialogs:sandBox/goToBattleTutorial/cancel'
+    SQUAD_GOTOANOTHER_TITLE = '#dialogs:squad/goToAnother/title'
+    SQUAD_GOTOANOTHER_MESSAGE = '#dialogs:squad/goToAnother/message'
+    SQUAD_GOTOANOTHER_SUBMIT = '#dialogs:squad/goToAnother/submit'
+    SQUAD_GOTOANOTHER_CANCEL = '#dialogs:squad/goToAnother/cancel'
+    SQUAD_GOTOBATTLETUTORIAL_TITLE = '#dialogs:squad/goToBattleTutorial/title'
+    SQUAD_GOTOBATTLETUTORIAL_MESSAGE = '#dialogs:squad/goToBattleTutorial/message'
+    SQUAD_GOTOBATTLETUTORIAL_SUBMIT = '#dialogs:squad/goToBattleTutorial/submit'
+    SQUAD_GOTOBATTLETUTORIAL_CANCEL = '#dialogs:squad/goToBattleTutorial/cancel'
+    RALLY_LEAVE_TITLE = '#dialogs:rally/leave/title'
+    RALLY_LEAVE_MESSAGE = '#dialogs:rally/leave/message'
+    RALLY_LEAVE_SUBMIT = '#dialogs:rally/leave/submit'
+    RALLY_LEAVE_CANCEL = '#dialogs:rally/leave/cancel'
+    RALLY_GOTOINTRO_TITLE = '#dialogs:rally/goToIntro/title'
+    RALLY_GOTOINTRO_MESSAGE = '#dialogs:rally/goToIntro/message'
+    RALLY_GOTOINTRO_SUBMIT = '#dialogs:rally/goToIntro/submit'
+    RALLY_GOTOINTRO_CANCEL = '#dialogs:rally/goToIntro/cancel'
+    SQUAD_LEAVE_TITLE = '#dialogs:squad/leave/title'
+    SQUAD_LEAVE_MESSAGE = '#dialogs:squad/leave/message'
+    SQUAD_LEAVE_SUBMIT = '#dialogs:squad/leave/submit'
+    SQUAD_LEAVE_CANCEL = '#dialogs:squad/leave/cancel'
+    RALLY_LEAVEDISABLED_TITLE = '#dialogs:rally/leaveDisabled/title'
+    RALLY_LEAVEDISABLED_MESSAGE = '#dialogs:rally/leaveDisabled/message'
+    RALLY_LEAVEDISABLED_CANCEL = '#dialogs:rally/leaveDisabled/cancel'
+    SQUAD_LEAVEDISABLED_TITLE = '#dialogs:squad/leaveDisabled/title'
+    SQUAD_LEAVEDISABLED_MESSAGE = '#dialogs:squad/leaveDisabled/message'
+    SQUAD_LEAVEDISABLED_CANCEL = '#dialogs:squad/leaveDisabled/cancel'
     CHANGEPERIPHERY_TITLE = '#dialogs:changePeriphery/title'
     CHANGEPERIPHERY_MESSAGE = '#dialogs:changePeriphery/message'
     CHANGEPERIPHERY_SUBMIT = '#dialogs:changePeriphery/submit'
@@ -544,23 +705,173 @@ class DIALOGS(object):
     CHANGEROAMINGPERIPHERY_MESSAGE = '#dialogs:changeRoamingPeriphery/message'
     CHANGEROAMINGPERIPHERY_SUBMIT = '#dialogs:changeRoamingPeriphery/submit'
     CHANGEROAMINGPERIPHERY_CANCEL = '#dialogs:changeRoamingPeriphery/cancel'
+    CLUBINVITE_TITLE = '#dialogs:clubInvite/title'
+    CLUBINVITE_MESSAGE = '#dialogs:clubInvite/message'
+    CLUBINVITE_SUBMIT = '#dialogs:clubInvite/submit'
+    CLUBINVITE_CANCEL = '#dialogs:clubInvite/cancel'
+    FREEXPINFO_TITLE = '#dialogs:freeXPInfo/title'
+    FREEXPINFO_MESSAGE = '#dialogs:freeXPInfo/message'
+    FREEXPINFO_SUBMITBTNLBL = '#dialogs:freeXPInfo/submitBtnLbl'
+    SWITCHPERIPHERYWINDOW_WINDOWTITLE = '#dialogs:switchPeripheryWindow/windowTitle'
+    SWITCHPERIPHERYWINDOW_BTNSWITCH = '#dialogs:switchPeripheryWindow/btnSwitch'
+    SWITCHPERIPHERYWINDOW_BTNCANCEL = '#dialogs:switchPeripheryWindow/btnCancel'
+    CREATEORDERCONFIRMATION_TITLE = '#dialogs:createOrderConfirmation/title'
+    CREATEORDERCONFIRMATION_SUBMIT = '#dialogs:createOrderConfirmation/submit'
+    CREATEORDERCONFIRMATION_CANCEL = '#dialogs:createOrderConfirmation/cancel'
+    FORTIFICATIONFIXEDPLAYERS_TITLE = '#dialogs:fortificationFixedPlayers/title'
+    FORTIFICATIONFIXEDPLAYERS_MESSAGE = '#dialogs:fortificationFixedPlayers/message'
+    FORTIFICATIONFIXEDPLAYERS_SUBMIT = '#dialogs:fortificationFixedPlayers/submit'
+    FORTIFICATIONFIXEDPLAYERS_CANCEL = '#dialogs:fortificationFixedPlayers/cancel'
+    FORTIFICATIONCLOSEDIRECTION_TITLE = '#dialogs:fortificationCloseDirection/title'
+    FORTIFICATIONCLOSEDIRECTION_MESSAGE = '#dialogs:fortificationCloseDirection/message'
+    FORTIFICATIONCLOSEDIRECTION_SUBMIT = '#dialogs:fortificationCloseDirection/submit'
+    FORTIFICATIONCLOSEDIRECTION_CANCEL = '#dialogs:fortificationCloseDirection/cancel'
+    REPORTBUG_TITLE = '#dialogs:reportBug/title'
+    REPORTBUG_MESSAGE = '#dialogs:reportBug/message'
+    REPORTBUG_SUBMIT = '#dialogs:reportBug/submit'
+    REPORTBUG_CANCEL = '#dialogs:reportBug/cancel'
+    FORTMODERNIZATIONABSOLUTEDIVISION_TITLE = '#dialogs:fortModernizationAbsoluteDivision/title'
+    FORTMODERNIZATIONABSOLUTEDIVISION_MESSAGE = '#dialogs:fortModernizationAbsoluteDivision/message'
+    FORTMODERNIZATIONABSOLUTEDIVISION_SUBMIT = '#dialogs:fortModernizationAbsoluteDivision/submit'
+    FORTMODERNIZATIONABSOLUTEDIVISION_CANCEL = '#dialogs:fortModernizationAbsoluteDivision/cancel'
+    FORTTURNEDOFF_CANCEL = '#dialogs:fortTurnedOff/cancel'
+    FORTTURNEDOFF_TITLE = '#dialogs:fortTurnedOff/title'
+    FORTTURNEDOFF_MESSAGE = '#dialogs:fortTurnedOff/message'
+    STATICFORMATION_STAFFVIEW_REMOVEMEMBERCONFIRMATION_TITLE = '#dialogs:staticFormation/staffView/removeMemberConfirmation/title'
+    STATICFORMATION_STAFFVIEW_REMOVEMEMBERCONFIRMATION_MESSAGE = '#dialogs:staticFormation/staffView/removeMemberConfirmation/message'
+    STATICFORMATION_STAFFVIEW_REMOVEMEMBERCONFIRMATION_SUBMIT = '#dialogs:staticFormation/staffView/removeMemberConfirmation/submit'
+    STATICFORMATION_STAFFVIEW_REMOVEMEMBERCONFIRMATION_CANCEL = '#dialogs:staticFormation/staffView/removeMemberConfirmation/cancel'
+    STATICFORMATION_STAFFVIEW_REMOVEOWNERCONFIRMATION_TITLE = '#dialogs:staticFormation/staffView/removeOwnerConfirmation/title'
+    STATICFORMATION_STAFFVIEW_REMOVEOWNERCONFIRMATION_MESSAGE = '#dialogs:staticFormation/staffView/removeOwnerConfirmation/message'
+    STATICFORMATION_STAFFVIEW_REMOVEOWNERCONFIRMATION_SUBMIT = '#dialogs:staticFormation/staffView/removeOwnerConfirmation/submit'
+    STATICFORMATION_STAFFVIEW_REMOVEOWNERCONFIRMATION_CANCEL = '#dialogs:staticFormation/staffView/removeOwnerConfirmation/cancel'
+    STATICFORMATION_STAFFVIEW_LEAVECLUBCONFIRMATION_TITLE = '#dialogs:staticFormation/staffView/leaveClubConfirmation/title'
+    STATICFORMATION_STAFFVIEW_LEAVECLUBCONFIRMATION_MESSAGE = '#dialogs:staticFormation/staffView/leaveClubConfirmation/message'
+    STATICFORMATION_STAFFVIEW_LEAVECLUBCONFIRMATION_SUBMIT = '#dialogs:staticFormation/staffView/leaveClubConfirmation/submit'
+    STATICFORMATION_STAFFVIEW_LEAVECLUBCONFIRMATION_CANCEL = '#dialogs:staticFormation/staffView/leaveClubConfirmation/cancel'
+    STATICFORMATION_STAFFVIEW_DISCONTINUINGEMPTYFORMATIONCONFIRMATION_TITLE = '#dialogs:staticFormation/staffView/discontinuingEmptyFormationConfirmation/title'
+    STATICFORMATION_STAFFVIEW_DISCONTINUINGEMPTYFORMATIONCONFIRMATION_MESSAGE = '#dialogs:staticFormation/staffView/discontinuingEmptyFormationConfirmation/message'
+    STATICFORMATION_STAFFVIEW_DISCONTINUINGEMPTYFORMATIONCONFIRMATION_SUBMIT = '#dialogs:staticFormation/staffView/discontinuingEmptyFormationConfirmation/submit'
+    STATICFORMATION_STAFFVIEW_DISCONTINUINGEMPTYFORMATIONCONFIRMATION_CANCEL = '#dialogs:staticFormation/staffView/discontinuingEmptyFormationConfirmation/cancel'
+    STATICFORMATION_STAFFVIEW_DISCONTINUINGFORMATIONCONFIRMATION_TITLE = '#dialogs:staticFormation/staffView/discontinuingFormationConfirmation/title'
+    STATICFORMATION_STAFFVIEW_DISCONTINUINGFORMATIONCONFIRMATION_MESSAGE = '#dialogs:staticFormation/staffView/discontinuingFormationConfirmation/message'
+    STATICFORMATION_STAFFVIEW_DISCONTINUINGFORMATIONCONFIRMATION_SUBMIT = '#dialogs:staticFormation/staffView/discontinuingFormationConfirmation/submit'
+    STATICFORMATION_STAFFVIEW_DISCONTINUINGFORMATIONCONFIRMATION_CANCEL = '#dialogs:staticFormation/staffView/discontinuingFormationConfirmation/cancel'
+    STATICFORMATION_STAFFVIEW_PROMOTECONFIRMATION_TITLE = '#dialogs:staticFormation/staffView/promoteConfirmation/title'
+    STATICFORMATION_STAFFVIEW_PROMOTECONFIRMATION_MESSAGE = '#dialogs:staticFormation/staffView/promoteConfirmation/message'
+    STATICFORMATION_STAFFVIEW_PROMOTECONFIRMATION_SUBMIT = '#dialogs:staticFormation/staffView/promoteConfirmation/submit'
+    STATICFORMATION_STAFFVIEW_PROMOTECONFIRMATION_CANCEL = '#dialogs:staticFormation/staffView/promoteConfirmation/cancel'
+    STATICFORMATION_STAFFVIEW_TRANSFEROWNERSHIP_TITLE = '#dialogs:staticFormation/staffView/transferOwnership/title'
+    STATICFORMATION_STAFFVIEW_TRANSFEROWNERSHIP_MESSAGE = '#dialogs:staticFormation/staffView/transferOwnership/message'
+    STATICFORMATION_STAFFVIEW_TRANSFEROWNERSHIP_SUBMIT = '#dialogs:staticFormation/staffView/transferOwnership/submit'
+    STATICFORMATION_STAFFVIEW_TRANSFEROWNERSHIP_CANCEL = '#dialogs:staticFormation/staffView/transferOwnership/cancel'
+    STATICFORMATION_STAFFVIEW_DEMOTECONFIRMATION_TITLE = '#dialogs:staticFormation/staffView/demoteConfirmation/title'
+    STATICFORMATION_STAFFVIEW_DEMOTECONFIRMATION_MESSAGE = '#dialogs:staticFormation/staffView/demoteConfirmation/message'
+    STATICFORMATION_STAFFVIEW_DEMOTECONFIRMATION_SUBMIT = '#dialogs:staticFormation/staffView/demoteConfirmation/submit'
+    STATICFORMATION_STAFFVIEW_DEMOTECONFIRMATION_CANCEL = '#dialogs:staticFormation/staffView/demoteConfirmation/cancel'
+    STATICFORMATION_STAFFVIEW_PASSOWNERSHIPCONFIRMATION_TITLE = '#dialogs:staticFormation/staffView/passOwnershipConfirmation/title'
+    STATICFORMATION_STAFFVIEW_PASSOWNERSHIPCONFIRMATION_MESSAGE = '#dialogs:staticFormation/staffView/passOwnershipConfirmation/message'
+    STATICFORMATION_STAFFVIEW_PASSOWNERSHIPCONFIRMATION_SUBMIT = '#dialogs:staticFormation/staffView/passOwnershipConfirmation/submit'
+    STATICFORMATION_STAFFVIEW_PASSOWNERSHIPCONFIRMATION_CANCEL = '#dialogs:staticFormation/staffView/passOwnershipConfirmation/cancel'
+    STATICFORMATION_STAFFVIEW_CLOSECLUB_TITLE = '#dialogs:staticFormation/staffView/closeClub/title'
+    STATICFORMATION_STAFFVIEW_CLOSECLUB_MESSAGE = '#dialogs:staticFormation/staffView/closeClub/message'
+    STATICFORMATION_STAFFVIEW_CLOSECLUB_SUBMIT = '#dialogs:staticFormation/staffView/closeClub/submit'
+    STATICFORMATION_STAFFVIEW_CLOSECLUB_CANCEL = '#dialogs:staticFormation/staffView/closeClub/cancel'
+    CONFIRMEXCHANGEDIALOG_EXCHANGECREDITS_TITLE = '#dialogs:confirmExchangeDialog/exchangeCredits/title'
+    CONFIRMEXCHANGEDIALOG_EXCHANGEXP_TITLE = '#dialogs:confirmExchangeDialog/exchangeXp/title'
+    CONFIRMEXCHANGEDIALOG_EXCHANGECREDITS_NEEDITEMSTEXT = '#dialogs:confirmExchangeDialog/exchangeCredits/needItemsText'
+    CONFIRMEXCHANGEDIALOG_EXCHANGEXP_NEEDITEMSTEXT = '#dialogs:confirmExchangeDialog/exchangeXp/needItemsText'
+    CONFIRMEXCHANGEDIALOG_EXCHANGECREDITS_NEEDGOLDTEXT = '#dialogs:confirmExchangeDialog/exchangeCredits/needGoldText'
+    CONFIRMEXCHANGEDIALOG_EXCHANGEXP_NEEDGOLDTEXT = '#dialogs:confirmExchangeDialog/exchangeXp/needGoldText'
+    CONFIRMEXCHANGEDIALOG_EXCHANGECREDITS_NEEDITEMSSTEPPERTITLE = '#dialogs:confirmExchangeDialog/exchangeCredits/needItemsStepperTitle'
+    CONFIRMEXCHANGEDIALOG_EXCHANGEXP_NEEDITEMSSTEPPERTITLE = '#dialogs:confirmExchangeDialog/exchangeXp/needItemsStepperTitle'
+    CONFIRMEXCHANGEDIALOG_GOLDITEMSSTEPPERTITLE = '#dialogs:confirmExchangeDialog/goldItemsStepperTitle'
+    CONFIRMEXCHANGEDIALOG_EXCHANGECREDITS_SUBMIT = '#dialogs:confirmExchangeDialog/exchangeCredits/submit'
+    CONFIRMEXCHANGEDIALOG_EXCHANGEXP_SUBMIT = '#dialogs:confirmExchangeDialog/exchangeXp/submit'
+    CONFIRMEXCHANGEDIALOG_EXCHANGECREDITS_CANCEL = '#dialogs:confirmExchangeDialog/exchangeCredits/cancel'
+    CONFIRMEXCHANGEDIALOG_EXCHANGEXP_CANCEL = '#dialogs:confirmExchangeDialog/exchangeXp/cancel'
+    CONFIRMEXCHANGEDIALOG_EXCHANGECREDITS_EXCHANGENONEEDTEXT = '#dialogs:confirmExchangeDialog/exchangeCredits/exchangeNoNeedText'
+    CONFIRMEXCHANGEDIALOG_EXCHANGEXP_EXCHANGENONEEDTEXT = '#dialogs:confirmExchangeDialog/exchangeXp/exchangeNoNeedText'
+    CONFIRMEXCHANGEDIALOG_EXCHANGECREDITS_GOLDNOTENOUGHTEXT = '#dialogs:confirmExchangeDialog/exchangeCredits/goldNotEnoughText'
+    CONFIRMEXCHANGEDIALOG_EXCHANGEXP_GOLDNOTENOUGHTEXT = '#dialogs:confirmExchangeDialog/exchangeXp/goldNotEnoughText'
+    CLUBS_APP_SEND_TITLE = '#dialogs:clubs/app/send/title'
+    CLUBS_APP_SEND_MESSAGE = '#dialogs:clubs/app/send/message'
+    CLUBS_APP_SEND_SUBMIT = '#dialogs:clubs/app/send/submit'
+    CLUBS_APP_SEND_CANCEL = '#dialogs:clubs/app/send/cancel'
+    CLUBS_APP_CREATE_TITLE = '#dialogs:clubs/app/create/title'
+    CLUBS_APP_CREATE_MESSAGE = '#dialogs:clubs/app/create/message'
+    CLUBS_APP_CREATE_SUBMIT = '#dialogs:clubs/app/create/submit'
+    CLUBS_APP_CREATE_CANCEL = '#dialogs:clubs/app/create/cancel'
+    QUESTSCONFIRMDIALOG_TITLE = '#dialogs:questsConfirmDialog/title'
+    QUESTSCONFIRMDIALOG_MESSAGE = '#dialogs:questsConfirmDialog/message'
+    QUESTSCONFIRMDIALOG_SUBMIT = '#dialogs:questsConfirmDialog/submit'
+    QUESTSCONFIRMDIALOG_CANCEL = '#dialogs:questsConfirmDialog/cancel'
+    QUESTSCONFIRMDIALOG_CHECKBOX = '#dialogs:questsConfirmDialog/checkBox'
+    BOOSTERSWINDOW_ACTIVATIONCONFIRMATION_TITLE = '#dialogs:boostersWindow/activationConfirmation/title'
+    BOOSTERSWINDOW_ACTIVATIONCONFIRMATION_MESSAGE = '#dialogs:boostersWindow/activationConfirmation/message'
+    BOOSTERSWINDOW_ACTIVATIONCONFIRMATION_SUBMIT = '#dialogs:boostersWindow/activationConfirmation/submit'
+    BOOSTERSWINDOW_ACTIVATIONCONFIRMATION_CANCEL = '#dialogs:boostersWindow/activationConfirmation/cancel'
+    CLANCONFIRMJOINING_TITLE = '#dialogs:clanConfirmJoining/title'
+    CLANCONFIRMJOINING_MESSAGE = '#dialogs:clanConfirmJoining/message'
+    CLANCONFIRMJOINING_MESSAGE_CLANNAME = '#dialogs:clanConfirmJoining/message/clanName'
+    CLANCONFIRMJOINING_MESSAGE_CLANEXIT = '#dialogs:clanConfirmJoining/message/clanExit'
+    CLANCONFIRMJOINING_SUBMIT = '#dialogs:clanConfirmJoining/submit'
+    CLANCONFIRMJOINING_CANCEL = '#dialogs:clanConfirmJoining/cancel'
+    CUSTOMIZATION_CLOSE_TITLE = '#dialogs:customization/close/title'
+    CUSTOMIZATION_CLOSE_MESSAGE = '#dialogs:customization/close/message'
+    CUSTOMIZATION_CLOSE_SUBMIT = '#dialogs:customization/close/submit'
+    CUSTOMIZATION_CLOSE_CANCEL = '#dialogs:customization/close/cancel'
+    CUSTOMIZATION_FILTER_TITLE = '#dialogs:customization/filter/title'
+    CUSTOMIZATION_FILTER_MESSAGE = '#dialogs:customization/filter/message'
+    CUSTOMIZATION_FILTER_SUBMIT = '#dialogs:customization/filter/submit'
+    CUSTOMIZATION_FILTER_CANCEL = '#dialogs:customization/filter/cancel'
+    CUSTOMIZATION_REMOVE_ELEMENT_TITLE = '#dialogs:customization/remove_element/title'
+    CUSTOMIZATION_REMOVE_ELEMENT_MESSAGE = '#dialogs:customization/remove_element/message'
+    CUSTOMIZATION_REMOVE_ELEMENT_SUBMIT = '#dialogs:customization/remove_element/submit'
+    CUSTOMIZATION_REMOVE_ELEMENT_CANCEL = '#dialogs:customization/remove_element/cancel'
+    CUSTOMIZATION_REPLACE_ELEMENT_TITLE = '#dialogs:customization/replace_element/title'
+    CUSTOMIZATION_REPLACE_ELEMENT_MESSAGE = '#dialogs:customization/replace_element/message'
+    CUSTOMIZATION_REPLACE_ELEMENT_SUBMIT = '#dialogs:customization/replace_element/submit'
+    CUSTOMIZATION_REPLACE_ELEMENT_CANCEL = '#dialogs:customization/replace_element/cancel'
+    CUSTOMIZATION_REPLACE_ELEMENTS_TITLE = '#dialogs:customization/replace_elements/title'
+    CUSTOMIZATION_REPLACE_ELEMENTS_MESSAGE = '#dialogs:customization/replace_elements/message'
+    CUSTOMIZATION_REPLACE_ELEMENTS_SUBMIT = '#dialogs:customization/replace_elements/submit'
+    CUSTOMIZATION_REPLACE_ELEMENTS_CANCEL = '#dialogs:customization/replace_elements/cancel'
+    CUSTOMIZATION_INSTALL_INVOICE_ITEM_WILL_BE_DELETED = '#dialogs:customization/install_invoice_item/will_be_deleted'
+    CUSTOMIZATION_INSTALL_INVOICE_ITEM_TEMPORARY_TITLE = '#dialogs:customization/install_invoice_item/temporary/title'
+    CUSTOMIZATION_INSTALL_INVOICE_ITEM_TEMPORARY_MESSAGE = '#dialogs:customization/install_invoice_item/temporary/message'
+    CUSTOMIZATION_INSTALL_INVOICE_ITEM_TEMPORARY_SUBMIT = '#dialogs:customization/install_invoice_item/temporary/submit'
+    CUSTOMIZATION_INSTALL_INVOICE_ITEM_TEMPORARY_CANCEL = '#dialogs:customization/install_invoice_item/temporary/cancel'
+    CUSTOMIZATION_INSTALL_INVOICE_ITEM_PERMANENT_TITLE = '#dialogs:customization/install_invoice_item/permanent/title'
+    CUSTOMIZATION_INSTALL_INVOICE_ITEM_PERMANENT_MESSAGE = '#dialogs:customization/install_invoice_item/permanent/message'
+    CUSTOMIZATION_INSTALL_INVOICE_ITEM_PERMANENT_SUBMIT = '#dialogs:customization/install_invoice_item/permanent/submit'
+    CUSTOMIZATION_INSTALL_INVOICE_ITEM_PERMANENT_CANCEL = '#dialogs:customization/install_invoice_item/permanent/cancel'
+    CUSTOMIZATION_INSTALL_INVOICE_ITEM_PERMANENT_LAST_TITLE = '#dialogs:customization/install_invoice_item/permanent_last/title'
+    CUSTOMIZATION_INSTALL_INVOICE_ITEM_PERMANENT_LAST_MESSAGE = '#dialogs:customization/install_invoice_item/permanent_last/message'
+    CUSTOMIZATION_INSTALL_INVOICE_ITEM_PERMANENT_LAST_SUBMIT = '#dialogs:customization/install_invoice_item/permanent_last/submit'
+    CUSTOMIZATION_INSTALL_INVOICE_ITEM_PERMANENT_LAST_CANCEL = '#dialogs:customization/install_invoice_item/permanent_last/cancel'
+    FORTDISABLED_TITLE = '#dialogs:fortDisabled/title'
+    FORTDISABLED_MESSAGE = '#dialogs:fortDisabled/message'
+    FORTDISABLED_CANCEL = '#dialogs:fortDisabled/cancel'
     RECRUITWINDOW_VEHICLECLASSDROPDOWN_ENUM = (RECRUITWINDOW_VEHICLECLASSDROPDOWN_ALL,
      RECRUITWINDOW_VEHICLECLASSDROPDOWN_LIGHTTANK,
      RECRUITWINDOW_VEHICLECLASSDROPDOWN_MEDIUMTANK,
      RECRUITWINDOW_VEHICLECLASSDROPDOWN_HEAVYTANK,
      RECRUITWINDOW_VEHICLECLASSDROPDOWN_AT_SPG,
      RECRUITWINDOW_VEHICLECLASSDROPDOWN_SPG)
-    EXITCURRENTPREBATTLE_CUSTOMMESSAGE_ENUM = (EXITCURRENTPREBATTLE_CUSTOMMESSAGE_SQUAD,
-     EXITCURRENTPREBATTLE_CUSTOMMESSAGE_TRAINING,
-     EXITCURRENTPREBATTLE_CUSTOMMESSAGE_COMPANY,
-     EXITCURRENTPREBATTLE_CUSTOMMESSAGE_TOURNAMENT,
-     EXITCURRENTPREBATTLE_CUSTOMMESSAGE_CLAN)
     VEHICLESELLDIALOG_VEHICLETYPE_ENUM = (VEHICLESELLDIALOG_VEHICLETYPE_LIGHTTANK,
      VEHICLESELLDIALOG_VEHICLETYPE_MEDIUMTANK,
      VEHICLESELLDIALOG_VEHICLETYPE_HEAVYTANK,
      VEHICLESELLDIALOG_VEHICLETYPE_SPG,
      VEHICLESELLDIALOG_VEHICLETYPE_AT_SPG)
-    all_ENUM = (COMMON_CONFIRM_SUBMIT,
+    all_ENUM = (INTERVIEWQUIT_TITLE,
+     INTERVIEWQUIT_MESSAGE,
+     INTERVIEWQUIT_SUBMIT,
+     INTERVIEWQUIT_CANCEL,
+     LEGALINFOWINDOW_TITLE,
+     COMMON_SUBMIT,
+     COMMON_CANCEL,
+     COMMON_CONFIRM_SUBMIT,
      COMMON_CONFIRM_CANCEL,
      COMMON_ERROR_CANCEL,
      DISCONNECT_TITLE,
@@ -575,6 +886,18 @@ class DIALOGS(object):
      QUITBATTLE_MESSAGE,
      QUITBATTLE_SUBMIT,
      QUITBATTLE_CANCEL,
+     QUITBATTLE_DESERTER_TITLE,
+     QUITBATTLE_DESERTER_MESSAGE,
+     QUITBATTLE_DESERTER_SUBMIT,
+     QUITBATTLE_DESERTER_CANCEL,
+     QUITBATTLEIGR_TITLE,
+     QUITBATTLEIGR_MESSAGE,
+     QUITBATTLEIGR_SUBMIT,
+     QUITBATTLEIGR_CANCEL,
+     QUITBATTLEIGR_DESERTER_TITLE,
+     QUITBATTLEIGR_DESERTER_MESSAGE,
+     QUITBATTLEIGR_DESERTER_SUBMIT,
+     QUITBATTLEIGR_DESERTER_CANCEL,
      QUITPREBATTLE_TITLE,
      QUITPREBATTLE_MESSAGE,
      QUITPREBATTLE_SUBMIT,
@@ -584,6 +907,10 @@ class DIALOGS(object):
      GRAPHICSPRESETRESTARTCONFIRMATION_SUBMIT,
      GRAPHICSPRESETRESTARTCONFIRMATION_DELAY,
      GRAPHICSPRESETRESTARTCONFIRMATION_CANCEL,
+     GRAPHICSPRESETNOTINSTALLED_TITLE,
+     GRAPHICSPRESETNOTINSTALLED_MESSAGE,
+     GRAPHICSPRESETNOTINSTALLED_CANCEL,
+     GRAPHICSPRESETNOTINSTALLED_SUBMIT,
      GRAPHICSPRESETDELAYEDCONFIRMATION_TITLE,
      GRAPHICSPRESETDELAYEDCONFIRMATION_MESSAGE,
      GRAPHICSPRESETDELAYEDCONFIRMATION_SUBMIT,
@@ -595,6 +922,10 @@ class DIALOGS(object):
      GRAPHICSPRESETNOTPOSSIBLE_TITLE,
      GRAPHICSPRESETNOTPOSSIBLE_MESSAGE,
      GRAPHICSPRESETNOTPOSSIBLE_CANCEL,
+     GRAPHICSCHANGECONFIRMATION_TITLE,
+     GRAPHICSCHANGECONFIRMATION_MESSAGE,
+     GRAPHICSCHANGECONFIRMATION_SUBMIT,
+     GRAPHICSCHANGECONFIRMATION_CANCEL,
      WATERQUALITYNOTPOSSIBLE_TITLE,
      WATERQUALITYNOTPOSSIBLE_MESSAGE,
      WATERQUALITYNOTPOSSIBLE_CANCEL,
@@ -606,16 +937,25 @@ class DIALOGS(object):
      PREMIUMCONTINUECONFIRMATION_MESSAGE,
      PREMIUMCONTINUECONFIRMATION_SUBMIT,
      PREMIUMCONTINUECONFIRMATION_CANCEL,
+     BUYPREMWITHOUTBENEFITSCONFIRMATION_TITLE,
+     BUYPREMWITHOUTBENEFITSCONFIRMATION_MESSAGE,
+     BUYPREMWITHOUTBENEFITSCONFIRMATION_SUBMIT,
+     BUYPREMWITHOUTBENEFITSCONFIRMATION_CANCEL,
      BUYINSTALLCONFIRMATION_TITLE,
      BUYINSTALLCONFIRMATION_MESSAGECOMBINE,
      BUYINSTALLCONFIRMATION_MESSAGE,
-     BUYINSTALLCONFIRMATION_CONFLICTEDMESSAGE,
+     BUYINSTALLCONFIRMATION_CONFLICTEDMESSAGE_PREFIX,
+     BUYINSTALLCONFIRMATION_CONFLICTEDMESSAGE_HIGHLIGHTENTEXT,
+     BUYINSTALLCONFIRMATION_CONFLICTEDMESSAGE_POSTFIX,
      BUYINSTALLCONFIRMATION_SUBMIT,
      BUYINSTALLCONFIRMATION_CANCEL,
      CHANGECONFIRMATIONNOTREMOVABLE_TITLE,
      CHANGECONFIRMATIONNOTREMOVABLE_MESSAGECOMBINE,
      CHANGECONFIRMATIONNOTREMOVABLE_SUBMIT,
      CHANGECONFIRMATIONNOTREMOVABLE_CANCEL,
+     RALLY_COMPANYTIMEFINISHED_TITLE,
+     RALLY_COMPANYTIMEFINISHED_MESSAGE,
+     RALLY_COMPANYTIMEFINISHED_CANCEL,
      INSTALLCONFIRMATIONNOTREMOVABLE_TITLE,
      INSTALLCONFIRMATIONNOTREMOVABLE_MESSAGE,
      INSTALLCONFIRMATIONNOTREMOVABLE_SUBMIT,
@@ -678,6 +1018,14 @@ class DIALOGS(object):
      BUYSLOTCONFIRMATION_MESSAGE,
      BUYSLOTCONFIRMATION_SUBMIT,
      BUYSLOTCONFIRMATION_CANCEL,
+     FREESLOTCONFIRMATION_TITLE,
+     FREESLOTCONFIRMATION_MESSAGE,
+     FREESLOTCONFIRMATION_SUBMIT,
+     FREESLOTCONFIRMATION_CANCEL,
+     REPLACEPASSPORT_UNIQUE_TITLE,
+     REPLACEPASSPORT_UNIQUE_MESSAGE,
+     REPLACEPASSPORT_UNIQUE_SUBMIT,
+     REPLACEPASSPORT_UNIQUE_CANCEL,
      REPLACEPASSPORTCONFIRMATION_TITLE,
      REPLACEPASSPORTCONFIRMATION_MESSAGE,
      REPLACEPASSPORTCONFIRMATION_SUBMIT,
@@ -719,6 +1067,8 @@ class DIALOGS(object):
      RECRUITWINDOW_NATIONDROPDOWN_USSR,
      RECRUITWINDOW_NATIONDROPDOWN_GERMANY,
      RECRUITWINDOW_NATIONDROPDOWN_USA,
+     RECRUITWINDOW_NATIONDROPDOWN_CZECH,
+     RECRUITWINDOW_NATIONDROPDOWN_SWEDEN,
      RECRUITWINDOW_SPECIALIZATION,
      RECRUITWINDOW_VEHICLECLASS,
      RECRUITWINDOW_VEHICLETYPE,
@@ -734,10 +1084,12 @@ class DIALOGS(object):
      BUYVEHICLEDIALOG_PRICELABEL,
      BUYVEHICLEDIALOG_AMMOCHECKBOX,
      BUYVEHICLEDIALOG_SLOTCHECKBOX,
+     BUYVEHICLEDIALOG_FREERENTSLOT,
      BUYVEHICLEDIALOG_TANKMENLABEL,
      BUYVEHICLEDIALOG_TANKMEN,
      BUYVEHICLEDIALOG_WARNING,
      BUYVEHICLEDIALOG_TANKMENCHECKBOX,
+     BUYVEHICLEDIALOG_CREWINVEHICLE,
      BUYVEHICLEDIALOG_TOTALLABEL,
      BUYVEHICLEDIALOG_EXPANDBTNLABEL,
      BUYVEHICLEDIALOG_ROLLUPBTNLABEL,
@@ -763,6 +1115,10 @@ class DIALOGS(object):
      CONFIRMBUYANDINSTALL_CONFLICTEDEQS,
      CONFIRMBUYANDINSTALL_SUBMIT,
      CONFIRMBUYANDINSTALL_CANCEL,
+     CONFIRMBUYNOTINSTALL_TITLE,
+     CONFIRMBUYNOTINSTALL_MESSAGE,
+     CONFIRMBUYNOTINSTALL_SUBMIT,
+     CONFIRMBUYNOTINSTALL_CANCEL,
      POSTMORTEM_TITLE,
      POSTMORTEM_MESSAGE,
      POSTMORTEM_SUBMIT,
@@ -805,6 +1161,30 @@ class DIALOGS(object):
      SQUADHAVENOTREADYPLAYERS_MESSAGE,
      SQUADHAVENOTREADYPLAYERS_SUBMIT,
      SQUADHAVENOTREADYPLAYERS_CANCEL,
+     SQUADHAVENOTREADYPLAYERSAUTO_TITLE,
+     SQUADHAVENOTREADYPLAYERSAUTO_MESSAGE,
+     SQUADHAVENOTREADYPLAYERSAUTO_SUBMIT,
+     SQUADHAVENOTREADYPLAYERSAUTO_CANCEL,
+     SQUADHAVENOTREADYPLAYERAUTO_TITLE,
+     SQUADHAVENOTREADYPLAYERAUTO_MESSAGE,
+     SQUADHAVENOTREADYPLAYERAUTO_SUBMIT,
+     SQUADHAVENOTREADYPLAYERAUTO_CANCEL,
+     SQUADHAVENOTREADYPLAYER_TITLE,
+     SQUADHAVENOTREADYPLAYER_MESSAGE,
+     SQUADHAVENOTREADYPLAYER_SUBMIT,
+     SQUADHAVENOTREADYPLAYER_CANCEL,
+     SQUADHAVENOPLAYERS_TITLE,
+     SQUADHAVENOPLAYERS_MESSAGE,
+     SQUADHAVENOPLAYERS_SUBMIT,
+     SQUADHAVENOPLAYERS_CANCEL,
+     SQUADHAVENOPLAYERSAUTO_TITLE,
+     SQUADHAVENOPLAYERSAUTO_MESSAGE,
+     SQUADHAVENOPLAYERSAUTO_SUBMIT,
+     SQUADHAVENOPLAYERSAUTO_CANCEL,
+     SQUADHAVENOPLAYERAUTO_TITLE,
+     SQUADHAVENOPLAYERAUTO_MESSAGE,
+     SQUADHAVENOPLAYERAUTO_SUBMIT,
+     SQUADHAVENOPLAYERAUTO_CANCEL,
      SQUADHAVEPLAYERSINBATTLE_TITLE,
      SQUADHAVEPLAYERSINBATTLE_MESSAGE,
      SQUADHAVEPLAYERSINBATTLE_CANCEL,
@@ -849,6 +1229,7 @@ class DIALOGS(object):
      GATHERINGXPFORM_BTNCANCEL,
      EXCHANGEXPCONFIRMATION_TITLE,
      EXCHANGEXPCONFIRMATION_MESSAGE,
+     EXCHANGEXPCONFIRMATION_AVAILABLE_FORFREE_MESSAGE,
      EXCHANGEXPCONFIRMATION_SUBMIT,
      EXCHANGEXPCONFIRMATION_CANCEL,
      EXCHANGEGOLDCONFIRMATION_TITLE,
@@ -925,6 +1306,7 @@ class DIALOGS(object):
      MESSENGER_USERINFONOTAVAILABLE_MESSAGE,
      MESSENGER_USERINFONOTAVAILABLE_SUBMIT,
      MESSENGER_USERINFONOTAVAILABLE_CANCEL,
+     VEHICLEREMOVEDIALOG_TITLE,
      VEHICLESELLDIALOG_TITLE,
      VEHICLESELLDIALOG_MESSAGE,
      VEHICLESELLDIALOG_VEHICLE_LEVEL,
@@ -940,6 +1322,7 @@ class DIALOGS(object):
      VEHICLESELLDIALOG_INVENTORY,
      VEHICLESELLDIALOG_NOTINSTALLED_MODULES,
      VEHICLESELLDIALOG_COUNT,
+     VEHICLESELLDIALOG_REMOVE,
      VEHICLESELLDIALOG_SUBMIT,
      VEHICLESELLDIALOG_CANCEL,
      VEHICLESELLDIALOG_CONTENT_TANKMENFIELD,
@@ -959,22 +1342,42 @@ class DIALOGS(object):
      CUSTOMIZATION_CAMOUFLAGEDROP_MESSAGE,
      CUSTOMIZATION_CAMOUFLAGEDROP_SUBMIT,
      CUSTOMIZATION_CAMOUFLAGEDROP_CANCEL,
+     CUSTOMIZATION_CAMOUFLAGEDISMOUNT_TITLE,
+     CUSTOMIZATION_CAMOUFLAGEDISMOUNT_MESSAGE,
+     CUSTOMIZATION_CAMOUFLAGEDISMOUNT_SUBMIT,
+     CUSTOMIZATION_CAMOUFLAGEDISMOUNT_CANCEL,
      CUSTOMIZATION_EMBLEMLEFTDROP_TITLE,
      CUSTOMIZATION_EMBLEMLEFTDROP_MESSAGE,
      CUSTOMIZATION_EMBLEMLEFTDROP_SUBMIT,
      CUSTOMIZATION_EMBLEMLEFTDROP_CANCEL,
+     CUSTOMIZATION_EMBLEMLEFTDISMOUNT_TITLE,
+     CUSTOMIZATION_EMBLEMLEFTDISMOUNT_MESSAGE,
+     CUSTOMIZATION_EMBLEMLEFTDISMOUNT_SUBMIT,
+     CUSTOMIZATION_EMBLEMLEFTDISMOUNT_CANCEL,
      CUSTOMIZATION_EMBLEMRIGHTDROP_TITLE,
      CUSTOMIZATION_EMBLEMRIGHTDROP_MESSAGE,
      CUSTOMIZATION_EMBLEMRIGHTDROP_SUBMIT,
      CUSTOMIZATION_EMBLEMRIGHTDROP_CANCEL,
+     CUSTOMIZATION_EMBLEMRIGHTDISMOUNT_TITLE,
+     CUSTOMIZATION_EMBLEMRIGHTDISMOUNT_MESSAGE,
+     CUSTOMIZATION_EMBLEMRIGHTDISMOUNT_SUBMIT,
+     CUSTOMIZATION_EMBLEMRIGHTDISMOUNT_CANCEL,
      CUSTOMIZATION_INSCRIPTIONLEFTDROP_TITLE,
      CUSTOMIZATION_INSCRIPTIONLEFTDROP_MESSAGE,
      CUSTOMIZATION_INSCRIPTIONLEFTDROP_SUBMIT,
      CUSTOMIZATION_INSCRIPTIONLEFTDROP_CANCEL,
+     CUSTOMIZATION_INSCRIPTIONLEFTDISMOUNT_TITLE,
+     CUSTOMIZATION_INSCRIPTIONLEFTDISMOUNT_MESSAGE,
+     CUSTOMIZATION_INSCRIPTIONLEFTDISMOUNT_SUBMIT,
+     CUSTOMIZATION_INSCRIPTIONLEFTDISMOUNT_CANCEL,
      CUSTOMIZATION_INSCRIPTIONRIGHTDROP_TITLE,
      CUSTOMIZATION_INSCRIPTIONRIGHTDROP_MESSAGE,
      CUSTOMIZATION_INSCRIPTIONRIGHTDROP_SUBMIT,
      CUSTOMIZATION_INSCRIPTIONRIGHTDROP_CANCEL,
+     CUSTOMIZATION_INSCRIPTIONRIGHTDISMOUNT_TITLE,
+     CUSTOMIZATION_INSCRIPTIONRIGHTDISMOUNT_MESSAGE,
+     CUSTOMIZATION_INSCRIPTIONRIGHTDISMOUNT_SUBMIT,
+     CUSTOMIZATION_INSCRIPTIONRIGHTDISMOUNT_CANCEL,
      CUSTOMIZATION_HORNDROP_TITLE,
      CUSTOMIZATION_HORNDROP_MESSAGE,
      CUSTOMIZATION_HORNDROP_SUBMIT,
@@ -982,6 +1385,8 @@ class DIALOGS(object):
      CUSTOMIZATION_SELECTNEWITEMS_TITLE,
      CUSTOMIZATION_SELECTNEWITEMS_MESSAGE,
      CUSTOMIZATION_SELECTNEWITEMS_CANCEL,
+     CUSTOMIZATION_CHANGECONFIRMATION_BUY,
+     CUSTOMIZATION_CHANGECONFIRMATION_CHANGE,
      CUSTOMIZATION_CHANGECONFIRMATION_TITLE,
      CUSTOMIZATION_CHANGECONFIRMATION_MESSAGE,
      CUSTOMIZATION_CHANGECONFIRMATION_SUBMIT,
@@ -1005,10 +1410,6 @@ class DIALOGS(object):
      UPDATENEEDED_MESSAGE,
      UPDATENEEDED_SUBMIT,
      UPDATENEEDED_CANCEL,
-     EXITCURRENTPREBATTLE_TITLE,
-     EXITCURRENTPREBATTLE_MESSAGE,
-     EXITCURRENTPREBATTLE_SUBMIT,
-     EXITCURRENTPREBATTLE_CANCEL,
      REPLAYNOTIFICATION_TITLE,
      REPLAYNOTIFICATION_MESSAGE,
      REPLAYNOTIFICATION_SUBMIT,
@@ -1016,6 +1417,16 @@ class DIALOGS(object):
      REPLAYSTOPPED_TITLE,
      REPLAYSTOPPED_MESSAGE,
      REPLAYSTOPPED_CANCEL,
+     PUNISHMENTWINDOW_TITLE,
+     PUNISHMENTWINDOW_MSGTITLE_WARNING,
+     PUNISHMENTWINDOW_MSGTITLE_PENALTY,
+     PUNISHMENTWINDOW_MESSAGE_WARNING,
+     PUNISHMENTWINDOW_MESSAGE_PENALTY,
+     PUNISHMENTWINDOW_MESSAGE_EXTRA_PENALTY,
+     PUNISHMENTWINDOW_CANCEL,
+     PUNISHMENTWINDOW_REASON_DESERTER,
+     PUNISHMENTWINDOW_REASON_SUICIDE,
+     PUNISHMENTWINDOW_REASON_AFK,
      SKILLDROPWINDOW_TITLE,
      SKILLDROPWINDOW_MESSAGE,
      SKILLDROPWINDOW_SUBMIT,
@@ -1031,14 +1442,18 @@ class DIALOGS(object):
      SHOPSYNCERROR_TITLE,
      SHOPSYNCERROR_MESSAGE,
      SHOPSYNCERROR_CANCEL,
-     CREATEANACCOUNT_TITLE,
-     CREATEANACCOUNT_MESSAGE,
-     CREATEANACCOUNT_SUBMIT,
-     CREATEANACCOUNT_NOTE,
      RESETGRAPHICS_TITLE,
      RESETGRAPHICS_MESSAGE,
      RESETGRAPHICS_SUBMIT,
      RESETGRAPHICS_CANCEL,
+     CHANGEGRAPHICS_TITLE,
+     CHANGEGRAPHICS_MESSAGE,
+     CHANGEGRAPHICS_SUBMIT,
+     CHANGEGRAPHICS_CANCEL,
+     LOWFPSWARNING_TITLE,
+     LOWFPSWARNING_MESSAGE,
+     LOWFPSWARNING_SUBMIT,
+     LOWFPSWARNING_CANCEL,
      KOREAPARENTNOTIFICATION_TITLE,
      KOREAPARENTNOTIFICATION_MESSAGE,
      KOREAPARENTNOTIFICATION_SUBMIT,
@@ -1051,30 +1466,77 @@ class DIALOGS(object):
      TANKMANRETRAINING_UNKNOWNVEHICLE_MESSAGE,
      TANKMANRETRAINING_UNKNOWNVEHICLE_SUBMIT,
      TANKMANRETRAINING_UNKNOWNVEHICLE_CANCEL,
-     SENDINVITES_PREBATTLE_TITLE,
-     SENDINVITES_TRAINING_TITLE,
-     SENDINVITES_SQUAD_TITLE,
-     SENDINVITES_COMPANY_TITLE,
-     SENDINVITES_UNIT_TITLE,
-     CYBERSPORT_CLOSECONFIRMATION_TITLE,
-     CYBERSPORT_CLOSECONFIRMATION_MESSAGE,
-     CYBERSPORT_CLOSECONFIRMATION_SUBMIT,
-     CYBERSPORT_CLOSECONFIRMATION_CANCEL,
-     CYBERSPORT_LEAVEUNIT_TITLE,
-     CYBERSPORT_LEAVEUNIT_MESSAGE,
-     CYBERSPORT_LEAVEUNIT_SUBMIT,
-     CYBERSPORT_LEAVEUNIT_CANCEL,
-     CYBERSPORT_LEAVEUNITDISABLED_TITLE,
-     CYBERSPORT_LEAVEUNITDISABLED_MESSAGE,
-     CYBERSPORT_LEAVEUNITDISABLED_CANCEL,
-     CYBERSPORT_AUTOSEARCH_TITLE,
-     CYBERSPORT_AUTOSEARCH_MESSAGE,
-     CYBERSPORT_AUTOSEARCH_SUBMIT,
-     CYBERSPORT_AUTOSEARCH_CANCEL,
-     CYBERSPORT_STARTBATTLE_TITLE,
-     CYBERSPORT_STARTBATTLE_MESSAGE,
-     CYBERSPORT_STARTBATTLE_SUBMIT,
-     CYBERSPORT_STARTBATTLE_CANCEL,
+     TANKMANCHAGEROLE_UNKNOWNVEHICLE_TITLE,
+     TANKMANCHAGEROLE_UNKNOWNVEHICLE_MESSAGE,
+     TANKMANCHAGEROLE_UNKNOWNVEHICLE_SUBMIT,
+     TANKMANCHAGEROLE_UNKNOWNVEHICLE_CANCEL,
+     SENDINVITES_COMMON_TITLE,
+     RALLY_AUTOSEARCH_TITLE,
+     RALLY_AUTOSEARCH_MESSAGE,
+     RALLY_AUTOSEARCH_SUBMIT,
+     RALLY_AUTOSEARCH_CANCEL,
+     RALLY_STARTBATTLE_TITLE,
+     RALLY_STARTBATTLE_MESSAGE,
+     RALLY_STARTBATTLE_SUBMIT,
+     RALLY_STARTBATTLE_CANCEL,
+     RALLY_CHANGEPERIPHERY_TITLE,
+     RALLY_CHANGEPERIPHERY_MESSAGE,
+     RALLY_CHANGEPERIPHERY_SUBMIT,
+     RALLY_CHANGEPERIPHERY_CANCEL,
+     RALLY_GOTOANOTHER_TITLE,
+     RALLY_GOTOANOTHER_MESSAGE,
+     RALLY_GOTOANOTHER_SUBMIT,
+     RALLY_GOTOANOTHER_CANCEL,
+     RALLY_GOTOSQUAD_TITLE,
+     RALLY_GOTOSQUAD_MESSAGE,
+     RALLY_GOTOSQUAD_SUBMIT,
+     RALLY_GOTOSQUAD_CANCEL,
+     SQUAD_GOTOSQUAD_TITLE,
+     SQUAD_GOTOSQUAD_MESSAGE,
+     SQUAD_GOTOSQUAD_SUBMIT,
+     SQUAD_GOTOSQUAD_CANCEL,
+     SANDBOX_GOTOANOTHER_TITLE,
+     SANDBOX_GOTOANOTHER_MESSAGE,
+     SANDBOX_GOTOANOTHER_SUBMIT,
+     SANDBOX_GOTOANOTHER_CANCEL,
+     SANDBOX_GOTOSQUAD_TITLE,
+     SANDBOX_GOTOSQUAD_MESSAGE,
+     SANDBOX_GOTOSQUAD_SUBMIT,
+     SANDBOX_GOTOSQUAD_CANCEL,
+     RALLY_GOTOBATTLETUTORIAL_TITLE,
+     RALLY_GOTOBATTLETUTORIAL_MESSAGE,
+     RALLY_GOTOBATTLETUTORIAL_SUBMIT,
+     RALLY_GOTOBATTLETUTORIAL_CANCEL,
+     SANDBOX_GOTOBATTLETUTORIAL_TITLE,
+     SANDBOX_GOTOBATTLETUTORIAL_MESSAGE,
+     SANDBOX_GOTOBATTLETUTORIAL_SUBMIT,
+     SANDBOX_GOTOBATTLETUTORIAL_CANCEL,
+     SQUAD_GOTOANOTHER_TITLE,
+     SQUAD_GOTOANOTHER_MESSAGE,
+     SQUAD_GOTOANOTHER_SUBMIT,
+     SQUAD_GOTOANOTHER_CANCEL,
+     SQUAD_GOTOBATTLETUTORIAL_TITLE,
+     SQUAD_GOTOBATTLETUTORIAL_MESSAGE,
+     SQUAD_GOTOBATTLETUTORIAL_SUBMIT,
+     SQUAD_GOTOBATTLETUTORIAL_CANCEL,
+     RALLY_LEAVE_TITLE,
+     RALLY_LEAVE_MESSAGE,
+     RALLY_LEAVE_SUBMIT,
+     RALLY_LEAVE_CANCEL,
+     RALLY_GOTOINTRO_TITLE,
+     RALLY_GOTOINTRO_MESSAGE,
+     RALLY_GOTOINTRO_SUBMIT,
+     RALLY_GOTOINTRO_CANCEL,
+     SQUAD_LEAVE_TITLE,
+     SQUAD_LEAVE_MESSAGE,
+     SQUAD_LEAVE_SUBMIT,
+     SQUAD_LEAVE_CANCEL,
+     RALLY_LEAVEDISABLED_TITLE,
+     RALLY_LEAVEDISABLED_MESSAGE,
+     RALLY_LEAVEDISABLED_CANCEL,
+     SQUAD_LEAVEDISABLED_TITLE,
+     SQUAD_LEAVEDISABLED_MESSAGE,
+     SQUAD_LEAVEDISABLED_CANCEL,
      CHANGEPERIPHERY_TITLE,
      CHANGEPERIPHERY_MESSAGE,
      CHANGEPERIPHERY_SUBMIT,
@@ -1082,35 +1544,186 @@ class DIALOGS(object):
      CHANGEROAMINGPERIPHERY_TITLE,
      CHANGEROAMINGPERIPHERY_MESSAGE,
      CHANGEROAMINGPERIPHERY_SUBMIT,
-     CHANGEROAMINGPERIPHERY_CANCEL)
+     CHANGEROAMINGPERIPHERY_CANCEL,
+     CLUBINVITE_TITLE,
+     CLUBINVITE_MESSAGE,
+     CLUBINVITE_SUBMIT,
+     CLUBINVITE_CANCEL,
+     FREEXPINFO_TITLE,
+     FREEXPINFO_MESSAGE,
+     FREEXPINFO_SUBMITBTNLBL,
+     SWITCHPERIPHERYWINDOW_WINDOWTITLE,
+     SWITCHPERIPHERYWINDOW_BTNSWITCH,
+     SWITCHPERIPHERYWINDOW_BTNCANCEL,
+     CREATEORDERCONFIRMATION_TITLE,
+     CREATEORDERCONFIRMATION_SUBMIT,
+     CREATEORDERCONFIRMATION_CANCEL,
+     FORTIFICATIONFIXEDPLAYERS_TITLE,
+     FORTIFICATIONFIXEDPLAYERS_MESSAGE,
+     FORTIFICATIONFIXEDPLAYERS_SUBMIT,
+     FORTIFICATIONFIXEDPLAYERS_CANCEL,
+     FORTIFICATIONCLOSEDIRECTION_TITLE,
+     FORTIFICATIONCLOSEDIRECTION_MESSAGE,
+     FORTIFICATIONCLOSEDIRECTION_SUBMIT,
+     FORTIFICATIONCLOSEDIRECTION_CANCEL,
+     REPORTBUG_TITLE,
+     REPORTBUG_MESSAGE,
+     REPORTBUG_SUBMIT,
+     REPORTBUG_CANCEL,
+     FORTMODERNIZATIONABSOLUTEDIVISION_TITLE,
+     FORTMODERNIZATIONABSOLUTEDIVISION_MESSAGE,
+     FORTMODERNIZATIONABSOLUTEDIVISION_SUBMIT,
+     FORTMODERNIZATIONABSOLUTEDIVISION_CANCEL,
+     FORTTURNEDOFF_CANCEL,
+     FORTTURNEDOFF_TITLE,
+     FORTTURNEDOFF_MESSAGE,
+     STATICFORMATION_STAFFVIEW_REMOVEMEMBERCONFIRMATION_TITLE,
+     STATICFORMATION_STAFFVIEW_REMOVEMEMBERCONFIRMATION_MESSAGE,
+     STATICFORMATION_STAFFVIEW_REMOVEMEMBERCONFIRMATION_SUBMIT,
+     STATICFORMATION_STAFFVIEW_REMOVEMEMBERCONFIRMATION_CANCEL,
+     STATICFORMATION_STAFFVIEW_REMOVEOWNERCONFIRMATION_TITLE,
+     STATICFORMATION_STAFFVIEW_REMOVEOWNERCONFIRMATION_MESSAGE,
+     STATICFORMATION_STAFFVIEW_REMOVEOWNERCONFIRMATION_SUBMIT,
+     STATICFORMATION_STAFFVIEW_REMOVEOWNERCONFIRMATION_CANCEL,
+     STATICFORMATION_STAFFVIEW_LEAVECLUBCONFIRMATION_TITLE,
+     STATICFORMATION_STAFFVIEW_LEAVECLUBCONFIRMATION_MESSAGE,
+     STATICFORMATION_STAFFVIEW_LEAVECLUBCONFIRMATION_SUBMIT,
+     STATICFORMATION_STAFFVIEW_LEAVECLUBCONFIRMATION_CANCEL,
+     STATICFORMATION_STAFFVIEW_DISCONTINUINGEMPTYFORMATIONCONFIRMATION_TITLE,
+     STATICFORMATION_STAFFVIEW_DISCONTINUINGEMPTYFORMATIONCONFIRMATION_MESSAGE,
+     STATICFORMATION_STAFFVIEW_DISCONTINUINGEMPTYFORMATIONCONFIRMATION_SUBMIT,
+     STATICFORMATION_STAFFVIEW_DISCONTINUINGEMPTYFORMATIONCONFIRMATION_CANCEL,
+     STATICFORMATION_STAFFVIEW_DISCONTINUINGFORMATIONCONFIRMATION_TITLE,
+     STATICFORMATION_STAFFVIEW_DISCONTINUINGFORMATIONCONFIRMATION_MESSAGE,
+     STATICFORMATION_STAFFVIEW_DISCONTINUINGFORMATIONCONFIRMATION_SUBMIT,
+     STATICFORMATION_STAFFVIEW_DISCONTINUINGFORMATIONCONFIRMATION_CANCEL,
+     STATICFORMATION_STAFFVIEW_PROMOTECONFIRMATION_TITLE,
+     STATICFORMATION_STAFFVIEW_PROMOTECONFIRMATION_MESSAGE,
+     STATICFORMATION_STAFFVIEW_PROMOTECONFIRMATION_SUBMIT,
+     STATICFORMATION_STAFFVIEW_PROMOTECONFIRMATION_CANCEL,
+     STATICFORMATION_STAFFVIEW_TRANSFEROWNERSHIP_TITLE,
+     STATICFORMATION_STAFFVIEW_TRANSFEROWNERSHIP_MESSAGE,
+     STATICFORMATION_STAFFVIEW_TRANSFEROWNERSHIP_SUBMIT,
+     STATICFORMATION_STAFFVIEW_TRANSFEROWNERSHIP_CANCEL,
+     STATICFORMATION_STAFFVIEW_DEMOTECONFIRMATION_TITLE,
+     STATICFORMATION_STAFFVIEW_DEMOTECONFIRMATION_MESSAGE,
+     STATICFORMATION_STAFFVIEW_DEMOTECONFIRMATION_SUBMIT,
+     STATICFORMATION_STAFFVIEW_DEMOTECONFIRMATION_CANCEL,
+     STATICFORMATION_STAFFVIEW_PASSOWNERSHIPCONFIRMATION_TITLE,
+     STATICFORMATION_STAFFVIEW_PASSOWNERSHIPCONFIRMATION_MESSAGE,
+     STATICFORMATION_STAFFVIEW_PASSOWNERSHIPCONFIRMATION_SUBMIT,
+     STATICFORMATION_STAFFVIEW_PASSOWNERSHIPCONFIRMATION_CANCEL,
+     STATICFORMATION_STAFFVIEW_CLOSECLUB_TITLE,
+     STATICFORMATION_STAFFVIEW_CLOSECLUB_MESSAGE,
+     STATICFORMATION_STAFFVIEW_CLOSECLUB_SUBMIT,
+     STATICFORMATION_STAFFVIEW_CLOSECLUB_CANCEL,
+     CONFIRMEXCHANGEDIALOG_EXCHANGECREDITS_TITLE,
+     CONFIRMEXCHANGEDIALOG_EXCHANGEXP_TITLE,
+     CONFIRMEXCHANGEDIALOG_EXCHANGECREDITS_NEEDITEMSTEXT,
+     CONFIRMEXCHANGEDIALOG_EXCHANGEXP_NEEDITEMSTEXT,
+     CONFIRMEXCHANGEDIALOG_EXCHANGECREDITS_NEEDGOLDTEXT,
+     CONFIRMEXCHANGEDIALOG_EXCHANGEXP_NEEDGOLDTEXT,
+     CONFIRMEXCHANGEDIALOG_EXCHANGECREDITS_NEEDITEMSSTEPPERTITLE,
+     CONFIRMEXCHANGEDIALOG_EXCHANGEXP_NEEDITEMSSTEPPERTITLE,
+     CONFIRMEXCHANGEDIALOG_GOLDITEMSSTEPPERTITLE,
+     CONFIRMEXCHANGEDIALOG_EXCHANGECREDITS_SUBMIT,
+     CONFIRMEXCHANGEDIALOG_EXCHANGEXP_SUBMIT,
+     CONFIRMEXCHANGEDIALOG_EXCHANGECREDITS_CANCEL,
+     CONFIRMEXCHANGEDIALOG_EXCHANGEXP_CANCEL,
+     CONFIRMEXCHANGEDIALOG_EXCHANGECREDITS_EXCHANGENONEEDTEXT,
+     CONFIRMEXCHANGEDIALOG_EXCHANGEXP_EXCHANGENONEEDTEXT,
+     CONFIRMEXCHANGEDIALOG_EXCHANGECREDITS_GOLDNOTENOUGHTEXT,
+     CONFIRMEXCHANGEDIALOG_EXCHANGEXP_GOLDNOTENOUGHTEXT,
+     CLUBS_APP_SEND_TITLE,
+     CLUBS_APP_SEND_MESSAGE,
+     CLUBS_APP_SEND_SUBMIT,
+     CLUBS_APP_SEND_CANCEL,
+     CLUBS_APP_CREATE_TITLE,
+     CLUBS_APP_CREATE_MESSAGE,
+     CLUBS_APP_CREATE_SUBMIT,
+     CLUBS_APP_CREATE_CANCEL,
+     QUESTSCONFIRMDIALOG_TITLE,
+     QUESTSCONFIRMDIALOG_MESSAGE,
+     QUESTSCONFIRMDIALOG_SUBMIT,
+     QUESTSCONFIRMDIALOG_CANCEL,
+     QUESTSCONFIRMDIALOG_CHECKBOX,
+     BOOSTERSWINDOW_ACTIVATIONCONFIRMATION_TITLE,
+     BOOSTERSWINDOW_ACTIVATIONCONFIRMATION_MESSAGE,
+     BOOSTERSWINDOW_ACTIVATIONCONFIRMATION_SUBMIT,
+     BOOSTERSWINDOW_ACTIVATIONCONFIRMATION_CANCEL,
+     CLANCONFIRMJOINING_TITLE,
+     CLANCONFIRMJOINING_MESSAGE,
+     CLANCONFIRMJOINING_MESSAGE_CLANNAME,
+     CLANCONFIRMJOINING_MESSAGE_CLANEXIT,
+     CLANCONFIRMJOINING_SUBMIT,
+     CLANCONFIRMJOINING_CANCEL,
+     CUSTOMIZATION_CLOSE_TITLE,
+     CUSTOMIZATION_CLOSE_MESSAGE,
+     CUSTOMIZATION_CLOSE_SUBMIT,
+     CUSTOMIZATION_CLOSE_CANCEL,
+     CUSTOMIZATION_FILTER_TITLE,
+     CUSTOMIZATION_FILTER_MESSAGE,
+     CUSTOMIZATION_FILTER_SUBMIT,
+     CUSTOMIZATION_FILTER_CANCEL,
+     CUSTOMIZATION_REMOVE_ELEMENT_TITLE,
+     CUSTOMIZATION_REMOVE_ELEMENT_MESSAGE,
+     CUSTOMIZATION_REMOVE_ELEMENT_SUBMIT,
+     CUSTOMIZATION_REMOVE_ELEMENT_CANCEL,
+     CUSTOMIZATION_REPLACE_ELEMENT_TITLE,
+     CUSTOMIZATION_REPLACE_ELEMENT_MESSAGE,
+     CUSTOMIZATION_REPLACE_ELEMENT_SUBMIT,
+     CUSTOMIZATION_REPLACE_ELEMENT_CANCEL,
+     CUSTOMIZATION_REPLACE_ELEMENTS_TITLE,
+     CUSTOMIZATION_REPLACE_ELEMENTS_MESSAGE,
+     CUSTOMIZATION_REPLACE_ELEMENTS_SUBMIT,
+     CUSTOMIZATION_REPLACE_ELEMENTS_CANCEL,
+     CUSTOMIZATION_INSTALL_INVOICE_ITEM_WILL_BE_DELETED,
+     CUSTOMIZATION_INSTALL_INVOICE_ITEM_TEMPORARY_TITLE,
+     CUSTOMIZATION_INSTALL_INVOICE_ITEM_TEMPORARY_MESSAGE,
+     CUSTOMIZATION_INSTALL_INVOICE_ITEM_TEMPORARY_SUBMIT,
+     CUSTOMIZATION_INSTALL_INVOICE_ITEM_TEMPORARY_CANCEL,
+     CUSTOMIZATION_INSTALL_INVOICE_ITEM_PERMANENT_TITLE,
+     CUSTOMIZATION_INSTALL_INVOICE_ITEM_PERMANENT_MESSAGE,
+     CUSTOMIZATION_INSTALL_INVOICE_ITEM_PERMANENT_SUBMIT,
+     CUSTOMIZATION_INSTALL_INVOICE_ITEM_PERMANENT_CANCEL,
+     CUSTOMIZATION_INSTALL_INVOICE_ITEM_PERMANENT_LAST_TITLE,
+     CUSTOMIZATION_INSTALL_INVOICE_ITEM_PERMANENT_LAST_MESSAGE,
+     CUSTOMIZATION_INSTALL_INVOICE_ITEM_PERMANENT_LAST_SUBMIT,
+     CUSTOMIZATION_INSTALL_INVOICE_ITEM_PERMANENT_LAST_CANCEL,
+     FORTDISABLED_TITLE,
+     FORTDISABLED_MESSAGE,
+     FORTDISABLED_CANCEL)
 
     @staticmethod
     def recruitwindow_vehicleclassdropdown(key):
+        """
+        :param key:
+        :return String:
+        """
         outcome = '#dialogs:recruitWindow/vehicleClassDropdown/%s' % key
         if outcome not in DIALOGS.RECRUITWINDOW_VEHICLECLASSDROPDOWN_ENUM:
-            raise Exception, 'locale key "' + outcome + '" was not found'
-        return outcome
-
-    @staticmethod
-    def exitcurrentprebattle_custommessage(key):
-        outcome = '#dialogs:exitCurrentPrebattle/customMessage/%s' % key
-        if outcome not in DIALOGS.EXITCURRENTPREBATTLE_CUSTOMMESSAGE_ENUM:
-            raise Exception, 'locale key "' + outcome + '" was not found'
+            raise Exception('locale key "' + outcome + '" was not found')
         return outcome
 
     @staticmethod
     def vehicleselldialog_vehicletype(key):
+        """
+        :param key:
+        :return String:
+        """
         outcome = '#dialogs:vehicleSellDialog/vehicleType/%s' % key
         if outcome not in DIALOGS.VEHICLESELLDIALOG_VEHICLETYPE_ENUM:
-            raise Exception, 'locale key "' + outcome + '" was not found'
+            raise Exception('locale key "' + outcome + '" was not found')
         return outcome
 
     @staticmethod
     def all(key):
+        """
+        :param key:
+        :return String:
+        """
         outcome = '#dialogs:%s' % key
         if outcome not in DIALOGS.all_ENUM:
-            raise Exception, 'locale key "' + outcome + '" was not found'
+            raise Exception('locale key "' + outcome + '" was not found')
         return outcome
-# okay decompyling res/scripts/client/gui/scaleform/locale/dialogs.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:32 EST
+# okay decompiling ./res/scripts/client/gui/scaleform/locale/dialogs.pyc

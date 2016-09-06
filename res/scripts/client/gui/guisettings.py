@@ -1,96 +1,145 @@
-# 2013.11.15 11:25:35 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/GuiSettings.py
-import ResMgr
-from debug_utils import *
-from helpers import getClientLanguage
 from collections import namedtuple
+import nations
+import constants
+import resource_helper
+from debug_utils import LOG_NOTE, LOG_CURRENT_EXCEPTION
+from helpers import getClientLanguage, time_utils
+from gui import macroses
 GUI_SETTINGS_FILE_PATH = 'gui/gui_settings.xml'
 VIDEO_SETTINGS_FILE_PATH = 'gui/video_settings.xml'
 MovingTextProps = namedtuple('MovingTextProps', 'show internalBrowser')
+LoginRssFeedProps = namedtuple('LoginRssFeedProps', 'show url internalBrowser')
 EULAProps = namedtuple('EULAProps', 'full url')
+BrowserProps = namedtuple('BrowserProps', 'url params')
+PostBattleExchangeProps = namedtuple('PostBattleExchangeProps', 'enabled url')
+_MacrosValue = namedtuple('MacrosValue', 'macros dictValue')
 
-class GuiSettings:
+def _readMacros(xmlCtx, section, valueName='value'):
+    result = {}
+    name = resource_helper.readItemName(xmlCtx, section)
+    macros = _readItemMacros(xmlCtx, section)
+    subCtx, subSection = resource_helper.getSubSection(xmlCtx, section, valueName)
+    for nextCtx, nextSection in resource_helper.getIterator(subCtx, subSection):
+        item = resource_helper.readItem(nextCtx, nextSection)
+        if not item.name:
+            raise resource_helper.ResourceError(nextCtx, '{0}: name is required in each item'.format(name))
+        result[item.name] = item.value
 
-    @staticmethod
-    def readBoolean(dataSection):
-        """
-        formatter function for boolean values
-        """
-        return dataSection.readBool('')
+    return resource_helper.ResourceItem('macros', name, _MacrosValue(macros, result))
 
-    @staticmethod
-    def readInt(dataSection):
-        """
-        formatter function for integer value
-        """
-        return dataSection.readInt('')
 
-    @staticmethod
-    def readVector2(dataSection):
-        """
-        formatter function for tuple of 2 numbers
-        """
-        return dataSection.asVector2.tuple()
+def _readItemMacros(xmlCtx, section, keys=None):
+    return resource_helper.readItemAttr(xmlCtx, section, 'macros', default='', keys=keys)
 
-    @staticmethod
-    def readVector3(dataSection):
-        """
-        formatter function for tuple of 3 numbers
-        """
-        return dataSection.asVector3.tuple()
 
-    @staticmethod
-    def readVector4(dataSection):
-        """
-        formatter function for tuple of 4 numbers
-        """
-        return dataSection.asVector4.tuple()
+def _convertVector4ToTuple(_, item):
+    return item.value.tuple()
 
-    @staticmethod
-    def readStringsList(dataSection):
-        """
-        formatter function for list of strings
-        """
-        if dataSection is None:
-            return []
-        else:
-            list = []
-            for value in dataSection.values():
-                list.append(value.asString)
 
-            return list
+def _convertToNamedTuple(settings, item):
+    return settings._replace(**item.value)
 
-    @staticmethod
-    def readMovingText(dataSection):
-        return MovingTextProps(dataSection.readBool('show'), dataSection.readBool('internalBrowser'))
 
-    @staticmethod
-    def readEULA(dataSection):
-        return EULAProps(getClientLanguage() in GuiSettings.readStringsList(dataSection['full']), dataSection.readString('url'))
+def _convertEULASetting(settings, item):
+    value = item.value
+    if 'full' in value:
+        value['full'] = getClientLanguage() in value['full']
+    else:
+        value['full'] = False
+    return settings._replace(**item.value)
+
+
+_SETTING_CONVERTERS = {'loginRssFeed': _convertToNamedTuple,
+ 'movingText': _convertToNamedTuple,
+ 'eula': _convertEULASetting,
+ 'markerScaleSettings': _convertVector4ToTuple,
+ 'markerBgSettings': _convertVector4ToTuple,
+ 'browser': _convertToNamedTuple,
+ 'postBattleExchange': _convertToNamedTuple}
+_DEFAULT_SETTINGS = {'registrationURL': '',
+ 'registrationProxyURL': '',
+ 'recoveryPswdURL': '',
+ 'paymentURL': '',
+ 'securitySettingsURL': '',
+ 'supportURL': '',
+ 'migrationURL': '',
+ 'nations_order': nations.AVAILABLE_NAMES[:],
+ 'language_bar': [],
+ 'guiEnabled': True,
+ 'disabledUIElements': [],
+ 'trainingObserverModeEnabled': False,
+ 'minimapSize': True,
+ 'goldTransfer': False,
+ 'voiceChat': True,
+ 'technicalInfo': True,
+ 'nationHangarSpace': False,
+ 'customizationHorns': False,
+ 'showMinimapSuperHeavy': False,
+ 'showMinimapDeath': True,
+ 'permanentMinimapDeath': False,
+ 'markerHitSplashDuration': 0,
+ 'sixthSenseDuration': 0,
+ 'minimapDeathDuration': 0,
+ 'rememberPassVisible': True,
+ 'clearLoginValue': False,
+ 'markerScaleSettings': (0, 0, 0, 0),
+ 'markerBgSettings': (0, 0, 0, 0),
+ 'specPrebatlesVisible': True,
+ 'roaming': True,
+ 'movingText': MovingTextProps(False, False),
+ 'loginRssFeed': LoginRssFeedProps(True, '', False),
+ 'eula': EULAProps(False, ''),
+ 'igrCredentialsReset': False,
+ 'igrEnabled': False,
+ 'battleEndWarningEnabled': True,
+ 'isPollEnabled': False,
+ 'csisRequestRate': 0,
+ 'showSectorLines': False,
+ 'showDirectionLine': False,
+ 'isBattleCmdCoolDownVisible': False,
+ 'browser': BrowserProps('about:blank', ''),
+ 'reportBugLinks': [],
+ 'cache': [],
+ 'imageCache': [],
+ 'postBattleExchange': PostBattleExchangeProps(False, ''),
+ 'actionComeToEnd': time_utils.QUARTER_HOUR,
+ 'useAS3Battle': False,
+ 'goldFishActionShowCooldown': 86400,
+ 'guiScale': [],
+ 'playerFeedbackDelay': 0.75,
+ 'allowedNotSupportedGraphicSettings': {},
+ 'userRoomsService': '',
+ 'cryptLoginInfo': True,
+ 'compulsoryIntroVideos': []}
+
+class GuiSettings(object):
 
     def __init__(self):
         """
         constructs GuiSettings instance using values from guiPresetsResource
         """
-        self.__settings = {}
-        ds = ResMgr.openSection(GUI_SETTINGS_FILE_PATH)
-        if ds is not None:
-            for key, value in ds.items():
-                if key in keyReaders:
-                    self.__settings[key] = keyReaders[key](value)
-                else:
-                    self.__settings[key] = value.asString
+        self.__settings = _DEFAULT_SETTINGS.copy()
+        settings = {}
+        for item in resource_helper.root_iterator(GUI_SETTINGS_FILE_PATH, customReaders={'macros': _readMacros}):
+            if item.name in _SETTING_CONVERTERS:
+                setting = _DEFAULT_SETTINGS[item.name]
+                converter = _SETTING_CONVERTERS[item.name]
+                value = converter(setting, item)
+            else:
+                value = item.value
+            settings[item.name] = value
 
-        else:
-            raise IOError('gui_settins file is missing')
-        for key, reader in externalReaders.iteritems():
-            self.__settings[key] = reader()
-
-        return
+        if constants.IS_DEVELOPMENT:
+            diff = set(self.__settings.keys()) - set(settings.keys())
+            if len(diff):
+                LOG_NOTE('Settings are not in {0}:'.format(GUI_SETTINGS_FILE_PATH), diff)
+        self.__settings.update(settings)
 
     def __getattr__(self, name):
         if name in self.__settings:
-            return self.__settings[name]
+            return self.__applyMacros(self.__settings[name])
         raise AttributeError('Setting not found in {0}: {1}'.format(self.__class__, name))
 
     def __setattr__(self, name, value):
@@ -113,101 +162,40 @@ class GuiSettings:
             LOG_CURRENT_EXCEPTION()
             return False
 
+    def isEmpty(self, name):
+        value = None
+        if name in self.__settings:
+            value = self.__applyMacros(self.__settings[name])
+        return not value
 
-class VideoSettings(object):
+    def isGuiEnabled(self):
+        return self.guiEnabled or not constants.IS_DEVELOPMENT
 
-    def __init__(self):
-        """
-        Initialization.
-        """
-        super(VideoSettings, self).__init__()
-        self.__setting = {'audio': {},
-         'subtitles': {}}
+    def lookup(self, name):
+        settings = None
+        if name in self.__settings:
+            settings = self.__applyMacros(self.__settings[name])
+        return settings
 
-    def read(self, path):
-        """
-        Reads video setting from file.
-        @param path: path to file with video setting.
-        """
-        section = ResMgr.openSection(path)
-        if section is None:
-            LOG_WARNING('File with video settings not found. Uses default values', path)
-            return
-        else:
-            tags = section.keys()
-            if 'audio' in tags:
-                self.__setting['audio'] = self.__readTracks(section['audio'])
-            if 'subtitles' in tags:
-                self.__setting['subtitles'] = self.__readTracks(section['subtitles'], offset=1)
-            return self
+    def __applyMacros(self, value):
+        if isinstance(value, _MacrosValue):
+            macros = value.macros
+            dictValue = value.dictValue
+            simpleMacroses = macroses.getSyncMacroses()
+            if macros in simpleMacroses:
+                macrosKey = simpleMacroses[macros]()
+            else:
+                if macros == 'MACROS_DICT':
+                    value = {}
+                    for key, mValue in dictValue.iteritems():
+                        value[key] = self.__applyMacros(mValue)
 
-    @property
-    def audioTrack(self):
-        """
-        Returns number of audio track by language code. If track not found than
-        returns 0.
-        @return: number of audio track.
-        """
-        audio = self.__setting['audio']
-        code = getClientLanguage()
-        if code in audio:
-            return audio[code]
-        return 0
-
-    @property
-    def subtitleTrack(self):
-        """
-        Returns number of subtitle by language code. If track not found than
-        returns 0.
-        Note: subtitle track 0 turns subtitles off.
-        @return: number of subtitle track.
-        """
-        subtitles = self.__setting['subtitles']
-        code = getClientLanguage()
-        if code in subtitles:
-            return subtitles[code]
-        return 0
-
-    def __readTracks(self, section, offset = 0):
-        result = {}
-        for idx, subSec in enumerate(section.values()):
-            for langSec in subSec.values():
-                lang = langSec.asString
-                if len(lang) > 0:
-                    result[lang] = idx + offset
-
-        return result
-
-
-keyReaders = {'nations_order': GuiSettings.readStringsList,
- 'language_bar': GuiSettings.readStringsList,
- 'minimapSize': GuiSettings.readBoolean,
- 'goldTransfer': GuiSettings.readBoolean,
- 'voiceChat': GuiSettings.readBoolean,
- 'technicalInfo': GuiSettings.readBoolean,
- 'nationHangarSpace': GuiSettings.readBoolean,
- 'customizationCamouflages': GuiSettings.readBoolean,
- 'customizationHorns': GuiSettings.readBoolean,
- 'customizationEmblems': GuiSettings.readBoolean,
- 'customizationInscriptions': GuiSettings.readBoolean,
- 'showMinimapSuperHeavy': GuiSettings.readBoolean,
- 'showMinimapDeath': GuiSettings.readBoolean,
- 'permanentMinimapDeath': GuiSettings.readBoolean,
- 'markerHitSplashDuration': GuiSettings.readInt,
- 'sixthSenseDuration': GuiSettings.readInt,
- 'minimapDeathDuration': GuiSettings.readInt,
- 'rememberPassVisible': GuiSettings.readBoolean,
- 'clearLoginValue': GuiSettings.readBoolean,
- 'markerScaleSettings': GuiSettings.readVector4,
- 'markerBgSettings': GuiSettings.readVector4,
- 'specPrebatlesVisible': GuiSettings.readBoolean,
- 'battleStatsInHangar': GuiSettings.readBoolean,
- 'freeXpToTankman': GuiSettings.readBoolean,
- 'roaming': GuiSettings.readBoolean,
- 'movingText': GuiSettings.readMovingText,
- 'eula': GuiSettings.readEULA,
- 'igrCredentialsReset': GuiSettings.readBoolean}
-externalReaders = {'video': lambda : VideoSettings().read(VIDEO_SETTINGS_FILE_PATH)}
-# okay decompyling res/scripts/client/gui/guisettings.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:25:35 EST
+                    return value
+                raise AttributeError("Unsupported macros '{0}', not found in {1}".format(macros, simpleMacroses))
+            if macrosKey in dictValue:
+                return self.__applyMacros(dictValue[macrosKey])
+            if 'default' in dictValue:
+                return self.__applyMacros(dictValue['default'])
+            raise AttributeError("Incorrect section in {0}, dict {1} with macros '{2}' should contains item '{3}' or 'default'".format(GUI_SETTINGS_FILE_PATH, dictValue, macros, macrosKey))
+        return value
+# okay decompiling ./res/scripts/client/gui/guisettings.pyc

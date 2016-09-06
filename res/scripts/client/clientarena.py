@@ -1,15 +1,19 @@
-# 2013.11.15 11:25:29 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/ClientArena.py
 import Math
-import BigWorld, ResMgr
+import BigWorld
+import ResMgr
 import ArenaType
 from items import vehicles
 import constants
 import cPickle
+import zlib
 import Event
-from constants import ARENA_PERIOD, ARENA_UPDATE
+from constants import ARENA_PERIOD, ARENA_UPDATE, FLAG_STATE
 from PlayerEvents import g_playerEvents
 from debug_utils import *
+from CTFManager import g_ctfManager
+from helpers.EffectsList import FalloutDestroyEffect
 
 class ClientArena(object):
     __onUpdate = {ARENA_UPDATE.VEHICLE_LIST: '_ClientArena__onVehicleListUpdate',
@@ -22,7 +26,19 @@ class ClientArena(object):
      ARENA_UPDATE.BASE_POINTS: '_ClientArena__onBasePointsUpdate',
      ARENA_UPDATE.BASE_CAPTURED: '_ClientArena__onBaseCaptured',
      ARENA_UPDATE.TEAM_KILLER: '_ClientArena__onTeamKiller',
-     ARENA_UPDATE.VEHICLE_UPDATED: '_ClientArena__onVehicleUpdatedUpdate'}
+     ARENA_UPDATE.VEHICLE_UPDATED: '_ClientArena__onVehicleUpdatedUpdate',
+     ARENA_UPDATE.COMBAT_EQUIPMENT_USED: '_ClientArena__onCombatEquipmentUsed',
+     ARENA_UPDATE.RESPAWN_AVAILABLE_VEHICLES: '_ClientArena__onRespawnAvailableVehicles',
+     ARENA_UPDATE.RESPAWN_COOLDOWNS: '_ClientArena__onRespawnCooldowns',
+     ARENA_UPDATE.RESPAWN_RANDOM_VEHICLE: '_ClientArena__onRespawnRandomVehicle',
+     ARENA_UPDATE.RESPAWN_RESURRECTED: '_ClientArena__onRespawnResurrected',
+     ARENA_UPDATE.FLAG_TEAMS: '_ClientArena__onFlagTeamsReceived',
+     ARENA_UPDATE.FLAG_STATE_CHANGED: '_ClientArena__onFlagStateChanged',
+     ARENA_UPDATE.INTERACTIVE_STATS: '_ClientArena__onInteractiveStats',
+     ARENA_UPDATE.DISAPPEAR_BEFORE_RESPAWN: '_ClientArena__onDisappearVehicleBeforeRespawn',
+     ARENA_UPDATE.RESOURCE_POINT_STATE_CHANGED: '_ClientArena__onResourcePointStateChanged',
+     ARENA_UPDATE.OWN_VEHICLE_INSIDE_RP: '_ClientArena__onOwnVehicleInsideRP',
+     ARENA_UPDATE.OWN_VEHICLE_LOCKED_FOR_RP: '_ClientArena__onOwnVehicleLockedForRP'}
 
     def __init__(self, arenaUniqueID, arenaTypeID, arenaBonusType, arenaGuiType, arenaExtraData, weatherPresetID):
         self.__vehicles = {}
@@ -47,8 +63,17 @@ class ClientArena(object):
         self.onTeamBasePointsUpdate = Event.Event(em)
         self.onTeamBaseCaptured = Event.Event(em)
         self.onTeamKiller = Event.Event(em)
+        self.onCombatEquipmentUsed = Event.Event(em)
+        self.onRespawnAvailableVehicles = Event.Event(em)
+        self.onRespawnCooldowns = Event.Event(em)
+        self.onRespawnRandomVehicle = Event.Event(em)
+        self.onRespawnResurrected = Event.Event(em)
+        self.onInteractiveStats = Event.Event(em)
+        self.onVehicleWillRespawn = Event.Event(em)
         self.arenaUniqueID = arenaUniqueID
-        self.arenaType = ArenaType.g_cache[arenaTypeID]
+        self.arenaType = ArenaType.g_cache.get(arenaTypeID, None)
+        if self.arenaType is None:
+            LOG_ERROR('Arena ID not found ', arenaTypeID)
         self.bonusType = arenaBonusType
         self.guiType = arenaGuiType
         self.extraData = arenaExtraData
@@ -75,10 +100,10 @@ class ClientArena(object):
 
     def updatePositions(self, indices, positions):
         self.__positions.clear()
-        lenPos = indices and len(positions)
-        lenInd = len(indices)
-        if not lenPos == 2 * lenInd:
-            raise AssertionError
+        if indices:
+            lenPos = len(positions)
+            lenInd = len(indices)
+            assert lenPos == 2 * lenInd
             indexToId = self.__vehicleIndexToId
             for i in xrange(0, lenInd):
                 if indices[i] in indexToId:
@@ -109,7 +134,7 @@ class ClientArena(object):
         return True
 
     def __onVehicleListUpdate(self, argStr):
-        list = cPickle.loads(argStr)
+        list = cPickle.loads(zlib.decompress(argStr))
         vehicles = self.__vehicles
         vehicles.clear()
         for infoAsTuple in list:
@@ -120,26 +145,26 @@ class ClientArena(object):
         self.onNewVehicleListReceived()
 
     def __onVehicleAddedUpdate(self, argStr):
-        infoAsTuple = cPickle.loads(argStr)
+        infoAsTuple = cPickle.loads(zlib.decompress(argStr))
         id, info = self.__vehicleInfoAsDict(infoAsTuple)
         self.__vehicles[id] = info
         self.__rebuildIndexToId()
         self.onVehicleAdded(id)
 
     def __onVehicleUpdatedUpdate(self, argStr):
-        infoAsTuple = cPickle.loads(argStr)
+        infoAsTuple = cPickle.loads(zlib.decompress(argStr))
         id, info = self.__vehicleInfoAsDict(infoAsTuple)
         self.__vehicles[id] = info
         self.onVehicleUpdated(id)
 
     def __onPeriodInfoUpdate(self, argStr):
-        self.__periodInfo = cPickle.loads(argStr)
+        self.__periodInfo = cPickle.loads(zlib.decompress(argStr))
         self.onPeriodChange(*self.__periodInfo)
         g_playerEvents.onArenaPeriodChange(*self.__periodInfo)
 
     def __onStatisticsUpdate(self, argStr):
         self.__statistics = {}
-        statList = cPickle.loads(argStr)
+        statList = cPickle.loads(zlib.decompress(argStr))
         for s in statList:
             vehicleID, stats = self.__vehicleStatisticsAsDict(s)
             self.__statistics[vehicleID] = stats
@@ -147,16 +172,16 @@ class ClientArena(object):
         self.onNewStatisticsReceived()
 
     def __onVehicleStatisticsUpdate(self, argStr):
-        vehicleID, stats = self.__vehicleStatisticsAsDict(cPickle.loads(argStr))
+        vehicleID, stats = self.__vehicleStatisticsAsDict(cPickle.loads(zlib.decompress(argStr)))
         self.__statistics[vehicleID] = stats
         self.onVehicleStatisticsUpdate(vehicleID)
 
     def __onVehicleKilled(self, argStr):
-        victimID, killerID, reason = cPickle.loads(argStr)
+        victimID, killerID, equipmentID, reason = cPickle.loads(argStr)
         vehInfo = self.__vehicles.get(victimID, None)
         if vehInfo is not None:
             vehInfo['isAlive'] = False
-            self.onVehicleKilled(victimID, killerID, reason)
+            self.onVehicleKilled(victimID, killerID, equipmentID, reason)
         return
 
     def __onAvatarReady(self, argStr):
@@ -168,8 +193,8 @@ class ClientArena(object):
         return
 
     def __onBasePointsUpdate(self, argStr):
-        team, baseID, points, capturingStopped = cPickle.loads(argStr)
-        self.onTeamBasePointsUpdate(team, baseID, points, capturingStopped)
+        team, baseID, points, timeLeft, invadersCnt, capturingStopped = cPickle.loads(argStr)
+        self.onTeamBasePointsUpdate(team, baseID, points, timeLeft, invadersCnt, capturingStopped)
 
     def __onBaseCaptured(self, argStr):
         team, baseID = cPickle.loads(argStr)
@@ -182,6 +207,62 @@ class ClientArena(object):
             vehInfo['isTeamKiller'] = True
             self.onTeamKiller(vehicleID)
         return
+
+    def __onCombatEquipmentUsed(self, argStr):
+        shooterID, equipmentID = cPickle.loads(argStr)
+        self.onCombatEquipmentUsed(shooterID, equipmentID)
+
+    def __onRespawnAvailableVehicles(self, argStr):
+        vehsList = cPickle.loads(zlib.decompress(argStr))
+        self.onRespawnAvailableVehicles(vehsList)
+        LOG_DEBUG_DEV('[RESPAWN] onRespawnAvailableVehicles', vehsList)
+
+    def __onRespawnCooldowns(self, argStr):
+        cooldowns = cPickle.loads(zlib.decompress(argStr))
+        self.onRespawnCooldowns(cooldowns)
+
+    def __onRespawnRandomVehicle(self, argStr):
+        respawnInfo = cPickle.loads(zlib.decompress(argStr))
+        self.onRespawnRandomVehicle(respawnInfo)
+
+    def __onRespawnResurrected(self, argStr):
+        respawnInfo = cPickle.loads(zlib.decompress(argStr))
+        self.onRespawnResurrected(respawnInfo)
+
+    def __onDisappearVehicleBeforeRespawn(self, argStr):
+        vehID = cPickle.loads(argStr)
+        FalloutDestroyEffect.play(vehID)
+        self.onVehicleWillRespawn(vehID)
+
+    def __onFlagTeamsReceived(self, argStr):
+        data = cPickle.loads(argStr)
+        LOG_DEBUG('[FLAGS] flag teams', data)
+        g_ctfManager.onFlagTeamsReceived(data)
+
+    def __onFlagStateChanged(self, argStr):
+        data = cPickle.loads(argStr)
+        LOG_DEBUG('[FLAGS] flag state changed', data)
+        g_ctfManager.onFlagStateChanged(data)
+
+    def __onResourcePointStateChanged(self, argStr):
+        data = cPickle.loads(argStr)
+        LOG_DEBUG('[RESOURCE POINTS] state changed', data)
+        g_ctfManager.onResourcePointStateChanged(data)
+
+    def __onOwnVehicleInsideRP(self, argStr):
+        pointInfo = cPickle.loads(argStr)
+        LOG_DEBUG('[RESOURCE POINTS] own vehicle inside point', pointInfo)
+        g_ctfManager.onOwnVehicleInsideRP(pointInfo)
+
+    def __onOwnVehicleLockedForRP(self, argStr):
+        unlockTime = cPickle.loads(argStr)
+        LOG_DEBUG('[RESOURCE POINTS] own vehicle is locked', unlockTime)
+        g_ctfManager.onOwnVehicleLockedForRP(unlockTime)
+
+    def __onInteractiveStats(self, argStr):
+        stats = cPickle.loads(zlib.decompress(argStr))
+        self.onInteractiveStats(stats)
+        LOG_DEBUG_DEV('[RESPAWN] onInteractiveStats', stats)
 
     def __rebuildIndexToId(self):
         vehicles = self.__vehicles
@@ -200,8 +281,10 @@ class ClientArena(object):
          'clanDBID': info[9],
          'prebattleID': info[10],
          'isPrebattleCreator': bool(info[11]),
-         'events': info[12],
-         'igrType': info[13]}
+         'forbidInBattleInvitations': bool(info[12]),
+         'events': info[13],
+         'igrType': info[14],
+         'potapovQuestIDs': info[15]}
         return (info[0], infoAsDict)
 
     def __vehicleStatisticsAsDict(self, stats):
@@ -213,10 +296,7 @@ def _convertToList(vec4):
 
 
 def _pointInBB(bottomLeft2D, upperRight2D, point3D, minMaxHeight):
-    if bottomLeft2D[0] < point3D[0] < upperRight2D[0] and bottomLeft2D[1] < point3D[2] < upperRight2D[1] and minMaxHeight[0] < point3D[1] < minMaxHeight[1]:
-        return True
-    else:
-        return False
+    return bottomLeft2D[0] < point3D[0] < upperRight2D[0] and bottomLeft2D[1] < point3D[2] < upperRight2D[1] and minMaxHeight[0] < point3D[1] < minMaxHeight[1]
 
 
 class _BBCollider():
@@ -272,6 +352,4 @@ class Plane():
         if self.n.dot(point) - self.d >= 0.0:
             return True
         return False
-# okay decompyling res/scripts/client/clientarena.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:25:29 EST
+# okay decompiling ./res/scripts/client/clientarena.pyc

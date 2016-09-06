@@ -1,18 +1,17 @@
-__author__ = 'i_maliavko'
-from debug_utils import *
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/shared/gui_items/artefacts.py
+from debug_utils import LOG_CURRENT_EXCEPTION
 from items import artefacts
 from gui.shared.gui_items import FittingItem
+from gui.shared.money import Currency
 
 class VehicleArtefact(FittingItem):
-    """
-    Root class for equipments and optional devices.
-    """
 
     @property
     def icon(self):
         return self.descriptor.icon[0]
 
-    def _getShortInfo(self, _ = None):
+    def _getShortInfo(self, vehicle=None, expanded=False):
         return self.shortDescription
 
     @property
@@ -29,43 +28,99 @@ class VehicleArtefact(FittingItem):
 
 
 class Equipment(VehicleArtefact):
-    """
-    Equipment item.
-    """
 
-    def _getActionPrice(self, buyPrice, proxy):
+    def _getAltPrice(self, buyPrice, proxy):
         """ Overridden method for receiving special action price value for shells
         @param buyPrice:
         @param proxy:
-        @return: (gold, credits)
+        @return: an instance of Money class
         """
-        return (buyPrice[0] + buyPrice[1] * proxy.shop.exchangeRateForShellsAndEqs, buyPrice[1])
+        creditsPrice = buyPrice.exchange(Currency.GOLD, Currency.CREDITS, proxy.exchangeRateForShellsAndEqs)
+        return buyPrice.replace(Currency.CREDITS, creditsPrice.credits)
+
+    @property
+    def icon(self):
+        return '../maps/icons/artefact/%s.png' % super(Equipment, self).icon
 
     @property
     def tags(self):
         return self.descriptor.tags
 
-    def mayInstall(self, vehicle, slotIdx = 0):
+    @property
+    def defaultLayoutValue(self):
+        return (self.intCD if not self.isBoughtForCredits else -self.intCD, 1)
+
+    def isInstalled(self, vehicle, slotIdx=None):
         for idx, eq in enumerate(vehicle.eqs):
-            if idx == slotIdx or eq is None:
+            if eq is not None and self.intCD == eq.intCD:
+                if slotIdx is None:
+                    return True
+                return idx == slotIdx
+
+        return super(Equipment, self).isInstalled(vehicle, slotIdx)
+
+    def mayInstall(self, vehicle, slotIdx=None):
+        for idx, eq in enumerate(vehicle.eqs):
+            if slotIdx is not None and idx == slotIdx or eq is None:
                 continue
             if eq.intCD != self.intCD:
                 installPossible = eq.descriptor.checkCompatibilityWithActiveEquipment(self.descriptor)
                 if installPossible:
-                    if not self.descriptor.checkCompatibilityWithEquipment(eq.descriptor):
-                        return (False, 'not with installed equipment')
+                    installPossible = self.descriptor.checkCompatibilityWithEquipment(eq.descriptor)
+                if not installPossible:
+                    return (False, 'not with installed equipment')
 
-        return (True, '')
+        return self.descriptor.checkCompatibilityWithVehicle(vehicle.descriptor)
+
+    def getInstalledVehicles(self, vehicles):
+        result = set()
+        for vehicle in vehicles:
+            installed = map(lambda x: (x.intCD if x is not None else None), vehicle.eqs)
+            if self.intCD in installed:
+                result.add(vehicle)
+
+        return result
+
+    def getConflictedEquipments(self, vehicle):
+        conflictEqs = list()
+        if self in vehicle.eqs:
+            return conflictEqs
+        else:
+            for e in vehicle.eqs:
+                if e is not None:
+                    compatibility = e.descriptor.checkCompatibilityWithActiveEquipment(self.descriptor)
+                    if compatibility:
+                        compatibility = self.descriptor.checkCompatibilityWithEquipment(e.descriptor)
+                    if not compatibility:
+                        conflictEqs.append(e)
+
+            return conflictEqs
+
+    def getGUIEmblemID(self):
+        return super(Equipment, self).icon
 
 
 class OptionalDevice(VehicleArtefact):
-    """
-    Optional device item.
-    """
+
+    def __init__(self, intCompactDescr, proxy=None, isBoughtForCredits=False):
+        super(OptionalDevice, self).__init__(intCompactDescr, proxy, isBoughtForCredits)
+        splitIcon = self.icon.split('/')
+        labelWithExtension = splitIcon[len(splitIcon) - 1]
+        label = labelWithExtension.split('.')[0]
+        self.GUIEmblemID = label
 
     @property
     def isRemovable(self):
         return self.descriptor['removable']
+
+    def isInstalled(self, vehicle, slotIdx=None):
+        for idx, op in enumerate(vehicle.optDevices):
+            if op is not None and self.intCD == op.intCD:
+                if slotIdx is None:
+                    return True
+                return idx == slotIdx
+
+        return super(OptionalDevice, self).isInstalled(vehicle, slotIdx)
 
     def mayInstall(self, vehicle, slotIdx):
         return vehicle.descriptor.mayInstallOptionalDevice(self.intCD, slotIdx)
@@ -77,3 +132,16 @@ class OptionalDevice(VehicleArtefact):
         except Exception:
             LOG_CURRENT_EXCEPTION()
             return (False, 'not installed on vehicle')
+
+    def getInstalledVehicles(self, vehicles):
+        result = set()
+        for vehicle in vehicles:
+            installed = map(lambda x: (x.intCD if x is not None else None), vehicle.optDevices)
+            if self.intCD in installed:
+                result.add(vehicle)
+
+        return result
+
+    def getGUIEmblemID(self):
+        return self.GUIEmblemID
+# okay decompiling ./res/scripts/client/gui/shared/gui_items/artefacts.pyc

@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/framework/entities/DisposableEntity.py
 from Event import Event
 from debug_utils import LOG_DEBUG
 __author__ = 'd_trofimov'
@@ -31,3 +33,7 @@ class DisposableEntity(object):
 
     def _isCreated(self):
         return self.__created
+
+    def isDisposed(self):
+        return self.__disposed
+# okay decompiling ./res/scripts/client/gui/scaleform/framework/entities/disposableentity.pyc

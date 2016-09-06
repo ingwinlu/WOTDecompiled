@@ -1,16 +1,30 @@
-# 2013.11.15 11:27:07 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/helpers/EffectsList.py
 import BigWorld
-import ResMgr
-import Pixie
 import Math
+from collections import namedtuple
 import random
 import DecalMap
 import material_kinds
+import helpers
 from debug_utils import *
 from functools import partial
+from PixieBG import PixieBG
 import string
-g_disableEffects = False
+import SoundGroups
+_ALLOW_DYNAMIC_LIGHTS = True
+KeyPoint = namedtuple('KeyPoint', ('name', 'time'))
+EffectsTimeLine = namedtuple('EffectsTimeLine', ('keyPoints', 'effectsList'))
+EffectsTimeLinePrereqs = namedtuple('EffectsTimeLinePrereqs', ('keyPoints', 'effectsList', 'prereqs'))
+
+class SpecialKeyPointNames:
+    START = 'start'
+    END = 'end'
+    STATIC = 'static'
+
+
+__START_KEY_POINT = KeyPoint(SpecialKeyPointNames.START, 0.0)
+SoundStartParam = namedtuple('SoundStartParam', ('name', 'value'))
 
 def reload():
     import __builtin__
@@ -22,14 +36,21 @@ class EffectsList(object):
 
     def __init__(self, section):
         self.__effectDescList = []
+        self.relatedEffects = {}
         for s in section.items():
             effDesc = _createEffectDesc(s[0], s[1])
-            self.__effectDescList.append(effDesc)
+            if effDesc is not None:
+                self.__effectDescList.append(effDesc)
+
+        return
 
     def prerequisites(self):
         out = []
         for effDesc in self.__effectDescList:
             out += effDesc.prerequisites()
+
+        for relatedEffect in self.relatedEffects.itervalues():
+            out += relatedEffect.effectsList.prerequisites()
 
         return out
 
@@ -38,6 +59,16 @@ class EffectsList(object):
             data['_EffectsList_effects'] = []
         for eff in self.__effectDescList:
             if eff.startKey == key:
+                if args.has_key('keyPoints'):
+                    startTime = endTime = 0
+                    for keyPoint in args['keyPoints']:
+                        if keyPoint.name == eff.startKey:
+                            startTime = keyPoint.time
+                        endTime = keyPoint.time
+                        if keyPoint.name == eff.endKey:
+                            break
+
+                    eff.duration = endTime - startTime
                 eff.create(model, data['_EffectsList_effects'], args)
 
     def reattachTo(self, model, data):
@@ -51,7 +82,7 @@ class EffectsList(object):
                 if elem['typeDesc'].delete(elem, 1):
                     effects.remove(elem)
 
-    def detachAllFrom(self, data, keepPosteffects = False):
+    def detachAllFrom(self, data, keepPosteffects=False):
         effects = data['_EffectsList_effects']
         if keepPosteffects:
             for elem in effects[:]:
@@ -64,6 +95,156 @@ class EffectsList(object):
             effects.remove(elem)
 
         del data['_EffectsList_effects']
+
+
+class EffectsListPlayer:
+    effectsList = property(lambda self: self.__effectsList)
+    isPlaying = property(lambda self: self.__isStarted)
+    activeEffects = []
+
+    @staticmethod
+    def clear():
+        import BattleReplay
+        replayCtrl = BattleReplay.g_replayCtrl
+        if not replayCtrl.isPlaying:
+            return
+        else:
+            warpDelta = replayCtrl.warpTime - replayCtrl.currentTime
+            for effect in EffectsListPlayer.activeEffects[:]:
+                if effect.__waitForKeyOff and warpDelta > 0.0:
+                    continue
+                if warpDelta <= 0.0 or effect.__keyPoints[-1].time - effect.__curKeyPoint.time < warpDelta:
+                    if effect.__callbackFunc is not None:
+                        effect.__callbackFunc()
+                    effect.stop()
+
+            return
+
+    def __init__(self, effectsList, keyPoints, **args):
+        self.__keyPoints = keyPoints
+        self.__effectsList = effectsList
+        self.__args = args
+        self.__args['keyPoints'] = self.__keyPoints
+        self.__curKeyPoint = None
+        self.__callbackFunc = None
+        self.__keyPointIdx = -1
+        self.__isStarted = False
+        self.__waitForKeyOff = False
+        return
+
+    def play(self, model, startKeyPoint=None, callbackFunc=None, waitForKeyOff=False):
+        needPlay, newKey = self.__isNeedToPlay(waitForKeyOff)
+        if not needPlay:
+            return
+        else:
+            if newKey is not None:
+                startKeyPoint = newKey
+            if self.__isStarted:
+                LOG_ERROR('player already started. To restart it you must before call stop().')
+                return
+            import BattleReplay
+            if BattleReplay.g_replayCtrl.isPlaying:
+                EffectsListPlayer.activeEffects.append(self)
+            self.__isStarted = True
+            self.__callbackID = None
+            self.__model = model
+            self.__data = {}
+            self.__callbackFunc = callbackFunc
+            self.__waitForKeyOff = waitForKeyOff
+            self.__keyPointIdx = self.__getKeyPointIdx(startKeyPoint) if startKeyPoint is not None else 0
+            self.__keyPointIdx -= 1
+            self.__effectsList.attachTo(self.__model, self.__data, None, **self.__args)
+            firstTimePoint = self.__keyPoints[self.__keyPointIdx + 1].time
+            if self.__keyPointIdx < 0 and startKeyPoint is None and firstTimePoint > 0.0:
+                self.__callbackID = BigWorld.callback(firstTimePoint, self.__playKeyPoint)
+            else:
+                self.__playKeyPoint(waitForKeyOff)
+            return
+
+    def keyOff(self, waitForNextKeyOff=False):
+        if self.__isStarted:
+            self.__playKeyPoint(waitForNextKeyOff)
+
+    def reattachTo(self, model):
+        if self.__isStarted:
+            self.__effectsList.reattachTo(model, self.__data)
+            self.__model = model
+
+    def __isNeedToPlay(self, waitForKeyOff):
+        if helpers.gEffectsDisabled():
+            return (False, None)
+        import BattleReplay
+        replayCtrl = BattleReplay.g_replayCtrl
+        if replayCtrl.isPlaying:
+            entity_id = -1
+            if 'entity_id' in self.__args:
+                entity_id = self.__args['entity_id']
+            need_play = True
+            if entity_id > -1:
+                need_play = replayCtrl.isNeedToPlay(entity_id)
+            if need_play:
+                if replayCtrl.isTimeWarpInProgress:
+                    if not waitForKeyOff:
+                        warpDelta = replayCtrl.warpTime - replayCtrl.currentTime
+                        if self.__keyPoints[-1].time / 2 < warpDelta:
+                            return (False, None)
+                else:
+                    return (True, None)
+            for key in self.__keyPoints:
+                if key.name == SpecialKeyPointNames.STATIC:
+                    return (True, SpecialKeyPointNames.STATIC)
+
+            return (False, None)
+        else:
+            return (True, None)
+
+    def stop(self, keepPosteffects=False, forceCallback=False):
+        if not self.__isStarted:
+            return
+        else:
+            if forceCallback and self.__callbackFunc is not None:
+                self.__callbackFunc()
+            import BattleReplay
+            if BattleReplay.g_replayCtrl.isPlaying:
+                EffectsListPlayer.activeEffects.remove(self)
+            self.__isStarted = False
+            if self.__callbackID is not None:
+                BigWorld.cancelCallback(self.__callbackID)
+                self.__callbackID = None
+            self.__effectsList.detachAllFrom(self.__data, keepPosteffects)
+            self.__model = None
+            self.__data = None
+            self.__curKeyPoint = None
+            self.__callbackFunc = None
+            return
+
+    def __getKeyPointIdx(self, name):
+        for i, keyPoint in enumerate(self.__keyPoints):
+            if keyPoint.name == name:
+                return i
+
+    def __playKeyPoint(self, waitForKeyOff=False):
+        self.__callbackID = None
+        try:
+            self.__keyPointIdx += 1
+            if self.__keyPointIdx + 1 >= len(self.__keyPoints):
+                if self.__callbackFunc:
+                    self.__callbackFunc()
+                self.stop()
+                return
+            self.__curKeyPoint = self.__keyPoints[self.__keyPointIdx]
+            nextKeyPoint = self.__keyPoints[self.__keyPointIdx + 1]
+            self.__effectsList.detachFrom(self.__data, self.__curKeyPoint.name)
+            self.__effectsList.attachTo(self.__model, self.__data, self.__curKeyPoint.name, **self.__args)
+            deltaTime = nextKeyPoint.time - self.__curKeyPoint.time
+            if deltaTime == 0.0:
+                self.__playKeyPoint(waitForKeyOff)
+            elif not waitForKeyOff:
+                self.__callbackID = BigWorld.callback(deltaTime, self.__playKeyPoint)
+        except Exception:
+            LOG_CURRENT_EXCEPTION()
+
+        return
 
 
 class _EffectDesc:
@@ -94,9 +275,12 @@ class _PixieEffectDesc(_EffectDesc):
 
     def __init__(self, dataSection):
         _EffectDesc.__init__(self, dataSection)
-        self._files = dataSection.readStrings('file')
+        self._files = [ f for f in dataSection.readStrings('file') if f ]
         if len(self._files) == 0:
             _raiseWrongConfig('file', self.TYPE)
+        self._havokFiles = None
+        if dataSection.readBool('hasHavokVersion', False):
+            self._havokFiles = tuple([ self.__getHavokFileName(f) for f in self._files ])
         self._force = 0
         key = 'force'
         if dataSection.has_key(key):
@@ -121,16 +305,13 @@ class _PixieEffectDesc(_EffectDesc):
 
     def reattach(self, elem, model):
         nodePos = self._pos
-        if self._alwaysUpdate:
-            BigWorld.delAlwaysUpdateModel(elem['model'])
-            BigWorld.addAlwaysUpdateModel(model)
         elem['model'] = model
         if elem['newPos'] is not None:
             nodePos = string.split(elem['newPos'][0], '/') if elem['newPos'][0] else []
-        if elem['pixie'] is not None and elem['pixie'] in elem['node'].attachments:
-            elem['node'].detach(elem['pixie'])
+        if elem['pixie'].pixie is not None:
+            elem['node'].detach(elem['pixie'].pixie)
             elem['node'] = _findTargetNode(model, nodePos, elem['newPos'][1] if elem['newPos'] else None, self._orientByClosestSurfaceNormal, elem['surfaceNormal'])
-            elem['node'].attach(elem['pixie'])
+            elem['node'].attach(elem['pixie'].pixie)
         else:
             elem['node'] = _findTargetNode(model, nodePos, None, self._orientByClosestSurfaceNormal, elem['surfaceNormal'])
         return
@@ -153,59 +334,48 @@ class _PixieEffectDesc(_EffectDesc):
         elem['model'] = model
         elem['typeDesc'] = self
         elem['pixie'] = None
-        elem['cancelLoadCallback'] = False
-        elem['callbackID'] = None
-        if self._alwaysUpdate:
-            BigWorld.addAlwaysUpdateModel(model)
-        file = random.choice(self._files)
+        if self._havokFiles is None:
+            file = random.choice(self._files)
+        else:
+            file, fileToClear = random.choice(zip(self._files, self._havokFiles))
+            if args.get('havokEnabled', False):
+                file, fileToClear = fileToClear, file
+            self.__prototypePixies.pop(fileToClear, None)
         prototypePixie = self.__prototypePixies.get(file)
         if prototypePixie is not None:
-            elem['pixie'] = prototypePixie.clone()
-            elem['callbackID'] = BigWorld.callback(0.001, partial(self._callbackCreate, elem))
+            elem['pixie'] = PixieBG(file, None, prototypePixie.clone())
+            self._callbackCreate(elem)
         else:
             elem['file'] = file
-            Pixie.createBG(file, partial(self._callbackAfterLoading, elem))
+            elem['pixie'] = PixieBG(file, partial(self._callbackAfterLoading, elem))
         list.append(elem)
         return
 
     def delete(self, elem, reason):
-        callbackID = elem['callbackID']
-        if callbackID is not None:
-            BigWorld.cancelCallback(callbackID)
-            elem['callbackID'] = None
-        elif elem['pixie'] is None:
-            elem['cancelLoadCallback'] = True
-        else:
-            elem['node'].detach(elem['pixie'])
+        if elem['pixie'].pixie is not None:
+            elem['node'].detach(elem['pixie'].pixie)
         elem['pixie'] = None
-        if self._alwaysUpdate:
-            BigWorld.delAlwaysUpdateModel(elem['model'])
         return True
 
-    def _callbackAfterLoading(self, elem, pixie):
-        if pixie is None:
-            LOG_ERROR("Can't create pixie '%s'." % elem['file'])
-            return
-        else:
-            if not elem['cancelLoadCallback']:
-                self.__prototypePixies[elem['file']] = pixie
-                elem['pixie'] = pixie.clone()
-                elem['callbackID'] = BigWorld.callback(0.001, partial(self._callbackCreate, elem))
-            return
+    def _callbackAfterLoading(self, elem, pixieBG):
+        self.__prototypePixies[elem['file']] = pixieBG.pixie.clone()
+        self._callbackCreate(elem)
 
     def _callbackCreate(self, elem):
-        if elem['pixie'] is None:
-            LOG_CODEPOINT_WARNING()
-            return
-        else:
-            scale = elem.get('scale')
+        scale = elem.get('scale')
+        pixie = elem['pixie']
+        if pixie is not None:
             if scale is not None:
-                elem['pixie'].scale = scale
-            elem['callbackID'] = None
-            if self._force > 0:
-                elem['pixie'].force(self._force)
-            elem['node'].attach(elem['pixie'])
-            return
+                pixie.scale(scale)
+            pixie.force(self._force)
+            elem['node'].attach(pixie.pixie)
+        return
+
+    @staticmethod
+    def __getHavokFileName(fileName):
+        import os
+        fileName, fileExtension = os.path.splitext(fileName)
+        return fileName + '_havok' + fileExtension
 
 
 class _AnimationEffectDesc(_EffectDesc):
@@ -290,7 +460,7 @@ class _ModelEffectDesc(_EffectDesc):
         if elem['newPos'] is not None:
             nodeName = string.split(elem['newPos'][0], '/') if elem['newPos'][0] else []
         targetNode = _findTargetNode(model, nodeName, elem['newPos'][1] if elem['newPos'] else None)
-        targetNode.attach(currentModel)
+        targetNode.attach(model)
         return
 
     def create(self, model, list, args):
@@ -316,105 +486,269 @@ class _ModelEffectDesc(_EffectDesc):
         return True
 
 
-class _SoundEffectDesc(_EffectDesc):
+class _BaseSoundEvent(_EffectDesc, object):
+
+    def __init__(self, dataSection):
+        _EffectDesc.__init__(self, dataSection)
+        self._soundName = (dataSection.readString('wwsoundPC', ''), dataSection.readString('wwsoundNPC', ''))
+
+    def reattach(self, elem, model):
+        sound = elem.get('sound')
+        if sound is not None:
+            elem['node'] = node = _findTargetNodeSafe(model, self._pos)
+            sound.matrixProvider = node.actualNode
+        else:
+            elem['node'] = None
+        return
+
+    def delete(self, elem, reason):
+        soundObject = elem.get('sound', None)
+        if soundObject is not None:
+            soundObject.stopAll()
+            elem['sound'] = None
+        if elem.has_key('node'):
+            elem['node'] = None
+        return True
+
+    def prerequisites(self):
+        return []
+
+    def _isPlayer(self, args):
+        entityID = None
+        if args.has_key('entity'):
+            entityID = args['entity'].id
+            isPlayerVehicle = BigWorld.player().playerVehicleID == entityID
+        else:
+            isPlayerVehicle = args.get('isPlayerVehicle', False)
+        return (isPlayerVehicle, entityID)
+
+
+class _SimpleSoundEffectDesc(_BaseSoundEvent):
+    TYPE = '_SimpleSoundEffectDesc'
+
+    def __init__(self, dataSection):
+        _BaseSoundEvent.__init__(self, dataSection)
+
+    def create(self, model, list, args):
+        isPlayerVehicle, entityID = self._isPlayer(args)
+        soundName = self._soundName[0 if isPlayerVehicle else 1]
+        if soundName == '':
+            return
+        else:
+            elem = {'typeDesc': self}
+            elem['node'] = node = _findTargetNodeSafe(model, self._pos)
+            startParams = args.get('soundParams', ())
+            objectName = soundName + str(entityID) + '_' + str(node.actualNode)
+            sound = SoundGroups.g_instance.WWgetSoundObject(objectName, node.actualNode)
+            elem['sound'] = sound
+            if SoundGroups.DEBUG_TRACE_EFFECTLIST is True:
+                LOG_DEBUG('SOUND: EffectList dynamic, ', soundName, args, node.actualNode, self._pos, elem['sound'])
+            if SoundGroups.DEBUG_TRACE_STACK is True:
+                import traceback
+                traceback.print_stack()
+            for soundStartParam in startParams:
+                sound.setRTPC(soundStartParam.name, soundStartParam.value)
+
+            sound.play(soundName)
+            list.append(elem)
+            return sound
+
+
+class _ShotSoundEffectDesc(_BaseSoundEvent, object):
+    TYPE = '_ShotSoundEffectDesc'
+
+    def __init__(self, dataSection):
+        _BaseSoundEvent.__init__(self, dataSection)
+
+    def create(self, model, list, args):
+        vehicle = args.get('entity', None)
+        if vehicle is not None and vehicle.isAlive() and vehicle.isStarted:
+            soundObject = vehicle.appearance.getGunSoundObj()
+            if soundObject is not None:
+                isPlayer, _ = self._isPlayer(args)
+                soundName = self._soundName[0 if isPlayer else 1]
+                distance = (BigWorld.camera().position - vehicle.position).length
+                soundObject.setRTPC('RTPC_ext_control_reflections_priority', distance)
+                soundObject.play(soundName)
+        return
+
+
+class _SplashSoundEffectDesc(_SimpleSoundEffectDesc, object):
+    TYPE = '_SplashSoundEffectDesc'
+
+    def __init__(self, dataSection):
+        _SimpleSoundEffectDesc.__init__(self, dataSection)
+
+    def create(self, model, list, args):
+        sound = _SimpleSoundEffectDesc.create(self, model, list, args)
+        damageFactor = args.get('damageFactor', None)
+        if damageFactor is not None and sound is not None:
+            damage_size = 'SWITCH_ext_damage_size_medium'
+            factor = args.get('damageFactor', 0.0)
+            if factor < 4335.0 / 100.0:
+                damage_size = 'SWITCH_ext_damage_size_small'
+            elif factor > 8925.0 / 100.0:
+                damage_size = 'SWITCH_ext_damage_size_large'
+            sound.setSwitch('SWITCH_ext_damage_size', damage_size)
+        return
+
+
+class _SoundEffectDesc(_EffectDesc, object):
     TYPE = '_SoundEffectDesc'
 
     def __init__(self, dataSection):
         _EffectDesc.__init__(self, dataSection)
-        self._soundName = dataSection.readString('name')
-        if not self._soundName:
-            _raiseWrongConfig('name', self.TYPE)
+        self._soundName = None
+        self._soundNames = None
+        self._switch_impact_surface = None
+        self._switch_shell_type = None
+        self._switch_impact_type = None
+        self._dynamic = False
+        self._stopSyncVisual = False
+        if dataSection.has_key('wwsoundPC') and dataSection.has_key('wwsoundNPC'):
+            self._soundNames = (dataSection.readString('wwsoundPC'), dataSection.readString('wwsoundNPC'))
+        else:
+            self._soundName = dataSection.readString('wwsound')
+        self._impactNames = (dataSection.readString('impactNPC_PC', ''), dataSection.readString('impactPC_NPC', ''), dataSection.readString('impactNPC_NPC', ''))
+        if dataSection.has_key('SWITCH_ext_impact_surface'):
+            self._switch_impact_surface = dataSection.readString('SWITCH_ext_impact_surface')
+        if dataSection.has_key('SWITCH_ext_shell_type'):
+            self._switch_shell_type = dataSection.readString('SWITCH_ext_shell_type')
+        if dataSection.has_key('SWITCH_ext_impact_type'):
+            self._switch_impact_type = dataSection.readString('SWITCH_ext_impact_type')
+        self._dynamic = dataSection.readBool('dynamic', False)
+        if not self._soundName and not self._soundNames and not self._impactNames:
+            _raiseWrongConfig('wwsound or wwsoundNPC/wwsoundPC or impact tags', dataSection)
+        self._stopSyncVisual = dataSection.readBool('stopSyncVisual', False)
+        return
 
     def reattach(self, elem, model):
-        pass
-
-    def create(self, model, list, args):
-        targetModel = _findTargetModel(model, self._pos)
-        sound = None
-        try:
-            sound = targetModel.getSound(self._soundName)
-        except Exception:
-            LOG_CURRENT_EXCEPTION()
-
+        sound = elem.get('sound')
         if sound is not None:
-            sound.play()
-            list.append({'typeDesc': self,
-             'sound': sound})
-        return
-
-    def delete(self, elem, reason):
-        if reason == 2:
-            if self.endKey:
-                elem['sound'].stop()
-                return True
-            return False
+            elem['node'] = node = _findTargetNodeSafe(model, self._pos)
+            sound.matrixProvider = node.actualNode
         else:
-            elem['sound'].stop()
-            return True
-
-
-class _SoundParameterEffectDesc(_EffectDesc):
-    TYPE = '_SoundParameterEffectDesc'
-
-    def __init__(self, dataSection):
-        _EffectDesc.__init__(self, dataSection)
-        self._paramName = dataSection.readString('paramName')
-        self._paramValue = dataSection.readFloat('paramValue', -100000.0)
-        if self._paramName == '' or self._paramValue == -100000.0:
-            raise Exception, "parameter 'paramName' or 'paramValue' is missing in soundParam effect descriptor."
-        self.__sniperModeUpdateCb = None
-        if dataSection.has_key('paramValue/sniperMode'):
-            self._sniperModeValue = dataSection.readFloat('paramValue/sniperMode')
-        else:
-            self._sniperModeValue = None
+            elem['node'] = None
         return
-
-    def reattach(self, elem, model):
-        pass
 
     def create(self, model, list, args):
-        for elem in list:
-            if elem.get('isSoundParam'):
-                elem['typeDesc'].delete(None, None)
-                continue
-            if elem.get('sound') is not None:
-                try:
-                    self.__param = elem['sound'].param(self._paramName)
-                    self.__param.seekSpeed = 0
-                except Exception:
-                    LOG_ERROR("Failed to find parameter named '" + self._paramName + "' in sound event named '" + elem['sound'].name + "'")
-                    LOG_CURRENT_EXCEPTION()
+        soundName = 'EMPTY_EVENT'
+        entityID = args.get('entity_id', None)
+        playerID = BigWorld.player().playerVehicleID
+        attackedVehicle = BigWorld.player().getVehicleAttached()
+        attackerID = args.get('attackerID')
+        if entityID is not None:
+            isPlayerVehicle = playerID == entityID or not BigWorld.entity(playerID).isAlive() and attackedVehicle.id == entityID
+        else:
+            isPlayerVehicle = args.get('isPlayerVehicle')
+            if isPlayerVehicle is None:
+                if args.has_key('entity') and hasattr(args['entity'], 'isPlayerVehicle'):
+                    isPlayerVehicle = args['entity'].isPlayerVehicle
+                else:
+                    isPlayerVehicle = False
+        if attackerID is None or attackedVehicle is None:
+            fromPC = False
+        else:
+            fromPC = attackerID == playerID or not BigWorld.entity(playerID).isAlive() and attackedVehicle.id == attackerID
+        if not fromPC:
+            soundName = self._soundNames[0 if isPlayerVehicle else 1] if self._soundNames is not None else self._soundName
+        if entityID is not None:
+            if soundName.startswith('expl_') and playerID != entityID:
+                soundName = self._soundNames[1] if self._soundNames is not None else self._soundName
+        elem = {'typeDesc': self}
+        elem['node'] = node = _findTargetNodeSafe(model, self._pos)
+        pos = Math.Matrix(node.actualNode).translation
+        startParams = args.get('soundParams', ())
+        if self._dynamic is True or self._stopSyncVisual:
+            objectName = soundName + '_NODE_' + str(entityID) + '_' + str(self._pos)
+            elem['sound'] = SoundGroups.g_instance.WWgetSoundObject(objectName, node.actualNode)
+            if SoundGroups.DEBUG_TRACE_EFFECTLIST is True:
+                LOG_DEBUG('SOUND: EffectList dynamic, ', soundName, args, node.actualNode, self._pos, elem['sound'])
+            if SoundGroups.DEBUG_TRACE_STACK is True:
+                import traceback
+                traceback.print_stack()
+            for soundStartParam in startParams:
+                elem['sound'].setRTPC(soundStartParam.name, soundStartParam.value)
 
-        self.__isPlayer = args.get('isPlayer', False)
-        self.__updateParamValue()
-        list.append({'typeDesc': self,
-         'isSoundParam': True})
+            elem['sound'].play(soundName)
+        elif self._switch_shell_type and self._switch_impact_type:
+            if self._impactNames is None:
+                raise Exception('impact tags are invalid <%s> <%s> <%s> <%s> <%s>' % (self._soundName,
+                 self._soundNames,
+                 self._switch_impact_surface,
+                 self._switch_shell_type,
+                 self._switch_impact_type))
+            m = Math.Matrix(node.actualNode)
+            hitdir = args.get('hitdir')
+            if hitdir is not None:
+                m.translation -= hitdir
+            if fromPC:
+                soundName = self._impactNames[1]
+            elif isPlayerVehicle:
+                soundName = self._impactNames[0]
+            else:
+                soundName = self._impactNames[2]
+            if hitdir is not None:
+                t = m.applyToOrigin()
+                m.setRotateY(hitdir.yaw)
+                m.translation = t
+            sound = SoundGroups.g_instance.WWgetSoundPos(soundName, soundName + '_MODEL_' + str(id(model)), m.translation)
+            if SoundGroups.DEBUG_TRACE_EFFECTLIST is True:
+                LOG_DEBUG('SOUND: EffectList impacts, ', soundName, args, str(id(model)), sound)
+            if SoundGroups.DEBUG_TRACE_STACK is True:
+                import traceback
+                traceback.print_stack()
+            if sound is not None:
+                if self._switch_impact_surface:
+                    sound.setSwitch('SWITCH_ext_impact_surface', self._switch_impact_surface)
+                sound.setSwitch('SWITCH_ext_shell_type', self._switch_shell_type)
+                sound.setSwitch('SWITCH_ext_impact_type', self._switch_impact_type)
+                damage_size = 'SWITCH_ext_damage_size_medium'
+                if args.has_key('damageFactor'):
+                    factor = args.get('damageFactor', 0.0)
+                    if factor < 4335.0 / 100.0:
+                        damage_size = 'SWITCH_ext_damage_size_small'
+                    elif factor > 8925.0 / 100.0:
+                        damage_size = 'SWITCH_ext_damage_size_large'
+                sound.setSwitch('SWITCH_ext_damage_size', damage_size)
+                sound.play()
+                for soundStartParam in startParams:
+                    sound.setRTPC(soundStartParam.name, soundStartParam.value)
+
+        elif len(startParams) > 0:
+            sound = SoundGroups.g_instance.WWgetSoundPos(soundName, soundName + '_POS_' + str(id(pos)), pos)
+            if SoundGroups.DEBUG_TRACE_EFFECTLIST is True:
+                LOG_DEBUG('SOUND: EffectList WWgetSoundPos, ', soundName, args, sound, pos)
+            if SoundGroups.DEBUG_TRACE_STACK is True:
+                import traceback
+                traceback.print_stack()
+            if sound is not None:
+                sound.play()
+                for soundStartParam in startParams:
+                    sound.setRTPC(soundStartParam.name, soundStartParam.value)
+
+        else:
+            idd = SoundGroups.g_instance.playSoundPos(soundName, pos)
+            if SoundGroups.DEBUG_TRACE_EFFECTLIST is True:
+                LOG_DEBUG('SOUND: EffectList playSoundPos, ', soundName, args, idd, pos)
+            if SoundGroups.DEBUG_TRACE_STACK is True:
+                import traceback
+                traceback.print_stack()
+            if idd == 0:
+                LOG_ERROR('Failed to start sound effect, event ' + soundName)
+        list.append(elem)
         return
 
-    def __updateParamValue(self):
-        if self.__param is None:
-            return
-        else:
-            try:
-                val = self._paramValue
-                if self.__isPlayer and self._sniperModeValue is not None:
-                    aih = BigWorld.player().inputHandler
-                    if aih.ctrl == aih.ctrls['sniper']:
-                        val = self._sniperModeValue
-                self.__param.value = val
-            except Exception:
-                LOG_CURRENT_EXCEPTION()
-
-            if self._sniperModeValue is not None:
-                self.__sniperModeUpdateCb = BigWorld.callback(0.1, self.__updateParamValue)
-            return
-
     def delete(self, elem, reason):
-        if self.__sniperModeUpdateCb is not None:
-            BigWorld.cancelCallback(self.__sniperModeUpdateCb)
-            self.__sniperModeUpdateCb = None
-        self.__param = None
+        if elem.has_key('sound') and elem['sound'] is not None:
+            elem['sound'].stopAll()
+            elem['sound'] = None
+        if elem.has_key('node'):
+            elem['node'] = None
         return True
+
+    def prerequisites(self):
+        return []
 
 
 class _DecalEffectDesc(_EffectDesc):
@@ -428,6 +762,11 @@ class _DecalEffectDesc(_EffectDesc):
             self._bumpTexName = ''
         else:
             self._bumpTexName = bumpSubsection.asString
+        smSubsection = dataSection['smTexName']
+        if smSubsection is None:
+            self._smTexName = ''
+        else:
+            self._smTexName = smSubsection.asString
         self._groupName = dataSection.readString('groupName')
         self._size = dataSection.readVector2('size')
         self._randomYaw = dataSection.readBool('randomYaw')
@@ -435,7 +774,7 @@ class _DecalEffectDesc(_EffectDesc):
         return
 
     def create(self, model, list, args):
-        if not args.get('showDecal', True):
+        if not args.get('showDecal', True) or BigWorld.isForwardPipeline():
             return
         rayStart = args['start']
         rayEnd = args['end']
@@ -444,7 +783,7 @@ class _DecalEffectDesc(_EffectDesc):
         extent = rayEnd - rayStart
         extent.normalise()
         extent *= size.length * 0.707
-        BigWorld.wg_addDecal(self._groupName, center - extent, center + extent, size, args['yaw'] if not self._randomYaw else random.uniform(0.0, 3.14), DecalMap.g_instance.getIndex(self._texName), DecalMap.g_instance.getIndex(self._bumpTexName))
+        BigWorld.wg_addDecal(self._groupName, center - extent, center + extent, size, args['yaw'] if not self._randomYaw else random.uniform(0.0, 3.14), DecalMap.g_instance.getIndex(self._texName), DecalMap.g_instance.getIndex(self._bumpTexName), DecalMap.g_instance.getIndex(self._smTexName))
 
     def delete(self, elem, reason):
         return True
@@ -454,30 +793,7 @@ class _ShockWaveEffectDesc(_EffectDesc):
     TYPE = '_ShockWaveEffectDesc'
 
     def __init__(self, dataSection):
-        _EffectDesc.__init__(self, dataSection)
-        self._scale = dataSection.readFloat('scale', 0.1)
-        if 1.0 < self._scale < 0.0:
-            _raiseWrongConfig('scale', self.TYPE)
-        self._duration = dataSection.readFloat('duration', -1.0)
-        if self._duration < 0.0:
-            _raiseWrongConfig('duration', self.TYPE)
-
-    def prerequisites(self):
-        return []
-
-    def create(self, model, list, args):
-        if BigWorld.player() is not None and BigWorld.player().vehicle is None:
-            return
-        else:
-            if args.get('showShockWave', True):
-                dir = BigWorld.camera().direction.scale(self._scale)
-                shake = getattr(BigWorld.camera(), 'shake', None)
-                if shake is not None:
-                    shake(self._duration, dir)
-            return
-
-    def delete(self, elem, reason):
-        return True
+        raise Exception("'shockWave' effect is obsolete, use Dynamic Cameras API instead.")
 
 
 class _PostProcessEffectDesc(_EffectDesc):
@@ -503,9 +819,13 @@ class _FlashBangEffectDesc(_EffectDesc):
         _EffectDesc.__init__(self, dataSection)
         self._duration = 0.0
         self._keyframes = list()
+        self.__fba = None
+        self.__clbackId = None
         for stage in dataSection['stages'].values():
             self._keyframes += [(self._duration, stage.readVector4('color', Math.Vector4(0, 0, 0, 0)))]
             self._duration += stage.asFloat
+
+        return
 
     def prerequisites(self):
         return []
@@ -513,14 +833,30 @@ class _FlashBangEffectDesc(_EffectDesc):
     def create(self, model, list, args):
         inputHandler = getattr(BigWorld.player(), 'inputHandler')
         if args.get('showFlashBang', True) and (inputHandler is None or inputHandler.isFlashBangAllowed):
-            fba = Math.Vector4Animation()
-            fba.keyframes = self._keyframes
-            fba.duration = self._duration
-            BigWorld.flashBangAnimation(fba)
-            BigWorld.callback(self._duration - 0.05, partial(BigWorld.removeFlashBangAnimation, fba))
+            if self.__fba is not None:
+                BigWorld.removeFlashBangAnimation(self.__fba)
+                BigWorld.cancelCallback(self.__clbackId)
+            self.__fba = Math.Vector4Animation()
+            self.__fba.keyframes = self._keyframes
+            self.__fba.duration = self._duration
+            BigWorld.flashBangAnimation(self.__fba)
+            self.__clbackId = BigWorld.callback(self._duration - 0.05, self.__removeMe)
+        elem = {}
+        elem['typeDesc'] = self
+        list.append(elem)
+        return
+
+    def __removeMe(self):
+        if self.__fba is not None:
+            BigWorld.removeFlashBangAnimation(self.__fba)
+            self.__clbackId = None
+            self.__fba = None
         return
 
     def delete(self, elem, reason):
+        if self.__clbackId is not None:
+            BigWorld.cancelCallback(self.__clbackId)
+        self.__removeMe()
         return True
 
 
@@ -530,43 +866,131 @@ class _StopEmissionEffectDesc(_EffectDesc):
     def create(self, model, list, args):
         for elem in list:
             pixie = elem.get('pixie')
-            if pixie is None:
-                continue
-            for i in xrange(pixie.nSystems()):
-                source = pixie.system(i).action(1)
-                source.rate = 0
+            if pixie is not None:
+                pixie.stopEmission()
 
         return
 
 
+class _LightEffectDesc(_EffectDesc):
+    TYPE = '_LightEffectDesc'
+
+    def __init__(self, dataSection):
+        _EffectDesc.__init__(self, dataSection)
+        self._innerRadius = dataSection.readFloat('innerRadius', 1)
+        self._outerRadius = dataSection.readFloat('outerRadius', 2)
+        self._castShadows = dataSection.readBool('castShadows', False)
+        self._color = dataSection.readVector4('color', Math.Vector4(1, 1, 1, 1))
+        self._alwaysUpdate = dataSection.readBool('alwaysUpdateModel', True)
+        self._colorAnimation = []
+        self._multiplierAnimation = []
+        for ds in dataSection.values():
+            if ds.name == 'animation':
+                t = ds.readFloat('time')
+                color = ds.readVector3('color')
+                multiplier = ds.readFloat('multiplier')
+                self._colorAnimation.append((t, Math.Vector4(color[0], color[1], color[2], 1.0)))
+                self._multiplierAnimation.append((t, Math.Vector4(multiplier)))
+
+    def reattach(self, elem, model):
+        if not _ALLOW_DYNAMIC_LIGHTS:
+            return
+        else:
+            nodePos = self._pos
+            if elem['newPos'] is not None:
+                nodePos = string.split(elem['newPos'][0], '/') if elem['newPos'][0] else []
+            elem['model'] = model
+            elem['node'] = _findTargetNode(model, nodePos)
+            if elem['light'] is not None:
+                elem['light'].source = elem['node'].actualNode
+            return
+
+    def create(self, model, list, args):
+        if not _ALLOW_DYNAMIC_LIGHTS:
+            return
+        else:
+            elem = {}
+            elem['newPos'] = args.get('position', None)
+            nodePos = self._pos
+            if elem['newPos'] is not None:
+                nodePos = string.split(elem['newPos'][0], '/') if elem['newPos'][0] else []
+            elem['model'] = model
+            elem['node'] = _findTargetNode(model, nodePos)
+            elem['typeDesc'] = self
+            elem['light'] = None
+            elem['callback'] = BigWorld.callback(0.01, partial(self._callbackCreate, elem))
+            list.append(elem)
+            return
+
+    def _callbackCreate(self, elem):
+        light = BigWorld.PyChunkLight()
+        colorKeyFrames = []
+        multiplierKeyFrames = []
+        for c in self._colorAnimation:
+            colorKeyFrames.append((c[0] * self.duration, c[1]))
+
+        for m in self._multiplierAnimation:
+            multiplierKeyFrames.append((m[0] * self.duration, m[1]))
+
+        colorAnimator = Math.Vector4Animation()
+        colorAnimator.duration = 10000000.0
+        colorAnimator.keyframes = colorKeyFrames
+        multiplierAnimator = Math.Vector4Animation()
+        multiplierAnimator.duration = 10000000.0
+        multiplierAnimator.keyframes = multiplierKeyFrames
+        light.innerRadius = self._innerRadius
+        light.outerRadius = self._outerRadius
+        light.castShadows = self._castShadows
+        light.source = elem['node'].actualNode
+        light.colorAnimator = colorAnimator
+        light.multiplierAnimator = multiplierAnimator
+        light.visible = True
+        elem['light'] = light
+        elem['callback'] = None
+        return
+
+    def delete(self, elem, reason):
+        if not _ALLOW_DYNAMIC_LIGHTS:
+            return True
+        else:
+            callback = elem['callback']
+            if callback is not None:
+                BigWorld.cancelCallback(callback)
+            if elem['light'] is not None:
+                elem['light'].visible = False
+                elem['light'].source = None
+                elem['light'] = None
+            return True
+
+
+_effectDescFactory = {'pixie': _PixieEffectDesc,
+ 'animation': _AnimationEffectDesc,
+ 'sound': _SoundEffectDesc,
+ 'simpleSound': _SimpleSoundEffectDesc,
+ 'splashSound': _SplashSoundEffectDesc,
+ 'shotSound': _ShotSoundEffectDesc,
+ 'visibility': _VisibilityEffectDesc,
+ 'model': _ModelEffectDesc,
+ 'decal': _DecalEffectDesc,
+ 'shockWave': _ShockWaveEffectDesc,
+ 'flashBang': _FlashBangEffectDesc,
+ 'stopEmission': _StopEmissionEffectDesc,
+ 'posteffect': _PostProcessEffectDesc,
+ 'light': _LightEffectDesc}
+
 def _createEffectDesc(type, dataSection):
-    if type == 'pixie':
-        return _PixieEffectDesc(dataSection)
-    if type == 'animation':
-        return _AnimationEffectDesc(dataSection)
-    if type == 'sound':
-        return _SoundEffectDesc(dataSection)
-    if type == 'soundParam':
-        return _SoundParameterEffectDesc(dataSection)
-    if type == 'visibility':
-        return _VisibilityEffectDesc(dataSection)
-    if type == 'model':
-        return _ModelEffectDesc(dataSection)
-    if type == 'decal':
-        return _DecalEffectDesc(dataSection)
-    if type == 'shockWave':
-        return _ShockWaveEffectDesc(dataSection)
-    if type == 'flashBang':
-        return _FlashBangEffectDesc(dataSection)
-    if type == 'stopEmission':
-        return _StopEmissionEffectDesc(dataSection)
-    if type == 'posteffect':
-        return _PostProcessEffectDesc(dataSection)
-    raise Exception, 'EffectsList factory has no class associated with type %s.' % type
+    if len(dataSection.values()) == 0:
+        return
+    else:
+        factoryMethod = _effectDescFactory.get(type, None)
+        if factoryMethod is not None:
+            return factoryMethod(dataSection)
+        raise Exception('EffectsList factory has no class associated with type %s.' % type)
+        return
 
 
 def _raiseWrongConfig(paramName, effectType):
-    raise Exception, 'missing or wrong parameter <%s> in effect descriptor <%s>.' % (paramName, effectType)
+    raise Exception('missing or wrong parameter <%s> in effect descriptor <%s>.' % (paramName, effectType))
 
 
 def __getTransformAlongNormal(localTransform, worldTransform, normal):
@@ -581,7 +1005,7 @@ def __getTransformAlongNormal(localTransform, worldTransform, normal):
     return localTransform
 
 
-def _getSurfaceAlignedTransform(model, nodeName, localTransform, precalculatedNormal = None):
+def _getSurfaceAlignedTransform(model, nodeName, localTransform, precalculatedNormal=None):
     worldTransform = Math.Matrix(model.node(nodeName))
     if precalculatedNormal is not None:
         return __getTransformAlongNormal(localTransform, worldTransform, precalculatedNormal)
@@ -608,34 +1032,68 @@ def _getSurfaceAlignedTransform(model, nodeName, localTransform, precalculatedNo
         return localTransform
 
 
-def _findTargetNode(model, nodes, localTransform = None, orientByClosestSurfaceNormal = False, precalculatedNormal = None):
-    targetNode = model
-    length = len(nodes)
-    find = False
-    if length == 0:
+class _NodeWithLocal(object):
+    actualNode = property(lambda self: self.__node)
+
+    def __init__(self, model, nodeName='', local=None):
+        if local is None:
+            local = Math.Matrix()
+            local.setIdentity()
+        if model.__class__.__name__ == 'Model':
+            try:
+                self.__node = model.node(nodeName, local)
+            except:
+                self.__node = model.node('', local)
+
+            self.__localMatrix = None
+        else:
+            if nodeName in ('', 'Scene Root'):
+                self.__node = model.root
+            else:
+                self.__node = model.node(nodeName)
+            if self.__node is None:
+                LOG_DEBUG('Not found node %s for compound, using root instead' % nodeName)
+                self.__node = model.root
+            self.__localMatrix = local
+        return
+
+    def attach(self, attachment):
+        if self.__localMatrix is None:
+            self.__node.attach(attachment)
+            return
+        else:
+            self.__node.attach(attachment, self.__localMatrix)
+            return
+
+    def __getattr__(self, item):
+        return getattr(self.__node, item)
+
+
+def _findTargetNode(model, nodes, localTransform=None, orientByClosestSurfaceNormal=False, precalculatedNormal=None):
+    if len(nodes) > 1:
+        LOG_OBSOLETE('Slashed nodepath is not supported any longer')
+    if not nodes:
         if orientByClosestSurfaceNormal:
-            localTransform = _getSurfaceAlignedTransform(model, 'Scene Root', localTransform, precalculatedNormal)
-        return model.node('Scene Root', localTransform)
-    for iter in range(0, length - 1):
-        find = False
-        for elem in targetNode.node(nodes[iter]).attachments:
-            if isinstance(elem, BigWorld.Model):
-                targetNode = elem
-                find = True
-                break
-
-        if not find:
-            raise Exception, "can't find model attachments in %s" % nodes[iter]
-
+            localTransform = _getSurfaceAlignedTransform(model, '', localTransform, precalculatedNormal)
+        return _NodeWithLocal(model, '', localTransform)
     if orientByClosestSurfaceNormal:
-        localTransform = _getSurfaceAlignedTransform(targetNode, nodes[length - 1], localTransform, precalculatedNormal)
-    return targetNode.node(nodes[length - 1], localTransform)
+        localTransform = _getSurfaceAlignedTransform(model, nodes[-1], localTransform, precalculatedNormal)
+    return _NodeWithLocal(model, nodes[-1], localTransform)
+
+
+def _findTargetNodeSafe(model, nodes):
+    node = None
+    if len(nodes) > 0:
+        node = _findTargetNode(model, nodes)
+    if node is None:
+        node = _NodeWithLocal(model)
+    return node
 
 
 def _findTargetModel(model, nodes):
+    LOG_OBSOLETE('THIS FEATURE IS NOT SUPPORTED')
     targetNode = model
-    find = False
-    for iter in range(0, len(nodes)):
+    for iter in xrange(0, len(nodes)):
         find = False
         for elem in targetNode.node(nodes[iter]).attachments:
             if isinstance(elem, BigWorld.Model):
@@ -644,86 +1102,86 @@ def _findTargetModel(model, nodes):
                 break
 
         if not find:
-            raise Exception, "can't find model attachments in %s" % nodes[iter]
+            raise Exception("can't find model attachments in %s" % nodes[iter])
 
     return targetNode
 
 
-class EffectsListPlayer:
+def __keyPointsFromStagesSection(stagesSection):
+    keyPoints = []
+    stagesNames = set()
+    totalTime = 0.0
+    for stageName in stagesSection.keys():
+        if stageName in stagesNames:
+            return stageName
+        duration = stagesSection.readFloat(stageName)
+        stagesNames.add(stageName)
+        keyPoints.append(KeyPoint(stageName, totalTime))
+        totalTime += duration
 
-    def __init__(self, effectsList, stages, **args):
-        self.__stages = stages
-        self.__effectsList = effectsList
-        self.__args = args
-        self.__curStage = None
-        self.__isStarted = False
-        return
+    if keyPoints and keyPoints[0].name != __START_KEY_POINT.name:
+        keyPoints.insert(0, __START_KEY_POINT)
+    keyPoints.append(KeyPoint(SpecialKeyPointNames.END, totalTime))
+    return keyPoints
 
-    def play(self, model, startStage = None, callbackFunc = None):
-        global g_disableEffects
-        if g_disableEffects:
-            return
-        elif self.__isStarted:
-            LOG_ERROR('player already started. To restart it you must before call stop().')
+
+def __keyPointsFromTimeLineSection(keyPointSection):
+    keyPoints = []
+    keyPointNames = set()
+    for keyPointName in keyPointSection.keys():
+        if keyPointName in keyPointNames:
+            return keyPointName
+        timePoint = keyPointSection.readFloat(keyPointName)
+        keyPointNames.add(keyPointName)
+        keyPoints.append(KeyPoint(keyPointName, timePoint))
+
+    keyPoints.sort(key=lambda self: self.time)
+    if keyPoints and keyPoints[0].name != __START_KEY_POINT.name:
+        keyPoints.insert(0, __START_KEY_POINT)
+    return keyPoints
+
+
+def effectsFromSection(section):
+    keyPoints = None
+    stagesSection = section['stages']
+    if stagesSection is not None:
+        keyPoints = __keyPointsFromStagesSection(stagesSection)
+    timeLineSection = section['timeline']
+    if timeLineSection is not None:
+        if keyPoints is None:
+            keyPoints = __keyPointsFromTimeLineSection(timeLineSection)
+        else:
+            raise Exception('Both stages and timeline defined in effect %s' % section.name)
+    if keyPoints is None:
+        raise Exception('Neither stages nor timeline defined in effect %s' % section.name)
+    if isinstance(keyPoints, str):
+        raise Exception('Duplicate keypoint %s in effect %s' % (keyPoints, section.name))
+    effectsSec = section['effects']
+    effectList = EffectsList(effectsSec)
+    if section['relatedEffects'] is not None:
+        for tagName, subSection in section['relatedEffects'].items():
+            effectList.relatedEffects[tagName] = effectsFromSection(subSection)
+
+    return EffectsTimeLine(keyPoints, effectList)
+
+
+class FalloutDestroyEffect:
+
+    @staticmethod
+    def play(vehicle_id):
+        vehicle = BigWorld.entity(vehicle_id)
+        if vehicle is None:
             return
         else:
-            self.__isStarted = True
-            self.__callbackID = None
-            self.__model = model
-            self.__data = {}
-            self.__callbackFunc = callbackFunc
-            self.__stageIdx = self.__getStageIndex(startStage) if startStage is not None else 0
-            self.__curStage, stageTime = self.__stages[self.__stageIdx]
-            self.__effectsList.attachTo(self.__model, self.__data, self.__curStage, **self.__args)
-            self.__callbackID = BigWorld.callback(stageTime, self.__playStages)
-            return
-
-    def reattachTo(self, model):
-        if self.__isStarted:
-            self.__effectsList.reattachTo(model, self.__data)
-            self.__model = model
-
-    def stop(self, keepPosteffects = False):
-        if not self.__isStarted:
-            return
-        else:
-            self.__isStarted = False
-            if self.__callbackID is not None:
-                BigWorld.cancelCallback(self.__callbackID)
-                self.__callbackID = None
-            self.__effectsList.detachAllFrom(self.__data, keepPosteffects)
-            self.__model = None
-            self.__data = None
-            self.__curStage = None
-            self.__callbackFunc = None
-            return
-
-    def __getStageIndex(self, name):
-        for i in range(0, len(self.__stages)):
-            if self.__stages[i][0] == name:
-                return i
-
-    def __playStages(self):
-        self.__callbackID = None
-        try:
-            nextStageIdx = self.__stageIdx + 1
-            self.__stageIdx = nextStageIdx
-            if nextStageIdx == len(self.__stages):
-                if self.__callbackFunc:
-                    self.__callbackFunc()
-                self.stop()
+            effects = vehicle.typeDescriptor.type.effects['fullDestruction']
+            if not effects:
                 return
-            self.__curStage, stageTime = self.__stages[nextStageIdx]
-            self.__effectsList.detachFrom(self.__data, self.__curStage)
-            self.__effectsList.attachTo(self.__model, self.__data, self.__curStage, **self.__args)
-            if stageTime == 0.0:
-                self.__playStages()
-            else:
-                self.__callbackID = BigWorld.callback(stageTime, self.__playStages)
-        except Exception:
-            LOG_CURRENT_EXCEPTION()
-
-        return
-# okay decompyling res/scripts/client/helpers/effectslist.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:08 EST
+            vehicle.show(False)
+            if vehicle.model is not None:
+                fakeModel = helpers.newFakeModel()
+                BigWorld.addModel(fakeModel)
+                fakeModel.position = vehicle.model.position
+                effectsPlayer = EffectsListPlayer(effects[0][1], effects[0][0])
+                effectsPlayer.play(fakeModel, SpecialKeyPointNames.START, partial(BigWorld.delModel, fakeModel))
+            return
+# okay decompiling ./res/scripts/client/helpers/effectslist.pyc

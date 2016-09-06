@@ -1,37 +1,33 @@
-# 2013.11.15 11:26:10 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/profile/ProfileSummary.py
 import BigWorld
-import pickle
-from adisp import process
-from gui.Scaleform.daapi.view.lobby.profile import ProfileCommon
-from gui.Scaleform.daapi.view.lobby.profile.ProfileAchievementSection import ProfileAchievementSection
-from gui.Scaleform.daapi.view.lobby.profile.ProfileUtils import ProfileUtils
+from gui.Scaleform.daapi.view.AchievementsUtils import AchievementsUtils
+from gui.Scaleform.daapi.view.lobby.profile.ProfileUtils import ProfileUtils, getProfileCommonInfo
 from gui.Scaleform.daapi.view.meta.ProfileSummaryMeta import ProfileSummaryMeta
 from gui.Scaleform.locale.PROFILE import PROFILE
-from gui.shared.gui_items.dossier.stats import TotalStatsBlock, AccountTotalStatsBlock
 from helpers import i18n
 from PlayerEvents import g_playerEvents
 from gui.shared import g_itemsCache
-from gui.shared.utils import dossiers_utils
 from helpers.i18n import makeString
 from gui.Scaleform.locale.MENU import MENU
+from gui.shared.gui_items.dossier import dumpDossier
 
-class ProfileSummary(ProfileAchievementSection, ProfileSummaryMeta):
+class ProfileSummary(ProfileSummaryMeta):
 
     def __init__(self, *args):
-        ProfileAchievementSection.__init__(self, *args)
-        ProfileSummaryMeta.__init__(self)
+        super(ProfileSummary, self).__init__(*args)
 
     def _sendAccountData(self, targetData, accountDossier):
         outcome = ProfileUtils.packProfileDossierInfo(targetData)
-        outcome['avgDamage'] = targetData.getAvgDamage()
+        outcome['avgDamage'] = ProfileUtils.getValueOrUnavailable(targetData.getAvgDamage())
         outcome['maxDestroyed'] = targetData.getMaxFrags()
         vehicle = g_itemsCache.items.getItemByCD(targetData.getMaxFragsVehicle())
         outcome['maxDestroyedByVehicle'] = vehicle.shortUserName if vehicle is not None else ''
         outcome['globalRating'] = self.getGlobalRating(self._databaseID)
-        outcome['significantAchievements'] = ProfileUtils.packAchievementList(accountDossier.getSignificantAchievements(), accountDossier, self._userID is None)
-        outcome['nearestAchievements'] = ProfileUtils.packAchievementList(accountDossier.getNearestAchievements(), accountDossier, self._userID is None)
-        self.as_responseDossierS(self._battlesType, outcome)
+        totalStats = accountDossier.getTotalStats()
+        outcome['significantAchievements'] = AchievementsUtils.packAchievementList(totalStats.getSignificantAchievements(), accountDossier.getDossierType(), dumpDossier(accountDossier), self._userID is None, False)
+        outcome['nearestAchievements'] = AchievementsUtils.packAchievementList(totalStats.getNearestAchievements(), accountDossier.getDossierType(), dumpDossier(accountDossier), self._userID is None, True)
+        self.as_responseDossierS(self._battlesType, outcome, '', '')
         return
 
     def _populate(self):
@@ -43,38 +39,32 @@ class ProfileSummary(ProfileAchievementSection, ProfileSummaryMeta):
     def __dossierResyncHandler(self, *args):
         self.__updateUserInfo()
 
-    @process
     def __updateUserInfo(self):
-        req = g_itemsCache.items.dossiers.getUserDossierRequester(self._databaseID)
-        dossier = yield req.getAccountDossier()
-        clanInfo = yield req.getClanInfo()
-        info = dossiers_utils.getCommonInfo(self._userName, dossier, clanInfo[1], None)
-        info['name'] = makeString(PROFILE.PROFILE_TITLE, info['name'])
-        info['clanLabel'] = makeString(PROFILE.SECTION_SUMMARY_BOTTOMBAR_CLANSROLELBL)
-        registrationDate = makeString(MENU.PROFILE_HEADER_REGISTRATIONDATETITLE) + ' ' + info['registrationDate']
-        info['registrationDate'] = registrationDate
-        if info['lastBattleDate'] is not None:
-            info['lastBattleDate'] = makeString(MENU.PROFILE_HEADER_LASTBATTLEDATETITLE) + ' ' + info['lastBattleDate']
-        else:
-            info['lastBattleDate'] = ''
-        self.as_setUserDataS(info)
+        dossier = g_itemsCache.items.getAccountDossier(self._userID)
+        if dossier is not None:
+            info = getProfileCommonInfo(self._userName, dossier.getDossierDescr())
+            info['name'] = makeString(PROFILE.PROFILE_TITLE, info['name'])
+            registrationDate = makeString(MENU.PROFILE_HEADER_REGISTRATIONDATETITLE) + ' ' + info['registrationDate']
+            info['registrationDate'] = registrationDate
+            if info['lastBattleDate'] is not None:
+                info['lastBattleDate'] = makeString(MENU.PROFILE_HEADER_LASTBATTLEDATETITLE) + ' ' + info['lastBattleDate']
+            else:
+                info['lastBattleDate'] = ''
+            self.as_setUserDataS(info)
         return
 
     def _getInitData(self):
-        return {'commonScores': {'battles': self._formIconLabelInitObject(PROFILE.SECTION_SUMMARY_SCORES_TOTALBATTLES, ProfileCommon.getIconPath('battles40x32.png')),
-                          'wins': self._formIconLabelInitObject(PROFILE.SECTION_SUMMARY_SCORES_TOTALWINS, ProfileCommon.getIconPath('wins40x32.png')),
-                          'coolSigns': self._formIconLabelInitObject(PROFILE.SECTION_SUMMARY_SCORES_COOLSIGNS, ProfileCommon.getIconPath('markOfMastery40x32.png')),
-                          'maxDestroyed': self._formIconLabelInitObject(PROFILE.SECTION_SUMMARY_SCORES_MAXDESTROYED, ProfileCommon.getIconPath('maxDestroyed40x32.png')),
-                          'maxExperience': self._formIconLabelInitObject(PROFILE.SECTION_SUMMARY_SCORES_MAXEXPERIENCE, ProfileCommon.getIconPath('maxExp40x32.png')),
-                          'avgExperience': self._formIconLabelInitObject(PROFILE.SECTION_SUMMARY_SCORES_AVGEXPERIENCE, ProfileCommon.getIconPath('avgExp40x32.png')),
-                          'hits': self._formIconLabelInitObject(PROFILE.SECTION_SUMMARY_SCORES_HITS, ProfileCommon.getIconPath('hits40x32.png')),
-                          'avgDamage': self._formIconLabelInitObject(PROFILE.SECTION_SUMMARY_SCORES_AVGDAMAGE, ProfileCommon.getIconPath('avgDamage40x32.png')),
-                          'personalScore': self._formIconLabelInitObject(PROFILE.SECTION_SUMMARY_SCORES_PERSONALSCORE, ProfileCommon.getIconPath('battles40x32.png'))},
+        return {'commonScores': {'battles': self._formIconLabelInitObject(PROFILE.SECTION_SUMMARY_SCORES_TOTALBATTLES, ProfileUtils.getIconPath('battles40x32.png')),
+                          'wins': self._formIconLabelInitObject(PROFILE.SECTION_SUMMARY_SCORES_TOTALWINS, ProfileUtils.getIconPath('wins40x32.png')),
+                          'coolSigns': self._formIconLabelInitObject(PROFILE.SECTION_SUMMARY_SCORES_COOLSIGNS, ProfileUtils.getIconPath('markOfMastery40x32.png')),
+                          'maxDestroyed': self._formIconLabelInitObject(PROFILE.SECTION_SUMMARY_SCORES_MAXDESTROYED, ProfileUtils.getIconPath('maxDestroyed40x32.png')),
+                          'maxExperience': self._formIconLabelInitObject(PROFILE.SECTION_SUMMARY_SCORES_MAXEXPERIENCE, ProfileUtils.getIconPath('maxExp40x32.png')),
+                          'avgExperience': self._formIconLabelInitObject(PROFILE.SECTION_SUMMARY_SCORES_AVGEXPERIENCE, ProfileUtils.getIconPath('avgExp40x32.png')),
+                          'hits': self._formIconLabelInitObject(PROFILE.SECTION_SUMMARY_SCORES_HITS, ProfileUtils.getIconPath('hits40x32.png')),
+                          'avgDamage': self._formIconLabelInitObject(PROFILE.SECTION_SUMMARY_SCORES_AVGDAMAGE, ProfileUtils.getIconPath('avgDamage40x32.png')),
+                          'personalScore': self._formIconLabelInitObject(PROFILE.SECTION_SUMMARY_SCORES_PERSONALSCORE, ProfileUtils.getIconPath('battles40x32.png'))},
          'significantAwardsLabel': PROFILE.SECTION_SUMMARY_LABELS_SIGNIFICANTAWARDS,
          'significantAwardsErrorText': PROFILE.SECTION_SUMMARY_ERRORTEXT_SIGNIFICANTAWARDS}
-
-    def requestData(self, data):
-        self.request(self._userID)
 
     def getPersonalScoreWarningText(self, data):
         battlesCount = BigWorld.wg_getIntegralFormat(data)
@@ -84,6 +74,4 @@ class ProfileSummary(ProfileAchievementSection, ProfileSummaryMeta):
         g_playerEvents.onDossiersResync -= self.__dossierResyncHandler
         self._disposeRequester()
         super(ProfileSummary, self)._dispose()
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/lobby/profile/profilesummary.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:10 EST
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/profile/profilesummary.pyc

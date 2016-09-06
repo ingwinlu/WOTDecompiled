@@ -1,10 +1,11 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/account_helpers/rare_achievements.py
+import functools
 import ResMgr
-from debug_utils import LOG_ERROR, LOG_CURRENT_EXCEPTION, LOG_DEBUG
-from helpers import i18n, getClientLanguage
-import functools, Event
-import Account
+from debug_utils import LOG_ERROR, LOG_CURRENT_EXCEPTION
 
 def __makeAchievementFileRequest(urlName, params, achievementId, callback):
+    import Account
     fileServerSettings = Account.g_accountRepository.fileServerSettings
     url = ''
     try:
@@ -65,6 +66,11 @@ def getRareAchievementImage(achievementId, onImageLoadedCallback):
     __makeAchievementFileRequest('rare_achievements_images', (achievementId,), achievementId, onImageLoadedCallback)
 
 
+def getRareAchievementImageBig(achievementId, onImageLoadedCallback):
+    __makeAchievementFileRequest('rare_achievements_images_big', (achievementId,), achievementId, onImageLoadedCallback)
+
+
 def getRareAchievementText(lang, achievementId, onTextLoadedCallback):
     cbk = functools.partial(__allMedalsTextLoadedCallback, onTextLoadedCallback=onTextLoadedCallback)
     __makeAchievementFileRequest('rare_achievements_texts', (lang,), achievementId, cbk)
+# okay decompiling ./res/scripts/client/account_helpers/rare_achievements.pyc

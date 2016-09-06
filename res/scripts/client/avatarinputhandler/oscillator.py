@@ -1,4 +1,4 @@
-# 2013.11.15 11:25:27 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/AvatarInputHandler/Oscillator.py
 import math
 import random
@@ -111,7 +111,7 @@ class CompoundOscillator(IOscillator):
 
 class RandomNoiseOscillator(IOscillator):
 
-    def __init__(self, mass, stiffness, drag, randomGoalPointFunc, restEpsilon = 0.001):
+    def __init__(self, mass, stiffness, drag, randomGoalPointFunc, restEpsilon=0.001):
         IOscillator.__init__(self)
         self.__oscillationsSolver = OscillationsSolver(mass, stiffness, drag)
         self.restEpsilon = restEpsilon
@@ -163,18 +163,18 @@ class RandomNoiseOscillator(IOscillator):
         return self.__randomGoalPointFunc(deviation, self.__generator)
 
 
-def RandomNoiseOscillatorFlat(mass, stiffness, drag, restEpsilon = 0.01):
+def RandomNoiseOscillatorFlat(mass, stiffness, drag, restEpsilon=0.01):
     return RandomNoiseOscillator(mass, stiffness, drag, mathUtils.RandomVectors.random3Flat, restEpsilon)
 
 
-def RandomNoiseOscillatorSpherical(mass, stiffness, drag, scaleCoeff = Vector3(1.0, 1.0, 1.0), restEpsilon = 0.01):
+def RandomNoiseOscillatorSpherical(mass, stiffness, drag, scaleCoeff=Vector3(1.0, 1.0, 1.0), restEpsilon=0.01):
     randomFunc = lambda deviation, generator: matrixScale(mathUtils.RandomVectors.random3(deviation, generator), scaleCoeff)
     return RandomNoiseOscillator(mass, stiffness, drag, randomFunc, restEpsilon)
 
 
 class NoiseOscillator(IOscillator):
 
-    def __init__(self, mass, stiffness, drag, restEpsilon = 0.001):
+    def __init__(self, mass, stiffness, drag, restEpsilon=0.001):
         IOscillator.__init__(self)
         self.mass = mass
         self.stiffness = Vector3(stiffness)
@@ -239,6 +239,4 @@ class HarmonicOscillator(object):
             self.__amplitude = self.__nextAmplitude
             self.__amplitudeChangeVelocity = 0.0
         self.deviation = self.__amplitude * math.sin(self.__omega * self.__time)
-# okay decompyling res/scripts/client/avatarinputhandler/oscillator.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:25:28 EST
+# okay decompiling ./res/scripts/client/avatarinputhandler/oscillator.pyc

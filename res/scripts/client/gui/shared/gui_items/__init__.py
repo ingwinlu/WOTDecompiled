@@ -1,16 +1,25 @@
-# 2013.11.15 11:26:47 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/shared/gui_items/__init__.py
+from collections import namedtuple
 import BigWorld
+from gui.shared.items_parameters import params_helper, formatters
+import nations
 from debug_utils import *
-from helpers import i18n
+from helpers import i18n, time_utils
 from items import ITEM_TYPE_NAMES, vehicles, getTypeInfoByName, ITEM_TYPE_INDICES
+from shared_utils import CONST_CONTAINER
 from gui import nationCompareByIndex, GUI_SETTINGS
-from gui.shared.utils import ItemsParameters, CONST_CONTAINER
+from gui.shared.money import Money, ZERO_MONEY, Currency
+from gui.shared.economics import getActionPrc
 from gui.shared.utils.functions import getShortDescr, stripShortDescrTags
 CLAN_LOCK = 1
 _ICONS_MASK = '../maps/icons/%(type)s/%(subtype)s%(unicName)s.png'
 GUI_ITEM_TYPE_NAMES = tuple(ITEM_TYPE_NAMES) + tuple(['reserved'] * (16 - len(ITEM_TYPE_NAMES)))
-GUI_ITEM_TYPE_NAMES += ('dossierAccount', 'dossierVehicle', 'dossierTankman', 'achievement', 'tankmanSkill')
+GUI_ITEM_TYPE_NAMES += ('dossierAccount',
+ 'dossierVehicle',
+ 'dossierTankman',
+ 'achievement',
+ 'tankmanSkill')
 GUI_ITEM_TYPE_INDICES = dict(((n, idx) for idx, n in enumerate(GUI_ITEM_TYPE_NAMES)))
 
 class GUI_ITEM_TYPE(CONST_CONTAINER):
@@ -99,7 +108,7 @@ def getVehicleComponentsByType(vehicle, itemTypeIdx):
     return ItemsCollection()
 
 
-def getVehicleSuitablesByType(vehDescr, itemTypeId, turretPID = 0):
+def getVehicleSuitablesByType(vehDescr, itemTypeId, turretPID=0):
     """
     Returns all suitable items for given @vehicle.
     
@@ -107,7 +116,7 @@ def getVehicleSuitablesByType(vehDescr, itemTypeId, turretPID = 0):
     @param itemTypeId: requested items types
     @param turretPID: vehicle's turret id
     
-    @return: ( descriptors list, current vehicle's items compact descriptors list )
+    @return: (descriptors list, current vehicle's items compact descriptors list)
     """
     descriptorsList = list()
     current = list()
@@ -162,75 +171,36 @@ def getVehicleSuitablesByType(vehDescr, itemTypeId, turretPID = 0):
 
 
 class GUIItem(object):
-    """
-    Root gui items class. Provides common interface for
-    serialization and deserialization.
-    """
 
-    def __init__(self, proxy = None):
+    def __init__(self, proxy=None):
         pass
-
-    def toDict(self):
-        """ Returns dict representation of vital object data """
-        return dict()
-
-    def fromDict(self, d):
-        """
-        Unpack object data from give @d dictionary. (Packed with
-        @GUIItem.toDict method).
-        
-        @param d: packed object data dictionary
-        """
-        pass
-
-    def getCtorArgs(self):
-        """
-        Returns list of args used to build new object of items
-        instance. Will be overriden by inherited classes.
-        
-        @return: list of constructor arguments
-        """
-        return list()
 
     def __repr__(self):
         return self.__class__.__name__
 
 
 class HasIntCD(object):
-    """
-    Abstract class of items which contains int compact descriptor.
-    """
 
     def __init__(self, intCompactDescr):
         self.intCompactDescr = intCompactDescr
         self.itemTypeID, self.nationID, self.innationID = self._parseIntCompDescr(self.intCompactDescr)
 
     def _parseIntCompDescr(self, intCompactDescr):
-        """
-        Parses int compact descriptor. Will be overidden by
-        inherited items classes.
-        
-        @return: ( item type id, nation id, innation id )
-        """
         return vehicles.parseIntCompactDescr(intCompactDescr)
 
     @property
     def intCD(self):
-        """
-        Returns item's int compact descriptor.
-        
-        @return: int compact descriptor
-        """
         return self.intCompactDescr
 
     @property
     def itemTypeName(self):
         return ITEM_TYPE_NAMES[self.itemTypeID]
 
+    @property
+    def nationName(self):
+        return nations.NAMES[self.nationID]
+
     def __cmp__(self, other):
-        """
-        Compares items by nation and types.
-        """
         if self is other:
             return 1
         res = nationCompareByIndex(self.nationID, other.nationID)
@@ -240,9 +210,6 @@ class HasIntCD(object):
 
 
 class HasStrCD(object):
-    """
-    Abstract class of items which contains string compact descriptor.
-    """
 
     def __init__(self, strCompactDescr):
         self.strCompactDescr = strCompactDescr
@@ -252,45 +219,113 @@ class HasStrCD(object):
         return self.strCompactDescr
 
 
-class FittingItem(GUIItem, HasIntCD):
-    """
-    Root item which can be bought and installed.
-    """
+_RentalInfoProvider = namedtuple('RentalInfoProvider', ('rentExpiryTime',
+ 'compensations',
+ 'battlesLeft',
+ 'winsLeft',
+ 'isRented'))
 
-    def __init__(self, intCompactDescr, proxy = None, isBoughtForCredits = False):
-        """
-        @param intCompactDescr: item's int compact descriptor
-        @param proxy: instance of ItemsRequester
-        """
+class RentalInfoProvider(_RentalInfoProvider):
+
+    @staticmethod
+    def __new__(cls, additionalData=None, time=0, battles=0, wins=0, isRented=False, *args, **kwargs):
+        additionalData = additionalData or {}
+        if 'compensation' in additionalData:
+            compensations = Money(*additionalData['compensation'])
+        else:
+            compensations = ZERO_MONEY
+        result = _RentalInfoProvider.__new__(cls, time, compensations, battles, wins, isRented)
+        return result
+
+    def getTimeLeft(self):
+        if self.rentExpiryTime != float('inf'):
+            return float(time_utils.getTimeDeltaFromNow(time_utils.makeLocalServerTime(self.rentExpiryTime)))
+        return float('inf')
+
+    def getExpiryState(self):
+        return self.rentExpiryTime != float('inf') and self.battlesLeft <= 0 and self.winsLeft <= 0 and self.getTimeLeft() <= 0
+
+
+class FittingItem(GUIItem, HasIntCD):
+
+    class TARGETS(object):
+        CURRENT = 1
+        IN_INVENTORY = 2
+        OTHER = 3
+
+    def __init__(self, intCompactDescr, proxy=None, isBoughtForCredits=False):
         GUIItem.__init__(self, proxy)
         HasIntCD.__init__(self, intCompactDescr)
-        self.buyPrice = (0, 0)
-        self.sellPrice = (0, 0)
-        self.actionPrice = (0, 0)
+        self.defaultPrice = ZERO_MONEY
+        self._buyPrice = ZERO_MONEY
+        self.sellPrice = ZERO_MONEY
+        self.defaultSellPrice = ZERO_MONEY
+        self.altPrice = None
+        self.defaultAltPrice = None
+        self.sellActionPrc = 0
         self.isHidden = False
         self.inventoryCount = 0
         self.sellForGold = False
         self.isUnlocked = False
         self.isBoughtForCredits = isBoughtForCredits
-        if proxy is not None:
-            self.buyPrice, self.isHidden, self.sellForGold = proxy.shop.getItem(self.intCompactDescr)
-            if self.buyPrice is None:
-                self.buyPrice = (0, 0)
-            self.sellPrice = BigWorld.player().shop.getSellPrice(self.buyPrice, proxy.shop.sellPriceModifiers(intCompactDescr), self.itemTypeID)
+        self.rentInfo = RentalInfoProvider()
+        if proxy is not None and proxy.isSynced():
+            self.defaultPrice = proxy.shop.defaults.getItemPrice(self.intCompactDescr)
+            if self.defaultPrice is None:
+                self.defaultPrice = ZERO_MONEY
+            self._buyPrice, self.isHidden, self.sellForGold = proxy.shop.getItem(self.intCompactDescr)
+            if self._buyPrice is None:
+                self._buyPrice = ZERO_MONEY
+            self.defaultSellPrice = Money(*BigWorld.player().shop.getSellPrice(self.defaultPrice, proxy.shop.defaults.sellPriceModifiers(intCompactDescr), self.itemTypeID))
+            self.sellPrice = Money(*BigWorld.player().shop.getSellPrice(self.buyPrice, proxy.shop.sellPriceModifiers(intCompactDescr), self.itemTypeID))
             self.inventoryCount = proxy.inventory.getItems(self.itemTypeID, self.intCompactDescr)
             if self.inventoryCount is None:
                 self.inventoryCount = 0
             self.isUnlocked = self.intCD in proxy.stats.unlocks
-            self.actionPrice = self._getActionPrice(self.buyPrice, proxy)
+            self.isInitiallyUnlocked = self.intCD in proxy.stats.initialUnlocks
+            self.altPrice = self._getAltPrice(self.buyPrice, proxy.shop)
+            self.defaultAltPrice = self._getAltPrice(self.defaultPrice, proxy.shop.defaults)
+            self.sellActionPrc = -1 * getActionPrc(self.sellPrice, self.defaultSellPrice)
         return
 
-    def _getActionPrice(self, buyPrice, proxy):
-        """
-        @param buyPrice: module buying price
-        @param proxy: instance of ItemsRequester
-        @return:
-        """
-        return buyPrice
+    def _getAltPrice(self, buyPrice, proxy):
+        return None
+
+    @property
+    def buyPrice(self):
+        return self._buyPrice
+
+    @property
+    def rentOrBuyPrice(self):
+        price = self.altPrice or self.buyPrice
+        minRentPricePackage = self.getRentPackage()
+        if minRentPricePackage:
+            return minRentPricePackage['rentPrice']
+        return price
+
+    @property
+    def actionPrc(self):
+        return getActionPrc(self.altPrice or self.buyPrice, self.defaultAltPrice or self.defaultPrice)
+
+    @property
+    def isSecret(self):
+        return False
+
+    @property
+    def isPremium(self):
+        return self.buyPrice.isSet(Currency.GOLD)
+
+    @property
+    def isPremiumIGR(self):
+        return False
+
+    @property
+    def isRentable(self):
+        return False
+
+    @property
+    def isRented(self):
+        return False
 
     @property
     def descriptor(self):
@@ -298,101 +333,89 @@ class FittingItem(GUIItem, HasIntCD):
 
     @property
     def isRemovable(self):
-        """ Item can be removed from vehicle for free. Otherwise for gold. """
         return True
 
     @property
+    def minRentPrice(self):
+        return None
+
+    @property
+    def rentLeftTime(self):
+        return 0
+
+    def isPreviewAllowed(self):
+        return False
+
+    @property
     def userType(self):
-        """ Returns item's type represented as user-friendly string. """
         return getTypeInfoByName(self.itemTypeName)['userString']
 
     @property
     def userName(self):
-        """ Returns item's name represented as user-friendly string. """
         return self.descriptor.get('userString', '')
 
     @property
     def longUserName(self):
-        """ Returns item's long name represented as user-friendly string. """
         return self.userType + ' ' + self.userName
 
     @property
     def shortUserName(self):
-        """ Returns item's short name represented as user-friendly string. """
         return self.descriptor.get('shortUserString', '')
 
     @property
     def shortDescription(self):
-        """
-        @return: first occurrence of short description from string.
-        """
         return getShortDescr(self.descriptor.get('description', ''))
 
     @property
     def fullDescription(self):
-        """
-        @return: Strips short description tags from passed string and return full description body.
-        """
         return stripShortDescrTags(self.descriptor.get('description', ''))
 
     @property
     def name(self):
-        """ Returns item's tech-name. """
         return self.descriptor.get('name', '')
 
     @property
     def level(self):
-        """ Returns item's level number value. """
         return self.descriptor.get('level', 0)
 
     @property
     def isInInventory(self):
         return self.inventoryCount > 0
 
-    def _getShortInfo(self, vehicle = None):
-        """
-        Returns string with item's parameters.
-        
-        @param vehicle: vehicle which will be passes to the self.getParams method
-        @return: fromatted user-string
-        """
+    def _getShortInfo(self, vehicle=None, expanded=False):
         try:
-            description = i18n.makeString('#menu:descriptions/' + self.itemTypeName)
-            itemParams = dict(ItemsParameters.g_instance.getParameters(self.descriptor, vehicle.descriptor if vehicle is not None else None))
+            description = i18n.makeString('#menu:descriptions/' + self.itemTypeName + ('Full' if expanded else ''))
+            vehicleDescr = vehicle.descriptor if vehicle is not None else None
+            params = params_helper.getParameters(self, vehicleDescr)
+            formattedParametersDict = dict(formatters.getFormattedParamsList(self.descriptor, params))
             if self.itemTypeName == vehicles._VEHICLE:
-                itemParams['caliber'] = BigWorld.wg_getIntegralFormat(self.descriptor.gun['shots'][0]['shell']['caliber'])
-            return description % itemParams
+                formattedParametersDict['caliber'] = BigWorld.wg_getIntegralFormat(self.descriptor.gun['shots'][0]['shell']['caliber'])
+            result = description % formattedParametersDict
+            return result
         except Exception:
             LOG_CURRENT_EXCEPTION()
             return ''
 
         return
 
-    def getShortInfo(self, vehicle = None):
-        """
-        Returns string with item's parameters or
-        empty string if parameters is not available.
-        """
+    def getShortInfo(self, vehicle=None, expanded=False):
         if not GUI_SETTINGS.technicalInfo:
             return ''
-        return self._getShortInfo(vehicle)
+        return self._getShortInfo(vehicle, expanded)
 
-    def getParams(self, vehicle = None):
-        """ Returns dictionary of item's parameters to show in GUI. """
-        return dict(ItemsParameters.g_instance.get(self.descriptor, vehicle.descriptor if vehicle is not None else None))
+    def getParams(self, vehicle=None):
+        return dict(params_helper.get(self, vehicle.descriptor if vehicle is not None else None))
+
+    def getRentPackage(self, days=None):
+        return None
+
+    def getGUIEmblemID(self):
+        return 'notFound'
 
     @property
     def icon(self):
-        """ Returns item's icon path. """
         return _ICONS_MASK % {'type': self.itemTypeName,
          'subtype': '',
-         'unicName': self.name.replace(':', '-')}
-
-    @property
-    def iconContour(self):
-        """ Returns item's contour icon path. """
-        return _ICONS_MASK % {'type': self.itemTypeName,
-         'subtype': 'contour/',
          'unicName': self.name.replace(':', '-')}
 
     @property
@@ -401,30 +424,74 @@ class FittingItem(GUIItem, HasIntCD):
          'subtype': 'small/',
          'unicName': self.name.replace(':', '-')}
 
-    def mayInstall(self, vehicle, slotIdx = 0):
-        """
-        Item can be installed on @vehicle. Can be overriden
-        by inherited classes.
-        
-        @param vehicle: installation vehicle
-        @param slotIdx: slot index to install. Used for
-                                        equipments and optional devices.
-        @return: ( can be installed <bool>, error msg <str> )
-        """
+    def getBuyPriceCurrency(self):
+        if self.altPrice is not None:
+            if self.altPrice.gold and not self.isBoughtForCredits:
+                return Currency.GOLD
+        elif self.buyPrice.gold:
+            return Currency.GOLD
+        return Currency.CREDITS
+
+    def getSellPriceCurrency(self):
+        return self.sellPrice.getCurrency()
+
+    def isInstalled(self, vehicle, slotIdx=None):
+        return False
+
+    def mayInstall(self, vehicle, slotIdx=None):
         return vehicle.descriptor.mayInstallComponent(self.intCD)
 
     def mayRemove(self, vehicle):
-        """
-        Item can be removed from @vehicle. Can be overriden
-        by inherited classes.
-        
-        @param vehicle: removal vehicle
-        @return: ( can be removed <bool>, error msg <str> )
-        """
         return (True, '')
 
+    def mayRent(self, money):
+        return (False, '')
+
+    def mayRentOrBuy(self, money):
+        return self.mayPurchase(money)
+
+    def mayPurchaseWithExchange(self, money, exchangeRate):
+        price = self.altPrice or self.buyPrice
+        money = money.exchange(Currency.GOLD, Currency.CREDITS, exchangeRate)
+        return price <= money
+
+    def isPurchaseEnabled(self, money, exchangeRate):
+        canBuy, buyReason = self.mayPurchase(money)
+        canRentOrBuy, rentReason = self.mayRentOrBuy(money)
+        canBuyWithExchange = self.mayPurchaseWithExchange(money, exchangeRate)
+        return canRentOrBuy or canBuy or canBuyWithExchange and buyReason == 'credits_error'
+
+    def mayPurchase(self, money):
+        if getattr(BigWorld.player(), 'isLongDisconnectedFromCenter', False):
+            return (False, 'center_unavailable')
+        if self.itemTypeID not in (GUI_ITEM_TYPE.EQUIPMENT, GUI_ITEM_TYPE.OPTIONALDEVICE, GUI_ITEM_TYPE.SHELL) and not self.isUnlocked:
+            return (False, 'unlock_error')
+        if self.isHidden:
+            return (False, 'isHidden')
+        price = self.altPrice or self.buyPrice
+        if not price:
+            return (True, '')
+        for c in price.getSetCurrencies():
+            if money.get(c) >= price.get(c):
+                return (True, '')
+
+        return (False, '%s_error' % Currency.BY_WEIGHT[-1])
+
+    def getTarget(self, vehicle):
+        if self.isInstalled(vehicle):
+            return self.TARGETS.CURRENT
+        if self.isInInventory:
+            return self.TARGETS.IN_INVENTORY
+        return self.TARGETS.OTHER
+
+    def getConflictedEquipments(self, vehicle):
+        return ()
+
+    def getInstalledVehicles(self, vehs):
+        return set()
+
     def _sortByType(self, other):
-        return -1
+        return 0
 
     def __cmp__(self, other):
         if other is None:
@@ -438,18 +505,14 @@ class FittingItem(GUIItem, HasIntCD):
         res = self.level - other.level
         if res:
             return res
-        res = self.buyPrice[1] - other.buyPrice[1]
+        res = self.buyPrice.gold - other.buyPrice.gold
         if res:
             return res
-        res = self.buyPrice[0] - other.buyPrice[0]
+        res = self.buyPrice.credits - other.buyPrice.credits
         if res:
             return res
-        elif self.userName < other.userName:
-            return -1
-        elif self.userName > other.userName:
-            return 1
         else:
-            return 0
+            return cmp(self.userName, other.userName)
 
     def __eq__(self, other):
         if other is None:
@@ -463,39 +526,7 @@ class FittingItem(GUIItem, HasIntCD):
          self.itemTypeName,
          self.nationID)
 
-    def getCtorArgs(self):
-        """
-        Usefull method for serialization. Returns list of
-        constructor arguments which will be passed to the
-        object while unserializatin. Used in serializators.
-        
-        @return: list of ctor arguments
-        """
-        return [self.intCD]
 
-    def toDict(self):
-        result = GUIItem.toDict(self)
-        result.update({'buyPrice': self.buyPrice,
-         'sellPrice': self.sellPrice,
-         'inventoryCount': self.inventoryCount,
-         'isHidden': self.isHidden,
-         'isRemovable': self.isRemovable,
-         'intCD': self.intCD,
-         'itemTypeName': self.itemTypeName,
-         'itemTypeID': self.itemTypeID,
-         'userName': self.userName,
-         'description': self.fullDescription,
-         'level': self.level,
-         'nationID': self.nationID,
-         'innationID': self.innationID})
-        return result
-
-    def fromDict(self, d):
-        GUIItem.fromDict(self, d)
-        self.buyPrice = d.get('buyPrice', (0, 0))
-        self.sellPrice = d.get('sellPrice', (0, 0))
-        self.inventoryCount = d.get('inventoryCount', 0)
-        self.isHidden = d.get('isHidden', False)
-# okay decompyling res/scripts/client/gui/shared/gui_items/__init__.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:47 EST
+def getItemIconName(itemName):
+    return '%s.png' % itemName.replace(':', '-')
+# okay decompiling ./res/scripts/client/gui/shared/gui_items/__init__.pyc

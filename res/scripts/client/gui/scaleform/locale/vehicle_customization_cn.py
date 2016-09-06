@@ -1,14 +1,21 @@
-# 2013.11.15 11:26:37 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/locale/VEHICLE_CUSTOMIZATION_CN.py
 
 
 class VEHICLE_CUSTOMIZATION_CN(object):
+    """
+    DO NOT MODIFY!
+    Generated with yaml.
+    __author__ = 'yaml_processor'
+    null
+    """
     EMBLEM_CHINESE = '#vehicle_customization_cn:emblem/chinese'
     EMBLEM_GROUP1_STAR = '#vehicle_customization_cn:emblem/group1/star'
     EMBLEM_ANIMALS = '#vehicle_customization_cn:emblem/animals'
     EMBLEM_BATTLE = '#vehicle_customization_cn:emblem/battle'
     EMBLEM_COOL = '#vehicle_customization_cn:emblem/cool'
     EMBLEM_SIGNS = '#vehicle_customization_cn:emblem/signs'
+    EMBLEM_HISTORICAL_EMBLEMS = '#vehicle_customization_cn:emblem/historical_emblems'
     EMBLEM_GROUP0_CHINESE_1 = '#vehicle_customization_cn:emblem/group0/chinese_1'
     EMBLEM_GROUP0_CHINESE_2 = '#vehicle_customization_cn:emblem/group0/chinese_2'
     EMBLEM_GROUP0_CHINESE_3 = '#vehicle_customization_cn:emblem/group0/chinese_3'
@@ -43,6 +50,23 @@ class VEHICLE_CUSTOMIZATION_CN(object):
     EMBLEM_GROUP0_CHINESE_32 = '#vehicle_customization_cn:emblem/group0/chinese_32'
     EMBLEM_GROUP0_CHINESE_33 = '#vehicle_customization_cn:emblem/group0/chinese_33'
     EMBLEM_GROUP0_CHINESE_34 = '#vehicle_customization_cn:emblem/group0/chinese_34'
+    EMBLEM_GROUP6_HISTORICAL_EMBLEM_1 = '#vehicle_customization_cn:emblem/group6/historical_emblem_1'
+    EMBLEM_GROUP6_HISTORICAL_EMBLEM_2 = '#vehicle_customization_cn:emblem/group6/historical_emblem_2'
+    EMBLEM_GROUP6_HISTORICAL_EMBLEM_3 = '#vehicle_customization_cn:emblem/group6/historical_emblem_3'
+    EMBLEM_GROUP6_HISTORICAL_EMBLEM_4 = '#vehicle_customization_cn:emblem/group6/historical_emblem_4'
+    EMBLEM_GROUP6_HISTORICAL_EMBLEM_5 = '#vehicle_customization_cn:emblem/group6/historical_emblem_5'
+    EMBLEM_GROUP6_HISTORICAL_EMBLEM_6 = '#vehicle_customization_cn:emblem/group6/historical_emblem_6'
+    EMBLEM_GROUP6_HISTORICAL_EMBLEM_7 = '#vehicle_customization_cn:emblem/group6/historical_emblem_7'
+    EMBLEM_GROUP6_HISTORICAL_EMBLEM_8 = '#vehicle_customization_cn:emblem/group6/historical_emblem_8'
+    EMBLEM_GROUP6_HISTORICAL_EMBLEM_9 = '#vehicle_customization_cn:emblem/group6/historical_emblem_9'
+    EMBLEM_GROUP6_HISTORICAL_EMBLEM_10 = '#vehicle_customization_cn:emblem/group6/historical_emblem_10'
+    EMBLEM_GROUP6_HISTORICAL_EMBLEM_11 = '#vehicle_customization_cn:emblem/group6/historical_emblem_11'
+    EMBLEM_GROUP5_STICKER_1001 = '#vehicle_customization_cn:emblem/group5/sticker_1001'
+    EMBLEM_GROUP5_STICKER_1002 = '#vehicle_customization_cn:emblem/group5/sticker_1002'
+    EMBLEM_GROUP5_STICKER_1003 = '#vehicle_customization_cn:emblem/group5/sticker_1003'
+    EMBLEM_GROUP5_STICKER_1004 = '#vehicle_customization_cn:emblem/group5/sticker_1004'
+    EMBLEM_GROUP5_STICKER_1005 = '#vehicle_customization_cn:emblem/group5/sticker_1005'
+    EMBLEM_GROUP5_STICKER_1006 = '#vehicle_customization_cn:emblem/group5/sticker_1006'
     INSCRIPTION_FRANCE_INSCRIPTION_01 = '#vehicle_customization_cn:inscription/france/inscription_01'
     INSCRIPTION_FRANCE_INSCRIPTION_02 = '#vehicle_customization_cn:inscription/france/inscription_02'
     INSCRIPTION_FRANCE_INSCRIPTION_03 = '#vehicle_customization_cn:inscription/france/inscription_03'
@@ -83,6 +107,15 @@ class VEHICLE_CUSTOMIZATION_CN(object):
     INSCRIPTION_USA_INSCRIPTION_06 = '#vehicle_customization_cn:inscription/usa/inscription_06'
     INSCRIPTION_USA_INSCRIPTION_07 = '#vehicle_customization_cn:inscription/usa/inscription_07'
     INSCRIPTION_USA_INSCRIPTION_08 = '#vehicle_customization_cn:inscription/usa/inscription_08'
+    INSCRIPTION_USA_INSCRIPTION_09 = '#vehicle_customization_cn:inscription/usa/inscription_09'
+    INSCRIPTION_USA_INSCRIPTION_10 = '#vehicle_customization_cn:inscription/usa/inscription_10'
+    INSCRIPTION_USA_INSCRIPTION_11 = '#vehicle_customization_cn:inscription/usa/inscription_11'
+    INSCRIPTION_USA_INSCRIPTION_12 = '#vehicle_customization_cn:inscription/usa/inscription_12'
+    INSCRIPTION_USA_INSCRIPTION_13 = '#vehicle_customization_cn:inscription/usa/inscription_13'
+    INSCRIPTION_USA_INSCRIPTION_14 = '#vehicle_customization_cn:inscription/usa/inscription_14'
+    INSCRIPTION_USA_INSCRIPTION_15 = '#vehicle_customization_cn:inscription/usa/inscription_15'
+    INSCRIPTION_USA_INSCRIPTION_16 = '#vehicle_customization_cn:inscription/usa/inscription_16'
+    INSCRIPTION_USA_INSCRIPTION_17 = '#vehicle_customization_cn:inscription/usa/inscription_17'
     INSCRIPTION_CHINA_INSCRIPTION_01 = '#vehicle_customization_cn:inscription/china/inscription_01'
     INSCRIPTION_CHINA_INSCRIPTION_02 = '#vehicle_customization_cn:inscription/china/inscription_02'
     INSCRIPTION_CHINA_INSCRIPTION_03 = '#vehicle_customization_cn:inscription/china/inscription_03'
@@ -125,6 +158,13 @@ class VEHICLE_CUSTOMIZATION_CN(object):
     INSCRIPTION_JAPAN_INSCRIPTION_08 = '#vehicle_customization_cn:inscription/japan/inscription_08'
     INSCRIPTION_JAPAN_INSCRIPTION_09 = '#vehicle_customization_cn:inscription/japan/inscription_09'
     INSCRIPTION_JAPAN_INSCRIPTION_10 = '#vehicle_customization_cn:inscription/japan/inscription_10'
-# okay decompyling res/scripts/client/gui/scaleform/locale/vehicle_customization_cn.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:37 EST
+    INSCRIPTION_IGR_NOODLE = '#vehicle_customization_cn:inscription/IGR/noodle'
+    INSCRIPTION_IGR_FREE = '#vehicle_customization_cn:inscription/IGR/free'
+    INSCRIPTION_IGR_HOUR = '#vehicle_customization_cn:inscription/IGR/hour'
+    INSCRIPTION_IGR_NIGHT = '#vehicle_customization_cn:inscription/IGR/night'
+    INSCRIPTION_IGR_ADMINISTRATOR = '#vehicle_customization_cn:inscription/IGR/administrator'
+    INSCRIPTION_IGR_TEAM = '#vehicle_customization_cn:inscription/IGR/team'
+    INSCRIPTION_IGR_FORM = '#vehicle_customization_cn:inscription/IGR/form'
+    INSCRIPTION_IGR_LAME = '#vehicle_customization_cn:inscription/IGR/lame'
+    INSCRIPTION_IGR_SEAT = '#vehicle_customization_cn:inscription/IGR/seat'
+# okay decompiling ./res/scripts/client/gui/scaleform/locale/vehicle_customization_cn.pyc

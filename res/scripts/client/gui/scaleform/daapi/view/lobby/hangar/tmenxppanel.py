@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/hangar/TmenXpPanel.py
 from debug_utils import LOG_DEBUG
 from gui import SystemMessages
 from gui.Scaleform.daapi.view.meta.TmenXpPanelMeta import TmenXpPanelMeta
@@ -11,9 +13,9 @@ class TmenXpPanel(TmenXpPanelMeta):
         super(TmenXpPanel, self).__init__()
 
     def _populate(self):
+        super(TmenXpPanel, self)._populate()
         g_currentVehicle.onChanged += self._onVehicleChange
         self._onVehicleChange()
-        super(TmenXpPanel, self)._populate()
 
     def _dispose(self):
         g_currentVehicle.onChanged -= self._onVehicleChange
@@ -32,8 +34,9 @@ class TmenXpPanel(TmenXpPanelMeta):
         vehicle = g_currentVehicle.item
         if vehicle is None:
             self.as_setTankmenXpPanelS(False, False)
-            LOG_DEBUG('Do not show TmenXPPanel: No current vehicle')
+            LOG_DEBUG('Do not show TMenXPPanel: No current vehicle')
             return
         else:
             self.as_setTankmenXpPanelS(vehicle.isElite, vehicle.isXPToTman)
             return
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/hangar/tmenxppanel.pyc

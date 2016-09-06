@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/TmpConsoleCmds.py
 import BigWorld
 from debug_utils import *
 
@@ -46,7 +48,7 @@ def printPeriodTime():
     print '%f / %f' % (arena.periodEndTime - BigWorld.serverTime(), arena.periodLength)
 
 
-def printStatistics(byTotal = False, bots = True):
+def printStatistics(byTotal=False, bots=True):
     statistics = BigWorld.player().arena.statistics
     teams = (None, [], [])
     for (name, team), stats in statistics.iteritems():
@@ -72,3 +74,4 @@ def printConst(module, prefix, value):
             return
 
     print 'Not found'
+# okay decompiling ./res/scripts/client/tmpconsolecmds.pyc

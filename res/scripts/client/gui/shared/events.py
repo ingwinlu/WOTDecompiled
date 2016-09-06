@@ -1,15 +1,17 @@
-# 2013.11.15 11:26:46 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/shared/events.py
+from collections import namedtuple
 from gui.shared.event_bus import SharedEvent
+from shared_utils import CONST_CONTAINER
 __all__ = ['ArgsEvent',
  'LoadEvent',
- 'ShowViewEvent',
+ 'ComponentEvent',
+ 'LoadViewEvent',
  'ShowDialogEvent',
  'LoginEvent',
  'LoginCreateEvent',
  'LoginEventEx',
  'ShowWindowEvent',
- 'StatsStorageEvent',
  'LobbySimpleEvent',
  'FightButtonDisablingEvent',
  'FightButtonEvent',
@@ -18,49 +20,100 @@ __all__ = ['ArgsEvent',
 
 class HasCtxEvent(SharedEvent):
 
-    def __init__(self, eventType = None, ctx = None):
+    def __init__(self, eventType=None, ctx=None):
         super(HasCtxEvent, self).__init__(eventType)
         self.ctx = ctx if ctx is not None else {}
         return
 
 
+class AppLifeCycleEvent(SharedEvent):
+    INITIALIZING = 'app/initializing'
+    INITIALIZED = 'app/initialized'
+    DESTROYED = 'app/destroyed'
+
+    def __init__(self, ns, eventType):
+        super(AppLifeCycleEvent, self).__init__(eventType)
+        self.__ns = ns
+
+    @property
+    def ns(self):
+        return self.__ns
+
+
+class GlobalSpaceEvent(SharedEvent):
+    GO_NEXT = 'globalSpace/goNext'
+
+    def __init__(self, eventType):
+        super(GlobalSpaceEvent, self).__init__(eventType)
+
+
+class GameEvent(HasCtxEvent):
+    SCREEN_SHOT_MADE = 'game/screenShotMade'
+    SHOW_EXTENDED_INFO = 'game/showExtendedInfo'
+    CHOICE_CONSUMABLE = 'game/choiceConsumable'
+    HELP = 'game/help'
+    MINIMAP_CMD = 'game/minimapCmd'
+    RADIAL_MENU_CMD = 'game/radialMenuCmd'
+    TOGGLE_GUI = 'game/toggleGUI'
+    GUI_VISIBILITY = 'game/guiVisibility'
+    MARKERS_2D_VISIBILITY = 'game/markers2DVisibility'
+    CROSSHAIR_VISIBILITY = 'game/crosshairVisibility'
+    CROSSHAIR_VIEW = 'game/crosshairView'
+    FULL_STATS = 'game/fullStats'
+    SHOW_CURSOR = 'game/showCursor'
+    HIDE_CURSOR = 'game/hideCursor'
+    NEXT_PLAYERS_PANEL_MODE = 'game/nextPlayersPanelMode'
+    PLAYING_TIME_ON_ARENA = 'game/playingTimeOnArena'
+    CHANGE_APP_RESOLUTION = 'game/changeAppResolution'
+
+
 class GUICommonEvent(SharedEvent):
-    APP_STARTED = 'appStarted'
+    LOBBY_VIEW_LOADED = 'lobbyViewLoaded'
+
+    def __init__(self, eventType=None):
+        super(GUICommonEvent, self).__init__(eventType)
+
+
+class GUIEditorEvent(HasCtxEvent):
+    HIDE_GUIEditor = 'hideGUIEditor'
+
+    def __init__(self, eventType=None, ctx=None):
+        super(GUIEditorEvent, self).__init__(eventType, ctx)
 
 
 class ArgsEvent(HasCtxEvent):
     UPDATE_ARGS = 'updateArguments'
 
-    def __init__(self, eventType = None, alias = '', ctx = None):
+    def __init__(self, eventType=None, alias='', ctx=None):
         super(ArgsEvent, self).__init__(eventType, ctx)
         self.alias = alias
 
 
 class LoadEvent(HasCtxEvent):
-    LOAD_PREBATTLE = 'loadPrebattle'
-    LOAD_HANGAR = 'loadHangar'
-    LOAD_SHOP = 'loadShop'
-    LOAD_INVENTORY = 'loadInventory'
-    LOAD_PROFILE = 'loadProfile'
-    LOAD_TECHTREE = 'loadTechTree'
-    LOAD_RESEARCH = 'loadResearch'
     EXIT_FROM_RESEARCH = 'exitFromResearch'
-    LOAD_BARRACKS = 'loadBarracks'
-    LOAD_CUSTOMIZATION = 'loadCustomization'
-    LOAD_EULA = 'loadEULA'
-    LOAD_BATTLE_LOADING = 'loadBattleLoading'
-    LOAD_TUTORIAL_LOADING = 'loadTutorialLoading'
-    LOAD_BATTLE_QUEUE = 'loadBattleQueue'
-    LOAD_TRAININGS = 'loadTrainings'
-    LOAD_TRAINING_ROOM = 'loadTrainingRoom'
 
 
-class ShowViewEvent(HasCtxEvent):
-    SHOW_LOGIN = 'showLogin'
-    SHOW_INTRO_VIDEO = 'showIntroVideo'
-    SHOW_LOBBY = 'showLobby'
-    SHOW_LOBBY_MENU = 'showLobbyMenu'
-    ClOSE_LOBBY_MENU = 'closeLobbyMenu'
+class FocusEvent(HasCtxEvent):
+    COMPONENT_FOCUSED = 'onComponentFocused'
+
+
+class ComponentEvent(SharedEvent):
+    COMPONENT_REGISTERED = 'onComponentRegistered'
+    COMPONENT_UNREGISTERED = 'onComponentUnRegistered'
+
+    def __init__(self, eventType, owner, componentPy, alias):
+        super(ComponentEvent, self).__init__(eventType)
+        self.owner = owner
+        self.componentPy = componentPy
+        self.alias = alias
+
+
+class LoadViewEvent(HasCtxEvent):
+
+    def __init__(self, alias=None, name=None, ctx=None):
+        super(LoadViewEvent, self).__init__(alias, ctx)
+        self.name = name if name is not None else alias
+        return
 
 
 class ShowDialogEvent(SharedEvent):
@@ -70,9 +123,15 @@ class ShowDialogEvent(SharedEvent):
     SHOW_DEMOUNT_DEVICE_DIALOG = 'showDemountDeviceDialog'
     SHOW_DESTROY_DEVICE_DIALOG = 'showDestroyDeviceDialog'
     SHOW_CONFIRM_MODULE = 'showConfirmModule'
+    SHOW_CONFIRM_BOOSTER = 'showConfirmBooster'
     SHOW_SYSTEM_MESSAGE_DIALOG = 'showSystemMessageDialog'
-    SHOW_CAPTCHA_DIALOG = 'showCaptchaDialog'
     SHOW_DISMISS_TANKMAN_DIALOG = 'showDismissTankmanDialog'
+    SHOW_CYBER_SPORT_DIALOG = 'showCyberSportDialog'
+    SHOW_CONFIRM_ORDER_DIALOG = 'showConfirmOrderDialog'
+    SHOW_PUNISHMENT_DIALOG = 'showPunishmentDialog'
+    SHOW_EXCHANGE_DIALOG = 'showExchangeDialog'
+    SHOW_CHECK_BOX_DIALOG = 'showCheckBoxDialog'
+    SHOW_DESERTER_DLG = 'showDeserterDialog'
 
     def __init__(self, meta, handler):
         super(ShowDialogEvent, self).__init__(meta.getEventType())
@@ -82,9 +141,8 @@ class ShowDialogEvent(SharedEvent):
 
 class LoginEvent(SharedEvent):
     CANCEL_LGN_QUEUE = 'cancelLoginQueue'
-    CLOSE_CREATE_AN_ACCOUNT = 'closeCreateAnAccount'
 
-    def __init__(self, eventType, alias = '', isSuccess = False, errorMsg = ''):
+    def __init__(self, eventType, alias='', isSuccess=False, errorMsg=''):
         super(LoginEvent, self).__init__(eventType=eventType)
         self.alias = alias
         self.isSuccess = isSuccess
@@ -93,7 +151,6 @@ class LoginEvent(SharedEvent):
 
 class LoginCreateEvent(SharedEvent):
     CREATE_ACC = 'createAnAccount'
-    CREATE_AN_ACCOUNT_REQUEST = 'createAnAccountRequest'
 
     def __init__(self, eventType, alias, title, message, submit):
         super(LoginCreateEvent, self).__init__(eventType=eventType)
@@ -106,88 +163,56 @@ class LoginEventEx(LoginEvent):
     SET_AUTO_LOGIN = 'setAutoLogin'
     SET_LOGIN_QUEUE = 'setLoginQueue'
     ON_LOGIN_QUEUE_CLOSED = 'onLoginQueueClosed'
+    SWITCH_LOGIN_QUEUE_TO_AUTO = 'switchLoginQueueToAuto'
 
-    def __init__(self, eventType, alias, waitingOpen, msg, waitingClose):
+    def __init__(self, eventType, alias, waitingOpen, msg, waitingClose, showAutoLoginBtn):
         super(LoginEventEx, self).__init__(eventType=eventType, alias=alias)
         self.waitingOpen = waitingOpen
         self.msg = msg
         self.waitingClose = waitingClose
-
-
-class ShowWindowEvent(HasCtxEvent):
-    SHOW_TEST_WINDOW = 'showTestWindow'
-    SHOW_RECRUIT_WINDOW = 'showRecruitWindow'
-    SHOW_EXCHANGE_WINDOW = 'showExchangeWindow'
-    SHOW_PROFILE_WINDOW = 'showProfileWindow'
-    SHOW_EXCHANGE_VCOIN_WINDOW = 'showExchangeVcoinWindow'
-    SHOW_EXCHANGE_XP_WINDOW = 'showExchangeXPWindow'
-    SHOW_EXCHANGE_FREE_TO_TANKMAN_XP_WINDOW = 'showExchangeFreeToTankmanXpWindow'
-    SHOW_VEHICLE_BUY_WINDOW = 'showVehicleBuyWindow'
-    SHOW_NOTIFICATIONS_LIST = 'showNotificationsList'
-    SHOW_EULA = 'showEULA'
-    SHOW_SETTINGS_WINDOW = 'settingsWindow'
-    SHOW_VEHICLE_INFO_WINDOW = 'vehicleInfo'
-    SHOW_MODULE_INFO_WINDOW = 'moduleInfo'
-    SHOW_VEHICLE_SELL_DIALOG = 'vehicleSellWindow'
-    SHOW_PREMIUM_DIALOG = 'loadPremiumDialog'
-    SHOW_TECHNICAL_MAINTENANCE = 'showTechnicalMaintenance'
-    SHOW_TANKMAN_INFO = 'showTankmanInfo'
-    SHOW_BATTLE_RESULTS = 'showBattleResults'
-    SHOW_QUESTS_WINDOW = 'showQuestsWindow'
-    SHOW_TANKMAN_DROP_SKILLS_WINDOW = 'showTankmanDropSkillsWindow'
-    SHOW_TRAINING_SETTINGS_WINDOW = 'showTrainingSettingsWindow'
-    SHOW_SQUAD_WINDOW = 'showSquadWindow'
-    SHOW_COMPANY_WINDOW = 'showCompanyWindow'
-    SHOW_COMPANIES_WINDOW = 'showCompaniesWindow'
-    SHOW_BATTLE_SESSION_WINDOW = 'showBattleSessionWindow'
-    SHOW_BATTLE_SESSION_LIST = 'showBattleSessionList'
-    SHOW_LAZY_CHANNEL_WINDOW = 'showLazyChannelWindow'
-    SHOW_LOBBY_CHANNEL_WINDOW = 'showLobbyChannelWindow'
-    SHOW_SEND_INVITES_WINDOW = 'showSendInvitesWindow'
-    SHOW_TUTORIAL_BATTLE_HISTORY = 'Tutorial.Dispatcher.BattleHistory'
-    SHOW_NOTIFICATION_INVITES_WINDOW = 'showNotificationInvitesWindow'
-    SHOW_RECEIVED_INVITE_WINDOW = 'showReceivedInviteWindow'
-    SHOW_BROWSER_WINDOW = 'showBrowserWindow'
-    SHOW_DEMONSTRATOR_WINDOW = 'showDemonstratorWindow'
-    SHOW_FAQ_WINDOW = 'showFAQWindow'
-    SHOW_CHANNEL_MANAGEMENT_WINDOW = 'showChannelsManagementWindow'
-    SHOW_CONNECT_TO_SECURE_CHANNEL_WINDOW = 'showConnectToSecureChannelWindow'
-    SHOW_ELITE_VEHICLE_WINDOW = 'showEliteVehicleWindow'
-    SHOW_CONTACTS_WINDOW = 'showWindowEvent'
-    SHOW_UNIT_WINDOW = 'showUnitWindow'
-    SHOW_ROSTER_SLOT_SETTINGS_WINDOW = 'showRosterSlotSettingsWindow'
-    SHOW_VEHICLE_SELECTOR_WINDOW = 'showVehicleSelectorWindow'
+        self.showAutoLoginBtn = showAutoLoginBtn
 
 
 class HideWindowEvent(HasCtxEvent):
-    HIDE_SQUAD_WINDOW = 'hideSquadWindow'
     HIDE_COMPANY_WINDOW = 'hideCompanyWindow'
+    HIDE_BATTLE_RESULT_WINDOW = 'hideBattleResultsWindow'
     HIDE_BATTLE_SESSION_WINDOW = 'hideBattleSessionWindow'
-    HIDE_NOTIFICATION_INVITES_WINDOW = 'hideNotificationInvitesWindow'
     HIDE_UNIT_WINDOW = 'hideUnitWindow'
     HIDE_VEHICLE_SELECTOR_WINDOW = 'showVehicleSelectorWindow'
     HIDE_ROSTER_SLOT_SETTINGS_WINDOW = 'showRosterSlotSettingsWindow'
+    HIDE_LEGAL_INFO_WINDOW = 'showLegalInfoWindow'
+    HIDE_SANDBOX_QUEUE_DIALOG = 'hideSandboxQueueDialog'
 
 
-class StatsStorageEvent(HasCtxEvent):
-    EXPERIENCE_RESPONSE = 'common.experienceResponse'
-    TANKMAN_CHANGE_RESPONSE = 'common.tankmanChangeResponse'
-    CREDITS_RESPONSE = 'common.creditsResponse'
-    GOLD_RESPONSE = 'common.goldResponse'
-    PREMIUM_RESPONSE = 'common.premiumResponse'
-    VEHICLE_CHANGE_RESPONSE = 'common.vehicleChangeResponse'
-    SPEAKING_PLAYERS_RESPONSE = 'common.speakingPlayersResponse'
-    ACCOUNT_ATTRS = 'common.accountAttrs'
-    DENUNCIATIONS = 'common.denunciations'
-    NATIONS = 'common.nations'
+class HidePopoverEvent(HasCtxEvent):
+    HIDE_POPOVER = 'hidePopover'
+    POPOVER_DESTROYED = 'popoverDestroyed'
 
 
 class LobbySimpleEvent(HasCtxEvent):
     UPDATE_TANK_PARAMS = 'updateTankParams'
-    HIGHLIGHT_TANK_PARAMS = 'highlightTankParams'
     SHOW_HELPLAYOUT = 'showHelplayout'
     CLOSE_HELPLAYOUT = 'closeHelplayout'
-    QUESTS_UPDATED = 'questUpdated'
+    EVENTS_UPDATED = 'questUpdated'
+    HIDE_HANGAR = 'hideHangar'
+    NOTIFY_CURSOR_OVER_3DSCENE = 'notifyCursorOver3dScene'
+    PREMIUM_BOUGHT = 'premiumBought'
+    WAITING_SHOWN = 'waitingShown'
+
+
+class TrainingSettingsEvent(HasCtxEvent):
+    UPDATE_TRAINING_SETTINGS = 'updateTrainingSettings'
+
+
+class TechnicalMaintenanceEvent(HasCtxEvent):
+    RESET_EQUIPMENT = 'resetEquipment'
+
+
+class ContactsEvent(HasCtxEvent):
+    EDIT_GROUP = 'editGroup'
+    REMOVE_GROUP = 'removeGroup'
+    CREATE_CONTACT_NOTE = 'createContactNote'
+    EDIT_CONTACT_NOTE = 'editContactNote'
 
 
 class FightButtonDisablingEvent(LobbySimpleEvent):
@@ -209,30 +234,56 @@ class SkillDropEvent(SharedEvent):
 
 class CloseWindowEvent(SharedEvent):
     EULA_CLOSED = 'EULAClosed'
+    GOLD_FISH_CLOSED = 'GoldFishClosed'
 
-    def __init__(self, eventType = None, isAgree = False):
+    def __init__(self, eventType=None, isAgree=False):
         super(CloseWindowEvent, self).__init__(eventType)
         self.isAgree = isAgree
 
 
-class CoolDownEvent(SharedEvent):
-    PREBATTLE = 'prebattleCoolDown'
+coolDownEventParams = namedtuple('coolDownEventParams', 'eventType, requestScope, actionId')
 
-    def __init__(self, eventType = None, requestID = 0, coolDown = 5.0):
+class CoolDownEvent(SharedEvent):
+    GLOBAL = 'globalCoolDown'
+    PREBATTLE = 'prebattleCoolDown'
+    FORTIFICATION = 'fortificationCoolDown'
+    BW_CHAT2 = 'bwChat2CoolDown'
+    XMPP = 'xmppCoolDown'
+    CLUB = 'club'
+    CLAN = 'clan'
+
+    def __init__(self, eventType=None, requestID=0, coolDown=5.0):
         super(CoolDownEvent, self).__init__(eventType)
         self.coolDown = coolDown
         self.requestID = requestID
 
 
 class TutorialEvent(SharedEvent):
-    UI_CONTROL_ADDED = 'tutorialUIControlAdded'
-    UI_CONTROL_REMOVED = 'tutorialUIControlRemoved'
-    RESTART = 'restartTutorial'
-    REFUSE = 'refuseTutorial'
+    START_TRAINING = 'startTraining'
+    STOP_TRAINING = 'stopTraining'
+    SHOW_TUTORIAL_BATTLE_HISTORY = 'Tutorial.Dispatcher.BattleHistory'
+    ON_COMPONENT_FOUND = 'onComponentFound'
+    ON_COMPONENT_LOST = 'onComponentLost'
+    ON_TRIGGER_ACTIVATED = 'onTriggerActivated'
+    SIMPLE_WINDOW_CLOSED = 'simpleWindowClosed'
+    SIMPLE_WINDOW_PROCESSED = 'simpleWindowProcessed'
 
-    def __init__(self, eventType = None, targetID = None):
+    def __init__(self, eventType, settingsID='', targetID='', reloadIfRun=False, initialChapter=None, restoreIfRun=False, isStopForced=False, isAfterBattle=False):
         super(TutorialEvent, self).__init__(eventType)
+        self.settingsID = settingsID
         self.targetID = targetID
+        self.reloadIfRun = reloadIfRun
+        self.initialChapter = initialChapter
+        self.restoreIfRun = restoreIfRun
+        self.isStopForced = isStopForced
+        self.isAfterBattle = isAfterBattle
+
+    def getState(self):
+        return {'reloadIfRun': self.reloadIfRun,
+         'initialChapter': self.initialChapter,
+         'restoreIfRun': self.restoreIfRun,
+         'isStopForced': self.isStopForced,
+         'isAfterBattle': self.isAfterBattle}
 
 
 class MessengerEvent(HasCtxEvent):
@@ -251,33 +302,49 @@ class ChannelManagementEvent(HasCtxEvent):
     REQUEST_TO_ADD = 'requestToAdd'
     REQUEST_TO_REMOVE = 'requestToRemove'
     REQUEST_TO_CHANGE = 'requestToChange'
+    REQUEST_TO_SHOW = 'requestToShow'
+    REQUEST_TO_ACTIVATE = 'rqActivateChannel'
+    REQUEST_TO_DEACTIVATE = 'rqDeactivateChannel'
+    REQUEST_TO_EXIT = 'rqExitChannel'
+    REGISTER_BATTLE = 'registerBattleComponent'
+    UNREGISTER_BATTLE = 'unregisterBattleComponent'
+    MESSAGE_FADING_ENABLED = 'messageFadingEnabled'
 
-    def __init__(self, clientID, eventType = None, ctx = None):
+    def __init__(self, clientID, eventType=None, ctx=None):
         super(ChannelManagementEvent, self).__init__(eventType, ctx)
         self.clientID = clientID
+
+
+class PreBattleChannelEvent(ChannelManagementEvent):
+    REQUEST_TO_ADD_PRE_BATTLE_CHANNEL = 'loadSquad'
+    REQUEST_TO_REMOVE_PRE_BATTLE_CHANNEL = 'removeSquad'
+
+    def __init__(self, clientID, eventType=None, ctx=None):
+        super(PreBattleChannelEvent, self).__init__(clientID, eventType, ctx)
 
 
 class ChannelCarouselEvent(SharedEvent):
     CAROUSEL_INITED = 'carouselInited'
     CAROUSEL_DESTROYED = 'carouselDestroyed'
     OPEN_BUTTON_CLICK = 'openButtonClick'
+    MINIMIZE_ALL_CHANNELS = 'minimizeAllChannels'
+    CLOSE_ALL_EXCEPT_CURRENT = 'closeAllExceptCurrent'
     CLOSE_BUTTON_CLICK = 'closeButtonClick'
+    ON_WINDOW_CHANGE_FOCUS = 'onWindowChangeFocus'
+    ON_WINDOW_CHANGE_OPEN_STATE = 'onWindowChangeOpenState'
 
-    def __init__(self, target, eventType = None, clientID = None):
+    def __init__(self, target, eventType=None, clientID=None, wndType=None, flag=False):
         super(ChannelCarouselEvent, self).__init__(eventType)
         self.target = target
         self.clientID = clientID
-
-
-class BrowserEvent(SharedEvent):
-    BROWSER_LOAD_START = 'browserLoadStart'
-    BROWSER_LOAD_END = 'browserLoadEnd'
+        self.wndType = wndType
+        self.flag = flag
 
 
 class AutoInviteEvent(SharedEvent):
     INVITE_RECEIVED = 'inviteReceived'
 
-    def __init__(self, invite, eventType = None):
+    def __init__(self, invite, eventType=None):
         super(AutoInviteEvent, self).__init__(eventType)
         self.invite = invite
 
@@ -285,15 +352,119 @@ class AutoInviteEvent(SharedEvent):
 class CSVehicleSelectEvent(HasCtxEvent):
     VEHICLE_SELECTED = 'vehicleSelected'
 
-    def __init__(self, eventType = None, ctx = None):
+    def __init__(self, eventType=None, ctx=None):
         super(CSVehicleSelectEvent, self).__init__(eventType, ctx)
 
 
 class CSRosterSlotSettingsWindow(HasCtxEvent):
     APPLY_SLOT_SETTINGS = 'applySlotSettings'
 
-    def __init__(self, eventType = None, ctx = None):
+    def __init__(self, eventType=None, ctx=None):
         super(CSRosterSlotSettingsWindow, self).__init__(eventType, ctx)
-# okay decompyling res/scripts/client/gui/shared/events.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:47 EST
+
+
+class FortEvent(HasCtxEvent):
+    REQUEST_TIMEOUT = 'requestTimeout'
+    VIEW_LOADED = 'viewLoaded'
+    SWITCH_TO_MODE = 'switchToMode'
+    ON_INTEL_FILTER_APPLY = 'onIntelFilterApplied'
+    ON_INTEL_FILTER_RESET = 'onIntelFilterReset'
+    ON_INTEL_FILTER_DO_REQUEST = 'onIntelFilterDoRequest'
+    TRANSPORTATION_STEP = 'transportationStep'
+    CHOICE_DIVISION = 'testChoiceDivision'
+    REQUEST_TRANSPORTATION = 'requestTransportation'
+    IS_IN_TRANSPORTING_MODE = 'isInTransportingMode'
+
+    class TRANSPORTATION_STEPS(CONST_CONTAINER):
+        NONE = 0
+        FIRST_STEP = 1
+        NEXT_STEP = 2
+        CONFIRMED = 3
+
+    def __init__(self, eventType=None, ctx=None):
+        super(FortEvent, self).__init__(eventType, ctx)
+
+
+class FortOrderEvent(HasCtxEvent):
+    USE_ORDER = 'useOrder'
+    CREATE_ORDER = 'createOrder'
+
+    def __init__(self, eventType=None, ctx=None):
+        super(FortOrderEvent, self).__init__(eventType, ctx)
+
+
+class OpenLinkEvent(SharedEvent):
+    SPECIFIED = 'openSpecifiedURL'
+    REGISTRATION = 'openRegistrationURL'
+    RECOVERY_PASSWORD = 'openRecoveryPasswordURL'
+    PAYMENT = 'openPaymentURL'
+    SECURITY_SETTINGS = 'openSecuritySettingsURL'
+    SUPPORT = 'openSupportURL'
+    MIGRATION = 'openMigrationURL'
+    FORT_DESC = 'fortDescription'
+    CLAN_SEARCH = 'clanSearch'
+    CLAN_CREATE = 'clanCreate'
+    CLUB_SETTINGS = 'clubSettings'
+    CLUB_HELP = 'clubHelp'
+    MEDKIT_HELP = 'medkitHelp'
+    REPAIRKITHELP_HELP = 'repairkitHelp'
+    FIRE_EXTINGUISHERHELP_HELP = 'fireExtinguisherHelp'
+    INVIETES_MANAGEMENT = 'invitesManagementURL'
+    GLOBAL_MAP_SUMMARY = 'globalMapSummary'
+    GLOBAL_MAP_PROMO_SUMMARY = 'globalMapPromoSummary'
+    GLOBAL_MAP_CAP = 'globalMapCap'
+    GLOBAL_MAP_PROMO = 'globalMapPromo'
+
+    def __init__(self, eventType, url='', title=''):
+        super(OpenLinkEvent, self).__init__(eventType)
+        self.url = url
+        self.title = title
+
+
+class CalendarEvent(SharedEvent):
+    MONTH_CHANGED = 'monthChanged'
+    DATE_SELECTED = 'dateSelected'
+
+    def __init__(self, eventType=None, timestamp=None):
+        super(CalendarEvent, self).__init__(eventType)
+        self.__timestamp = timestamp
+
+    def getTimestamp(self):
+        return self.__timestamp
+
+
+class BubbleTooltipEvent(LobbySimpleEvent):
+    SHOW = 'showBubble'
+
+    def __init__(self, eventType, message=None, duration=5000):
+        super(BubbleTooltipEvent, self).__init__(eventType)
+        self.__message = message
+        self.__duration = duration
+
+    def getMessage(self):
+        return self.__message
+
+    def getDuration(self):
+        return self.__duration
+
+
+class WGNCShowItemEvent(SharedEvent):
+    SHOW_BASIC_WINDOW = 'wgnc/basicWindow/show'
+    SHOW_POLL_WINDOW = 'wgnc/pollWindow/show'
+    CLOSE_POLL_WINDOW = 'wgnc/pollWindow/close'
+
+    def __init__(self, notID, target, eventType=None):
+        super(WGNCShowItemEvent, self).__init__(eventType)
+        self.__notID = notID
+        self.__target = target
+
+    def getNotID(self):
+        return self.__notID
+
+    def getTarget(self):
+        return self.__target
+
+
+class ScoreEvent(HasCtxEvent):
+    FRAGS_UPDATED = 'score/frags'
+# okay decompiling ./res/scripts/client/gui/shared/events.pyc

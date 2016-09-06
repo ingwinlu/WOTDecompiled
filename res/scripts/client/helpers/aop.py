@@ -1,6 +1,9 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/helpers/aop.py
 import re
 import sys
 import types
+import weakref
 from debug_utils import LOG_CURRENT_EXCEPTION, LOG_ERROR, LOG_DEBUG
 
 def copy(wrapper, wrapped):
@@ -75,9 +78,15 @@ def wrap(func):
         return func
     else:
 
-        def wrapper(*args, **kwargs):
-            return execFunction(wrapper, args, kwargs)
+        def _make():
 
+            def _wrapper(*args, **kwargs):
+                return execFunction(_getter(), args, kwargs)
+
+            _getter = weakref.ref(_wrapper)
+            return _wrapper
+
+        wrapper = _make()
         copy(wrapper, func)
         wrapper.__aspects__ = []
         wrapper.__original__ = func
@@ -118,10 +127,7 @@ class CallData(object):
         self._exception = None
         if wrapped.__ismethod__ is None:
             try:
-                if getattr(args[0], function.__name__).__original__ is function:
-                    wrapped.__ismethod__ = True
-                else:
-                    wrapped.__ismethod__ = False
+                wrapped.__ismethod__ = getattr(args[0], function.__name__).__original__ is function
             except BaseException:
                 wrapped.__ismethod__ = False
 
@@ -227,8 +233,8 @@ class Pointcut(list):
     def __del__(self):
         LOG_DEBUG('Pointcut deleted: {0:>s}'.format(self))
 
-    def __init__(self, path, name, filterString, match = True):
-        list.__init__(self)
+    def __init__(self, path, name, filterString, match=True, aspects=()):
+        super(Pointcut, self).__init__()
         self.__nsPath = path
         self.__nsName = name
         ns = self.getNs(path, name)
@@ -240,6 +246,9 @@ class Pointcut(list):
                 setattr(ns, item, wrapped)
                 self.append(wrapped)
 
+            for aspect in aspects:
+                self.addAspect(aspect)
+
             return
 
     def getNs(self, path, name):
@@ -247,7 +256,7 @@ class Pointcut(list):
         return getattr(imported, name, None)
 
     def addAspect(self, aspect, *args, **kwargs):
-        if type(aspect) is AspectType:
+        if isinstance(aspect, AspectType):
             for item in self:
                 aspect(*args, **kwargs)(item)
 
@@ -278,7 +287,7 @@ class Weaver(object):
         pointcut = kwargs.pop('pointcut', Pointcut)
         aspects = kwargs.pop('aspects', [])
         avoid = kwargs.pop('avoid', False)
-        if type(pointcut) is PointcutType:
+        if isinstance(pointcut, PointcutType):
             try:
                 pointcut = pointcut(*args, **kwargs)
             except ImportError:
@@ -306,7 +315,7 @@ class Weaver(object):
                 LOG_CURRENT_EXCEPTION()
 
     def findPointcut(self, pointcut):
-        if type(pointcut) is PointcutType:
+        if isinstance(pointcut, PointcutType):
             clazz = pointcut
         else:
             clazz = pointcut.__class__
@@ -319,7 +328,7 @@ class Weaver(object):
     def avoid(self, idx):
         self.addAspect(idx, DummyAspect)
 
-    def clear(self, idx = None):
+    def clear(self, idx=None):
         if idx is not None:
             if -1 < idx < len(self.__pointcuts):
                 pointcut = self.__pointcuts.pop(idx)
@@ -330,3 +339,4 @@ class Weaver(object):
                 pointcuts.pop().clear()
 
         return
+# okay decompiling ./res/scripts/client/helpers/aop.pyc

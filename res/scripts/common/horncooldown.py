@@ -1,9 +1,11 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/common/HornCooldown.py
 import BigWorld
 import Event
 
 class HornCooldown:
 
-    def __init__(self, windowSize, maxSignals, state = None):
+    def __init__(self, windowSize, maxSignals, state=None):
         self.__windowSize = windowSize
         self.__maxSignals = maxSignals
         if state is not None:
@@ -65,3 +67,4 @@ class HornCooldown:
             if time > cutTime:
                 del self.__signals[:i]
                 return
+# okay decompiling ./res/scripts/common/horncooldown.pyc

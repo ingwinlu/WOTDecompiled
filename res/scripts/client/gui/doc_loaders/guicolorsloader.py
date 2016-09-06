@@ -1,9 +1,13 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/doc_loaders/GuiColorsLoader.py
 import Math
 import ResMgr
 from debug_utils import *
 from items import _xml
+DEFAULT_SUB_SCHEME = 'default'
+COLOR_BLIND_SUB_SCHEME = 'color_blind'
 
-class GuiColorsLoader(object):
+class _GuiColorsLoader(object):
     XML_PATH = 'gui/gui_colors.xml'
     DEFAULT_ALIAS_COLOR = None
     DEFAULT_RGBA_COLOR = Math.Vector4(255, 255, 255, 255)
@@ -34,6 +38,9 @@ class GuiColorsLoader(object):
 
     def __init__(self):
         self.__colors = {}
+
+    def clear(self):
+        self.__colors.clear()
 
     def __readXML(self, xmlCtx):
         xmlHash = self.__readHash(xmlCtx)
@@ -111,8 +118,8 @@ class GuiColorsLoader(object):
         offset = self.DEFAULT_TRANSFORM_COLOR_OFFSET
         processed = section['transform']
         if processed is not None:
-            mult = self.__readVector4(processed, 'mult', self.DEFAULT_TRANSFORM_COLOR_MULT)
-            offset = self.__readVector4(processed, 'offset', self.DEFAULT_TRANSFORM_COLOR_OFFSET)
+            mult = self.__readVector4(processed, 'mult')
+            offset = self.__readVector4(processed, 'offset')
         return {'mult': mult,
          'offset': offset}
 
@@ -169,3 +176,28 @@ class GuiColorsLoader(object):
             return scheme[group]
         else:
             return scheme['default']
+
+    def getSubSchemeToFlash(self, schemeName, group):
+        result = self.getSubScheme(schemeName, group)
+        transform = result['transform']
+        return {'adjust': {'offset': result['adjust']['offset'].tuple()},
+         'transform': {'mult': transform['mult'].tuple(),
+                       'offset': transform['offset'].tuple()},
+         'rgba': result['rgba'].tuple(),
+         'alias_color': result['alias_color']}
+
+
+_g_instance = None
+
+def load():
+    global _g_instance
+    if _g_instance is None:
+        _g_instance = _GuiColorsLoader()
+        try:
+            _g_instance.load()
+        except Exception:
+            LOG_ERROR('There is error while loading colors xml data')
+            LOG_CURRENT_EXCEPTION()
+
+    return _g_instance
+# okay decompiling ./res/scripts/client/gui/doc_loaders/guicolorsloader.pyc

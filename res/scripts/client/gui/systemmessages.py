@@ -1,5 +1,8 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/SystemMessages.py
 from abc import ABCMeta, abstractmethod
 from enumerations import Enumeration
+from gui.shared.money import Currency
 SM_TYPE = Enumeration('System message type', ['Error',
  'Warning',
  'Information',
@@ -7,13 +10,17 @@ SM_TYPE = Enumeration('System message type', ['Error',
  'PowerLevel',
  'FinancialTransactionWithGold',
  'FinancialTransactionWithCredits',
+ 'FortificationStartUp',
  'PurchaseForGold',
  'DismantlingForGold',
  'PurchaseForCredits',
  'Selling',
+ 'Remove',
  'Repair',
  'CustomizationForGold',
  'CustomizationForCredits'])
+CURRENCY_TO_SM_TYPE = {Currency.CREDITS: SM_TYPE.PurchaseForCredits,
+ Currency.GOLD: SM_TYPE.PurchaseForGold}
 
 class BaseSystemMessages(object):
     __metaclass__ = ABCMeta
@@ -27,7 +34,7 @@ class BaseSystemMessages(object):
         pass
 
     @abstractmethod
-    def pushMessage(self, text, type = SM_TYPE.Information):
+    def pushMessage(self, text, type=SM_TYPE.Information):
         pass
 
     @abstractmethod
@@ -37,11 +44,12 @@ class BaseSystemMessages(object):
 
 g_instance = None
 
-def pushMessage(text, type = SM_TYPE.Information):
+def pushMessage(text, type=SM_TYPE.Information, priority=None):
     if g_instance:
-        g_instance.pushMessage(text, type)
+        g_instance.pushMessage(text, type, priority)
 
 
 def pushI18nMessage(key, *args, **kwargs):
     if g_instance:
         g_instance.pushI18nMessage(key, *args, **kwargs)
+# okay decompiling ./res/scripts/client/gui/systemmessages.pyc

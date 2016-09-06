@@ -1,6 +1,6 @@
-from account_helpers.AccountSettings import AccountSettings
-from tutorial.control import game_vars
-from tutorial.control.functional import FunctionalEffect, FunctionalConditions, FunctionalChapterInfo, FunctionalShowDialogEffect
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/tutorial/control/lobby/functional.py
+from tutorial.control.functional import FunctionalEffect, FunctionalConditions, FunctionalChapterInfo
 from tutorial.logger import LOG_ERROR
 
 class FunctionalShowHintEffect(FunctionalEffect):
@@ -20,17 +20,11 @@ class FunctionalCloseHintEffect(FunctionalEffect):
         self._gui.stopEffect('ShowHint', self._effect.getTargetID())
 
 
-class FunctionalSetFilterEffect(FunctionalEffect):
-
-    def triggerEffect(self):
-        AccountSettings.setFilter(self._effect.getTargetID(), self._effect.getValue())
-
-
 class FunctionalLobbyChapterInfo(FunctionalChapterInfo):
 
     def __init__(self):
         super(FunctionalChapterInfo, self).__init__()
-        chapter = self._tutorial._data
+        chapter = self._data
         chapterID = chapter.getID()
         self._conditions = None
         conditions = chapter.getHasIDEntity(chapterID)
@@ -45,10 +39,11 @@ class FunctionalLobbyChapterInfo(FunctionalChapterInfo):
         else:
             ok = self._conditions.allConditionsOk()
             if ok and not self._isShow:
-                chapter = self._tutorial._data
-                self._gui.setChapterInfo(chapter.getTitle(), chapter.getDescription(afterBattle=self._tutorial._cache.isAfterBattle()))
+                chapter = self._data
+                self._gui.setChapterInfo(chapter.getTitle(), chapter.getDescription(afterBattle=self._cache.isAfterBattle()))
                 self._isShow = True
             elif not ok and self._isShow:
                 self._gui.clearChapterInfo()
                 self._isShow = False
             return
+# okay decompiling ./res/scripts/client/tutorial/control/lobby/functional.pyc

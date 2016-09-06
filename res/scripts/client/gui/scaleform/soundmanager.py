@@ -1,10 +1,13 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/SoundManager.py
 from debug_utils import *
 import ResMgr
 from items import _xml
 from gui.Scaleform.windows import UIInterface
-from gui.shared.utils.sound import Sound
+import SoundGroups
 import Vibroeffects
 from gui.doc_loaders.GuiSoundsLoader import GuiSoundsLoader
+import WWISE
 
 class BUTTON_TYPES(object):
     NORMAL = 'normal'
@@ -51,6 +54,8 @@ class SoundSettings(dict):
         return res
 
     def getSoundName(self, soundType, soundId, state):
+        if WWISE.enabled:
+            state = 'ww' + state
         if len(soundId) and self.__overrides.has_key(soundId) > 0:
             sound = self.__overrides.get(soundId, {}).get(state, '')
         elif len(soundType) > 0 and self.__groups.has_key(soundType):
@@ -108,16 +113,16 @@ class SoundManager(UIInterface):
                     return
                 scope = scope[key]
 
-            if type(scope) != str:
+            if not isinstance(scope, str):
                 LOG_ERROR('Invalid soundpath under key: %s', dictPath)
                 return
-            Sound(scope).play()
+            SoundGroups.g_instance.playSound2D(scope)
             return
 
     def playEffectSound(self, effectName):
         sound = self.sounds.getEffectSound(effectName)
         if sound is not None:
-            Sound(sound).play()
+            SoundGroups.g_instance.playSound2D(sound)
         return
 
     def onButtonEvent(self, callbackID, state, type, id):
@@ -129,6 +134,7 @@ class SoundManager(UIInterface):
     def tryPlaySnd(self, sndType, state, type, id):
         sound = self.__soundEvents.get(sndType, SoundSettings()).getSoundName(type, id, state)
         if sound:
-            Sound(sound).play()
+            SoundGroups.g_instance.playSound2D(sound)
             if state == 'press':
                 Vibroeffects.VibroManager.g_instance.playButtonClickEffect(type)
+# okay decompiling ./res/scripts/client/gui/scaleform/soundmanager.pyc

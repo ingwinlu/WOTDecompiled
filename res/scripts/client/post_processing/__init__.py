@@ -1,6 +1,24 @@
-# 2013.11.15 11:27:17 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/post_processing/__init__.py
-import BigWorld, Math, ResMgr, weakref
+Instruction context:
+   
+ 120      99  LOAD_FAST             0  'self'
+            102  LOAD_ATTR             8  '__isAdvanced'
+            105  POP_JUMP_IF_FALSE   121  'to 121'
+            108  LOAD_FAST             0  'self'
+            111  LOAD_ATTR             8  '__isAdvanced'
+            114  JUMP_IF_FALSE_OR_POP   124  'to 124'
+            117  LOAD_FAST             3  'mrtEnabled'
+->          120  RETURN_END_IF    
+          121_0  COME_FROM                '114'
+            121  LOAD_GLOBAL           1  'True'
+          124_0  COME_FROM                '90'
+          124_1  COME_FROM                '96'
+            124  RETURN_VALUE     
+import BigWorld
+import Math
+import ResMgr
+import weakref
 import PostProcessing
 import Settings
 from PostProcessing.Effects import *
@@ -11,17 +29,18 @@ class _Effect:
     __FILE_EXT = '.ppchain'
     name = property(lambda self: self.__name + _Effect.__FILE_EXT)
 
-    def __init__(self, fileName, ctrlName, optional, isAdvanced, isMapDepended, qualityRange):
+    def __init__(self, fileName, ctrlName, optional, isAdvanced, isMapDepended, effectType, qualityRange):
         self.__name = fileName
         self.__ctrlName = ctrlName
         self.__isAdvanced = isAdvanced
         self.__isMapDepended = isMapDepended
+        self.__effectType = effectType
         self.__qualityRange = qualityRange
         self.__optional = optional
         self.__mapName = ''
         self.__chain = None
         self.__ctrl = None
-        self.__curQuality = None
+        self.__curQuality = {}
         return
 
     def prerequisites(self):
@@ -39,7 +58,7 @@ class _Effect:
             self.__ctrl.destroy()
             self.__ctrl = None
         self.__chain = None
-        self.__curQuality = None
+        self.__curQuality = {}
         return
 
     def enable(self, settings):
@@ -65,15 +84,68 @@ class _Effect:
             self.__ctrl.disable()
         return
 
-    def changeQuality(self, quality):
-        self.__curQuality = quality
+    def changeQuality(self, key, quality):
+        self.__curQuality[key] = quality
 
-    def __isSupported(self, settings):
-        isEnabled = True if self.__optional == '' else settings[self.__optional]
-        mrtEnabled = False
-        if self.__curQuality in self.__qualityRange:
-            return isEnabled and self.__isAdvanced and self.__isAdvanced and mrtEnabled
-        return True
+    def __isSupported--- This code section failed: ---
+
+ 114       0  LOAD_FAST             0  'self'
+           3  LOAD_ATTR             0  '__optional'
+           6  LOAD_CONST            1  ''
+           9  COMPARE_OP            2  '=='
+          12  POP_JUMP_IF_FALSE    21  'to 21'
+          15  LOAD_GLOBAL           1  'True'
+          18  JUMP_FORWARD         10  'to 31'
+          21  LOAD_FAST             1  'settings'
+          24  LOAD_FAST             0  'self'
+          27  LOAD_ATTR             0  '__optional'
+          30  BINARY_SUBSCR    
+        31_0  COME_FROM                '18'
+          31  STORE_FAST            2  'isEnabled'
+
+ 116      34  LOAD_GLOBAL           2  'BigWorld'
+          37  LOAD_ATTR             3  'getGraphicsSetting'
+          40  LOAD_CONST            2  'RENDER_PIPELINE'
+          43  CALL_FUNCTION_1       1 
+          46  LOAD_CONST            3  ''
+          49  COMPARE_OP            2  '=='
+          52  JUMP_IF_FALSE_OR_POP    65  'to 65'
+
+ 117      55  LOAD_GLOBAL           2  'BigWorld'
+          58  LOAD_ATTR             4  'graphicsSettingsNeedRestart'
+          61  CALL_FUNCTION_0       0 
+          64  UNARY_NOT        
+        65_0  COME_FROM                '52'
+          65  STORE_FAST            3  'mrtEnabled'
+
+ 119      68  LOAD_FAST             0  'self'
+          71  LOAD_ATTR             5  '__curQuality'
+          74  LOAD_FAST             0  'self'
+          77  LOAD_ATTR             6  '__effectType'
+          80  BINARY_SUBSCR    
+          81  LOAD_FAST             0  'self'
+          84  LOAD_ATTR             7  '__qualityRange'
+          87  COMPARE_OP            6  'in'
+          90  JUMP_IF_FALSE_OR_POP   124  'to 124'
+          93  LOAD_FAST             2  'isEnabled'
+          96  JUMP_IF_FALSE_OR_POP   124  'to 124'
+
+ 120      99  LOAD_FAST             0  'self'
+         102  LOAD_ATTR             8  '__isAdvanced'
+         105  POP_JUMP_IF_FALSE   121  'to 121'
+         108  LOAD_FAST             0  'self'
+         111  LOAD_ATTR             8  '__isAdvanced'
+         114  JUMP_IF_FALSE_OR_POP   124  'to 124'
+         117  LOAD_FAST             3  'mrtEnabled'
+         120  RETURN_END_IF    
+       121_0  COME_FROM                '114'
+         121  LOAD_GLOBAL           1  'True'
+       124_0  COME_FROM                '90'
+       124_1  COME_FROM                '96'
+         124  RETURN_VALUE     
+          -1  RETURN_LAST      
+
+Parse error at or near `RETURN_END_IF' instruction at offset 120
 
     def __create(self, fileName):
         self.__chain = PostProcessing.load(fileName)
@@ -91,7 +163,7 @@ class WGPostProcessing:
     __CONFIG_FILE_NAME = 'scripts/post_effects.xml'
 
     def __init__(self):
-        self.__curQuality = None
+        self.__curQuality = {}
         self.__curEffects = list()
         self.__modes = dict()
         self.__settings = dict()
@@ -113,13 +185,9 @@ class WGPostProcessing:
             for effect in mode:
                 effect.create()
 
-        from account_helpers.SettingsCore import g_settingsCore
-        g_settingsCore.onSettingsChanged += self.__onSettingsChanging
         return
 
     def fini(self):
-        from account_helpers.SettingsCore import g_settingsCore
-        g_settingsCore.onSettingsChanged -= self.__onSettingsChanging
         self.__curEffects = []
         for mode in self.__modes.itervalues():
             for effect in mode:
@@ -172,10 +240,10 @@ class WGPostProcessing:
     def getSetting(self, key):
         return self.__settings.get(key, False)
 
-    def onSelectQualityOption(self, quality):
+    def onSelectQualityOption(self, key, quality):
         LOG_NOTE('The quality = %s was selected.' % quality)
-        self.__curQuality = quality
-        BigWorld.callback(0.1, partial(self.__onQualityChanged, self.__curQuality))
+        self.__curQuality[key] = quality
+        BigWorld.callback(0.1, partial(self.__onQualityChanged, key, quality))
 
     def _printCurrentChain(self):
         chain = []
@@ -184,10 +252,10 @@ class WGPostProcessing:
 
         print 'Current chain: %s' % chain
 
-    def __onQualityChanged(self, quality):
+    def __onQualityChanged(self, key, quality):
         for mode in self.__modes.itervalues():
             for effect in mode:
-                effect.changeQuality(quality)
+                effect.changeQuality(key, quality)
 
         self.refresh()
 
@@ -204,11 +272,6 @@ class WGPostProcessing:
 
     def __saveSettings(self):
         pass
-
-    def __onSettingsChanging(self, diff):
-        if 'enablePostMortemEffect' in diff:
-            self.setSetting('mortem_post_effect', diff['enablePostMortemEffect'])
-            self.refresh()
 
 
 g_postProcessing = WGPostProcessing()
@@ -230,8 +293,9 @@ def _loadEffect(section):
     ctrl = section.readString('controller', '')
     isMapDepended = section.has_key('mapDepended')
     isAdvanced = section.has_key('advanced')
+    key = section.readString('key', 'POST_PROCESSING')
     optional = section.readString('optional', '')
-    return _Effect(file, None if ctrl == '' else ctrl, optional, isAdvanced, isMapDepended, qualityRange)
+    return _Effect(file, None if ctrl == '' else ctrl, optional, isAdvanced, isMapDepended, key, qualityRange)
 
 
 def _loadMode(section):
@@ -248,12 +312,13 @@ class _FuncObj:
         self.__weakObj = weakref.ref(obj)
         self.__funcName = funcName
 
-    def __call__(self, args):
+    def __call__(self, arg1, arg2):
         if self.__weakObj() is not None:
-            getattr(self.__weakObj(), self.__funcName)(args)
+            getattr(self.__weakObj(), self.__funcName)(arg1, arg2)
         else:
             LOG_CODEPOINT_WARNING('weak object has been already destroyed.')
         return
-# okay decompyling res/scripts/client/post_processing/__init__.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:18 EST
+
+scripts/client/post_processing/__init__.py
+
+# okay decompiling ./res/scripts/client/post_processing/__init__.pyc

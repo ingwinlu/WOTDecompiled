@@ -1,6 +1,14 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/locale/CONTROLS.py
 
 
 class CONTROLS(object):
+    """
+    DO NOT MODIFY!
+    Generated with yaml.
+    __author__ = 'yaml_processor'
+    null
+    """
     MOUSE_KEY_LEFT = '#controls:mouse/key_left'
     MOUSE_KEY_MIDDLE = '#controls:mouse/key_middle'
     MOUSE_KEY_RIGHT = '#controls:mouse/key_right'
@@ -34,3 +42,4 @@ class CONTROLS(object):
     KEYBOARD_KEY_PRINT_SCREEN = '#controls:keyboard/key_print_screen'
     KEYBOARD_SEQUENCE_CTRL_ENTER = '#controls:keyboard/sequence_ctrl_enter'
     KEYBOARD_SEQUENCE_SHIFT_ENTER = '#controls:keyboard/sequence_shift_enter'
+# okay decompiling ./res/scripts/client/gui/scaleform/locale/controls.pyc

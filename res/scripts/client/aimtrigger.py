@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/AimTrigger.py
 import BigWorld
 import TriggersManager
 
@@ -9,3 +11,4 @@ class AimTrigger(BigWorld.UserDataObject):
 
     def destroy(self):
         TriggersManager.g_manager.delTrigger(self.__id)
+# okay decompiling ./res/scripts/client/aimtrigger.pyc

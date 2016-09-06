@@ -1,19 +1,22 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/Flock.py
+from AvatarInputHandler import mathUtils
 import BigWorld
 import Math
 import ResMgr
 import math
 import random
 import BattleReplay
-import Settings
+import SoundGroups
 from debug_utils import LOG_CURRENT_EXCEPTION, LOG_ERROR
 from Math import Vector3
 ENVIRONMENT_EFFECTS_CONFIG_FILE = 'scripts/environment_effects.xml'
 
 class DebugGizmo:
 
-    def __init__(self):
-        self.model = BigWorld.Model('helpers/models/position_gizmo.model')
-        BigWorld.addModel(self.model)
+    def __init__(self, spaceID, modelName='helpers/models/position_gizmo.model'):
+        self.model = BigWorld.Model(modelName)
+        BigWorld.addModel(self.model, spaceID)
         self.motor = BigWorld.Servo(Math.Matrix())
         self.model.addMotor(self.motor)
 
@@ -28,56 +31,69 @@ class DebugGizmo:
         self.model.position = pos
 
 
-class _FlockSound:
+class DebugLine(object):
 
-    def __init__(self, soundName, parent):
-        fakeModelName = Settings.g_instance.scriptConfig.readString(Settings.KEY_FAKE_MODEL)
-        self.soundModel = BigWorld.Model(fakeModelName)
-        self.soundModel.addMotor(BigWorld.Servo(parent.root))
-        BigWorld.addModel(self.soundModel)
-        self.sound = self.soundModel.playSound(soundName)
-        self.parent = parent
+    def _setThickness(self, value):
+        self.__thickness = value
 
-    def attachTo(self, model):
-        self.soundModel.motors[0].signal = model.matrix
-        self.parent = model
+    thickness = property(lambda self: self.__thickness, _setThickness)
 
-    def destroy(self):
-        BigWorld.delModel(self.soundModel)
+    def __init__(self, start, end):
+        self.model = BigWorld.Model('helpers/models/unit_cube.model')
+        self.motor = BigWorld.Servo(Math.Matrix())
+        self.model.addMotor(self.motor)
+        self.__thickness = 0.1
+        self.set(start, end)
+        BigWorld.addModel(self.model)
+
+    def set(self, start, end):
+        self.start = start
+        self.end = end
+        direction = end - start
+        m = mathUtils.createSRTMatrix((self.__thickness, self.__thickness, direction.length), (direction.yaw, direction.pitch, 0), start + direction / 2)
+        m.preMultiply(mathUtils.createTranslationMatrix(Vector3(-0.5, -0.5, -0.5)))
+        self.motor.signal = m
+
+
+class DebugPolyLine(object):
+
+    def __init__(self):
+        self.lines = []
+
+    def set(self, points):
+        idx = 0
+        for curP, nextP in zip(points, points[1:]):
+            if idx == len(self.lines):
+                self.lines.append(DebugLine(curP, nextP))
+            else:
+                self.lines[idx].set(curP, nextP)
+                self.lines[idx].model.visible = True
+            idx += 1
+
+        while idx < len(self.lines):
+            self.lines[idx].model.visible = False
+            idx += 1
 
 
 class FlockLike:
     __SoundNames = None
-    MAX_SOUNDS = 2
-    SOUND_RECALC_TIME = 0.6
     MAX_DIST_SQ = 10000
 
     def __init__(self):
-        self.__recalcSoundsCallback = None
         if FlockLike.__SoundNames is None:
             FlockLike.__SoundNames = {}
             flockDataSect = ResMgr.openSection(ENVIRONMENT_EFFECTS_CONFIG_FILE + '/birds')
             for value in flockDataSect.values():
                 modelName = value.readString('modelName', '')
-                soundName = value.readString('sound', '')
+                soundName = value.readString('wwsound', '')
                 if modelName != '' and soundName != '':
                     FlockLike.__SoundNames[modelName] = soundName
 
-        self.__sounds = {}
+        self.__sound = None
         return
 
-    def __getAllSounds(self):
-        for modelSounds in self.__sounds.values():
-            for flockSound in modelSounds:
-                yield flockSound
-
     def destroy(self):
-        if self.__recalcSoundsCallback is not None:
-            BigWorld.cancelCallback(self.__recalcSoundsCallback)
-        allSounds = self.__getAllSounds()
-        for flockSound in allSounds:
-            flockSound.destroy()
-
+        self.__sound = None
         return
 
     def _getModelsToLoad(self):
@@ -100,7 +116,8 @@ class FlockLike:
                 model.outsideOnly = 1
                 model.moveAttachments = True
                 self.addModel(model)
-                self.__addSound(model)
+                if self.__sound is None:
+                    self._addSound(model)
                 animSpeed = random.uniform(self.animSpeedMin, self.animSpeedMax)
                 model.actionScale = animSpeed
                 model.action('FlockAnimAction')()
@@ -108,74 +125,32 @@ class FlockLike:
         except Exception:
             LOG_CURRENT_EXCEPTION()
 
-        self.__recalcSounds()
+        return
 
-    def __addSound(self, model):
+    def _addSound(self, model, soundName=''):
         if not model.sources:
             return
         else:
             modelName = model.sources[0]
-            if modelName not in self.__sounds:
-                self.__sounds[modelName] = []
-            soundsForModel = self.__sounds[modelName]
-            if len(soundsForModel) >= FlockLike.MAX_SOUNDS:
-                return
-            correctModelName = modelName.replace('\\', '/')
-            soundName = FlockLike.__SoundNames.get(correctModelName, None)
-            if soundName is None or soundName == '':
-                return
-            flockSound = None
+            if soundName == '':
+                soundName = FlockLike.__SoundNames.get(modelName, None)
+                if soundName is None or soundName == '':
+                    return
             try:
-                flockSound = _FlockSound(soundName, model)
+                self.__sound = SoundGroups.g_instance.getSound3D(model.root, soundName)
+                if self.__sound is not None:
+                    self.__sound.play()
             except Exception:
                 LOG_CURRENT_EXCEPTION()
                 return
 
-            if flockSound is not None:
-                if flockSound.sound is not None:
-                    soundsForModel.append(flockSound)
-                else:
-                    flockSound.destroy()
             return
 
-    def __recalcSounds(self):
-        self.__recalcSoundsCallback = None
-        camera = BigWorld.camera()
-
-        def closest(x1, x2):
-            dist1 = (camera.position - x1.position).lengthSquared
-            dist2 = (camera.position - x2.position).lengthSquared
-            return cmp(dist1, dist2)
-
-        modelsByDist = sorted(self.models, closest)
-        soundsToTalkIdx = {}
-        for flockModel in modelsByDist:
-            if not flockModel.sources:
-                continue
-            modelName = flockModel.sources[0]
-            soundsToTalkIdx[modelName] = soundsToTalkIdx.get(modelName, -1) + 1
-            idx = soundsToTalkIdx[modelName]
-            soundsForModel = self.__sounds[modelName]
-            if idx < len(soundsForModel):
-                soundsForModel[idx].attachTo(flockModel)
-
-        self.__recalcSoundsCallback = BigWorld.callback(FlockLike.SOUND_RECALC_TIME, self.__recalcSounds)
-        return
-
-    def _switchSounds(self, enable):
-        allSounds = self.__getAllSounds()
-        for flockSound in allSounds:
-            if enable:
-                flockSound.sound.play()
-            else:
-                flockSound.sound.stop()
-
-        if enable:
-            if self.__recalcSoundsCallback is None:
-                self.__recalcSounds()
-        elif self.__recalcSoundsCallback is not None:
-            BigWorld.cancelCallback(self.__recalcSoundsCallback)
-            self.__recalcSoundsCallback = None
+    def _delSound(self):
+        if self.__sound is not None:
+            self.__sound.stop()
+            self.__sound.releaseMatrix()
+            self.__sound = None
         return
 
 
@@ -204,6 +179,8 @@ class Flock(BigWorld.Entity, FlockLike):
         if BattleReplay.g_replayCtrl.isPlaying:
             return
         self._loadModels(prereqs)
+        if len(self.models) > 0:
+            self._addSound(self.models[0])
         self.__decisionStrategy = self.__doUsualFly
         if self.flyAroundCenter != Flock.STRATEGY_USUAL_FLY:
             self.__setupFlyAroundCenter()
@@ -221,7 +198,7 @@ class Flock(BigWorld.Entity, FlockLike):
         self.middlePosition = Math.Vector3(self.position)
         self.physics = 0
         newPosition = Math.Vector3(self.position)
-        newPosition.y = (self.minHeight + self.maxHeight) / 2
+        newPosition.y = (self.minHeight + self.maxHeight) / 2.0
         self.physics.teleport(newPosition)
         self.__makeDecision()
 
@@ -246,14 +223,13 @@ class Flock(BigWorld.Entity, FlockLike):
         self.__decisionStrategy = self.__doAroundCenterFly
         self.deadZoneRadius = self.radius
         for boid in self.models:
-            boid.position = Vector3(0, 0, self.deadZoneRadius)
+            boid.position = Vector3(0.0, 0.0, self.deadZoneRadius)
             if self.flyAroundCenter == Flock.STRATEGY_FLY_AROUND_CW:
-                boid.yaw = math.pi / 2
+                boid.yaw = math.pi / 2.0
             else:
-                boid.yaw = -math.pi / 2
+                boid.yaw = -math.pi / 2.0
 
     def __doUsualFly(self):
-        randY = self.position.y
         flightZoneHeight = self.maxHeight - self.minHeight
         if self.__decisionCount >= Flock.HEIGHT_CHANGE_DECISION_COUNT:
             randY = random.uniform(self.minHeight, self.maxHeight)
@@ -271,7 +247,7 @@ class Flock(BigWorld.Entity, FlockLike):
             elif randY > self.maxHeight:
                 randY = self.maxHeight
         randRadius = random.uniform(self.deadZoneRadius, self.radius)
-        randAngle = random.uniform(0, 2 * math.pi)
+        randAngle = random.uniform(0.0, 2.0 * math.pi)
         newPosition = Math.Vector3(self.middlePosition.x + randRadius * math.cos(randAngle), randY, self.middlePosition.z + randRadius * math.sin(randAngle))
         self.physics.teleport(newPosition)
 
@@ -283,3 +259,4 @@ class Flock(BigWorld.Entity, FlockLike):
         self.__decisionCallbackId = BigWorld.callback(self.decisionTime, self.__makeDecision)
         self.__decisionCount += 1
         self.__decisionStrategy()
+# okay decompiling ./res/scripts/client/flock.pyc

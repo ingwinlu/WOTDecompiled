@@ -1,4 +1,6 @@
-
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/messenger/gui/interfaces.py
+from messenger.gui.Scaleform import FILL_COLORS
 
 class IGUIEntry(object):
 
@@ -24,10 +26,10 @@ class IGUIEntry(object):
     def isFocused(self):
         return False
 
-    def isEditing(self, event):
+    def handleKey(self, event):
         return False
 
-    def addClientMessage(self, message, isCurrentPlayer = False):
+    def addClientMessage(self, message, isCurrentPlayer=False):
         pass
 
 
@@ -99,14 +101,20 @@ class IChannelController(IEntityController):
     def activate(self):
         pass
 
-    def deactivate(self, entryClosing = False):
+    def deactivate(self, entryClosing=False):
         pass
 
     def isJoined(self):
         return False
 
+    def setHistory(self, history):
+        pass
+
     def getHistory(self):
         return []
+
+    def hasUnreadMessages(self):
+        return len(self.getHistory()) > 0
 
     def setMembersDP(self, membersDP):
         pass
@@ -120,8 +128,27 @@ class IChannelController(IEntityController):
     def sendMessage(self, message):
         pass
 
-    def addMessage(self, message, doFormatting = True):
+    def sendCommand(self, command):
+        pass
+
+    def addMessage(self, message, doFormatting=True):
         return False
 
     def addCommand(self, command):
         return ''
+
+    def isEnabled(self):
+        return True
+
+
+class IBattleChannelView(object):
+
+    def addController(self, ctrl):
+        pass
+
+    def removeController(self, ctrl):
+        pass
+
+    def addMessage(self, text, fillColor=FILL_COLORS.BLACK):
+        pass
+# okay decompiling ./res/scripts/client/messenger/gui/interfaces.pyc

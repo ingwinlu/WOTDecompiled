@@ -1,26 +1,32 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/locale/LOBBY_HELP.py
 
 
 class LOBBY_HELP(object):
+    """
+    DO NOT MODIFY!
+    Generated with yaml.
+    __author__ = 'yaml_processor'
+    null
+    """
     HEADER_SETTINGS_BUTTON = '#lobby_help:header/settings-button'
-    HEADER_FIGHT_BUTTON = '#lobby_help:header/fight-button'
-    HEADER_FIGHT_DROPDOWN = '#lobby_help:header/fight-dropDown'
+    HEADER_ACCOUNT_BUTTON = '#lobby_help:header/account-button'
     HEADER_PREMIUM_BUTTON = '#lobby_help:header/premium-button'
-    HEADER_BUY_GOLD_BUTTON = '#lobby_help:header/buy-gold-button'
-    HEADER_EXCHANGE_GOLD_BUTTON = '#lobby_help:header/exchange-gold-button'
-    HEADER_GATHERING_EXPERIENCE_BUTTON = '#lobby_help:header/gathering-experience-button'
-    HEADER_MENU_INVENTORY = '#lobby_help:header/menu/inventory'
-    HEADER_MENU_SHOP = '#lobby_help:header/menu/shop'
-    HEADER_MENU_PROFILE = '#lobby_help:header/menu/profile'
-    HEADER_MENU_TECHTREE = '#lobby_help:header/menu/techtree'
-    CHAT_CHANNELS = '#lobby_help:chat/channels'
-    CHAT_INVITES = '#lobby_help:chat/invites'
+    HEADER_SQUAD_BUTTON = '#lobby_help:header/squad-button'
+    HEADER_BATTLETYPE_BUTTON = '#lobby_help:header/battleType-button'
+    HEADER_FINANCE_BLOCK = '#lobby_help:header/finance-block'
     CHAT_SERVICE_CHANNEL = '#lobby_help:chat/service-channel'
-    CHAT_CHANNEL_CAROUSEL = '#lobby_help:chat/channel-carousel'
-    HANGAR_CREW = '#lobby_help:hangar/crew'
-    HANGAR_VEHICLE_PARAMETERS = '#lobby_help:hangar/vehicle-parameters'
+    CHAT_CONTACTS_CHANNEL = '#lobby_help:chat/contacts-channel'
+    CHANNELCAROUSEL_CHANNELS = '#lobby_help:channelCarousel/channels'
     HANGAR_MODULES = '#lobby_help:hangar/modules'
     HANGAR_OPTIONAL_DEVICES = '#lobby_help:hangar/optional-devices'
-    HANGAR_MAINTENANCE_BUTTON = '#lobby_help:hangar/maintenance-button'
-    HANGAR_CUSTOMIZATION_BUTTON = '#lobby_help:hangar/customization-button'
+    HANGAR_SHELLS = '#lobby_help:hangar/shells'
+    HANGAR_EQUIPMENT = '#lobby_help:hangar/equipment'
+    HANGAR_CREW = '#lobby_help:hangar/crew'
+    HANGAR_VEHICLE_PARAMETERS = '#lobby_help:hangar/vehicle-parameters'
     HANGAR_VEHICLE_CAROUSEL = '#lobby_help:hangar/vehicle-carousel'
-    HANGAR_MODULES_POWER_LEVEL = '#lobby_help:hangar/modules-power-level'
+    HANGAR_QUESTSCONTROL = '#lobby_help:hangar/questsControl'
+    HANGAR_CREWOPERATIONBTN = '#lobby_help:hangar/crewOperationBtn'
+    HANGAR_VEHRESEARCHPANEL = '#lobby_help:hangar/vehResearchPanel'
+    HANGAR_VEHFILTERS = '#lobby_help:hangar/vehFilters'
+# okay decompiling ./res/scripts/client/gui/scaleform/locale/lobby_help.pyc

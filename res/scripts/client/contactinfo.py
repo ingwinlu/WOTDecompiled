@@ -1,4 +1,7 @@
-import BigWorld, Settings
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/ContactInfo.py
+import BigWorld
+import Settings
 
 class ContactInfo:
     KEY_USER = 'user'
@@ -40,3 +43,4 @@ class ContactInfo:
         up = Settings.g_instance.userPrefs
         if not up.has_key(Settings.KEY_LOGIN_INFO):
             up.write(Settings.KEY_LOGIN_INFO, '')
+# okay decompiling ./res/scripts/client/contactinfo.pyc

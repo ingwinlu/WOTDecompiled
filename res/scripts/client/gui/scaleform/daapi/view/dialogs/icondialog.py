@@ -1,13 +1,19 @@
-from gui.Scaleform.daapi.view.dialogs.SimpleDialog import SimpleDialog
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/daapi/view/dialogs/IconDialog.py
 from gui.Scaleform.daapi.view.meta.IconDialogMeta import IconDialogMeta
 
-class IconDialog(IconDialogMeta, SimpleDialog):
+class IconDialog(IconDialogMeta):
 
     def __init__(self, meta, handler):
-        SimpleDialog.__init__(self, meta.getMessage(), meta.getTitle(), meta.getButtonLabels(), meta.getCallbackWrapper(handler))
-        IconDialogMeta.__init__(self)
+        super(IconDialog, self).__init__(meta.getMessage(), meta.getTitle(), meta.getButtonLabels(), meta.getCallbackWrapper(handler))
         self._meta = meta
 
     def _populate(self):
         super(IconDialog, self)._populate()
         self.as_setIconS(self._meta.getIcon())
+
+    def _dispose(self):
+        self._meta = None
+        super(IconDialog, self)._dispose()
+        return
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/dialogs/icondialog.pyc

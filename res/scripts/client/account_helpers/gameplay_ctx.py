@@ -1,27 +1,43 @@
-# 2013.11.15 11:25:08 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/account_helpers/gameplay_ctx.py
 import ArenaType
 import constants
 from debug_utils import LOG_DEBUG, LOG_ERROR, LOG_WARNING
+_ASSAULT2_GP_NAME = constants.ARENA_GAMEPLAY_NAMES[6]
+ENABLED_ARENA_GAMEPLAY_NAMES = constants.ARENA_GAMEPLAY_NAMES[:3] + (_ASSAULT2_GP_NAME,)
+if constants.IS_DEVELOPMENT:
+    ENABLED_ARENA_GAMEPLAY_NAMES += (constants.ARENA_GAMEPLAY_NAMES[13],)
 
 def getDefaultMask():
-    return 7
+
+    def getValue(name):
+        return ArenaType.getVisibilityMask(ArenaType.getGameplayIDForName(name))
+
+    return sum(map(getValue, ENABLED_ARENA_GAMEPLAY_NAMES))
 
 
 def getMask():
-    from account_helpers.SettingsCore import g_settingsCore
-    mask = g_settingsCore.serverSettings.getGameSetting('gameplayMask', getDefaultMask())
+    from account_helpers.settings_core.ServerSettingsManager import SETTINGS_SECTIONS
+    from account_helpers.settings_core.SettingsCore import g_settingsCore
+    settingsMask = userMask = g_settingsCore.serverSettings.getSectionSettings(SETTINGS_SECTIONS.GAMEPLAY, 'gameplayMask', getDefaultMask())
     ctfMask = 1 << constants.ARENA_GAMEPLAY_IDS['ctf']
-    if not mask:
-        LOG_WARNING('Gameplay is not defined', mask)
-    elif mask & ctfMask == 0:
-        LOG_WARNING('Gameplay "ctf" is not defined', mask)
-    mask |= ctfMask
-    return mask
+    nationsMask = 1 << constants.ARENA_GAMEPLAY_IDS['nations']
+    if not userMask:
+        LOG_WARNING('Gameplay is not defined', userMask)
+    else:
+        if userMask & ctfMask == 0:
+            LOG_WARNING('Gameplay "ctf" is not defined', userMask)
+        if userMask & nationsMask:
+            userMask ^= nationsMask
+            LOG_DEBUG('Nations battle mode currently unavailable')
+    userMask |= ctfMask
+    if settingsMask != userMask:
+        _setMask(userMask)
+    return userMask
 
 
 def setMaskByNames(names):
-    gameplayNames = set(['ctf'])
+    gameplayNames = {'ctf'}
     for name in names:
         if name in ArenaType.g_gameplayNames:
             gameplayNames.add(name)
@@ -30,8 +46,15 @@ def setMaskByNames(names):
 
     gameplayMask = ArenaType.getGameplaysMask(gameplayNames)
     LOG_DEBUG('Set gameplay (names, mask)', gameplayNames, gameplayMask)
-    from account_helpers.SettingsCore import g_settingsCore
-    g_settingsCore.serverSettings.setGameSettings({'gameplayMask': gameplayMask})
-# okay decompyling res/scripts/client/account_helpers/gameplay_ctx.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:25:08 EST
+    _setMask(gameplayMask)
+
+
+def isCreationEnabled(gameplayName):
+    return gameplayName in ENABLED_ARENA_GAMEPLAY_NAMES
+
+
+def _setMask(gameplayMask):
+    from account_helpers.settings_core.ServerSettingsManager import SETTINGS_SECTIONS
+    from account_helpers.settings_core.SettingsCore import g_settingsCore
+    g_settingsCore.serverSettings.setSectionSettings(SETTINGS_SECTIONS.GAMEPLAY, {'gameplayMask': gameplayMask})
+# okay decompiling ./res/scripts/client/account_helpers/gameplay_ctx.pyc

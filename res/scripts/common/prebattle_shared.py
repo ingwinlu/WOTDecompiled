@@ -1,9 +1,10 @@
-# 2013.11.15 11:27:43 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/common/prebattle_shared.py
 import nations
 from items import vehicles, ITEM_TYPES
 from account_shared import AmmoIterator
-from constants import PREBATTLE_ACCOUNT_STATE, VEHICLE_CLASSES, ARENA_GUI_TYPE, PREBATTLE_ROLE, PREBATTLE_COMPANY_DIVISION
+from constants import PREBATTLE_ACCOUNT_STATE, VEHICLE_CLASSES, ARENA_GUI_TYPE, PREBATTLE_ROLE, PREBATTLE_COMPANY_DIVISION, IGR_TYPE, IS_DEVELOPMENT
+from debug_utils import LOG_WARNING
 
 def decodeRoster(roster):
     return (roster & 15, not roster & 240)
@@ -71,13 +72,24 @@ def isVehicleValid(vehDescr, vehAmmo, limits):
                 if count > shellsLimits.get(compDescr, 65535):
                     return (False, 'limits/shells')
 
+        tagsLimits = limits['tags']
+        if tagsLimits is not None:
+            isValid, tagSet = tagsLimits
+            for tag in tagSet:
+                if isValid and tag not in vehDescr.type.tags:
+                    return (False, 'limits/tags')
+                if not isValid and tag in vehDescr.type.tags:
+                    return (False, 'limits/tags')
+
         return (True, None)
 
 
 def isTeamValid(accountsInfo, limits):
     minLevel, maxLevel = limits['level']
+    tagsLimits = limits['tags']
     count = 0
     totalLevel = 0
+    observerCount = 0
     vehs = {}
     for accInfo in accountsInfo.itervalues():
         if not accInfo['state'] & PREBATTLE_ACCOUNT_STATE.READY:
@@ -91,13 +103,27 @@ def isTeamValid(accountsInfo, limits):
             vehTypeCompDescr = accInfo['vehTypeCompDescr']
         if not minLevel <= vehLevel <= maxLevel:
             return (False, 'limits/level')
+        vehTags = vehicles.getVehicleType(vehTypeCompDescr).tags
+        if tagsLimits is not None:
+            isValid, tagSet = tagsLimits
+            for tag in tagSet:
+                if isValid and tag not in vehTags:
+                    return (False, 'limits/tags')
+                if not isValid and tag in vehTags:
+                    return (False, 'limits/tags')
+
         count += 1
+        observerCount += int('observer' in vehTags)
         totalLevel += vehLevel
         vehs[vehTypeCompDescr] = vehs.get(vehTypeCompDescr, 0) + 1
 
     if count < limits['minCount']:
         return (False, 'limit/minCount')
     else:
+        if observerCount > 0 and count == observerCount:
+            if not IS_DEVELOPMENT:
+                return (False, 'limit/observerVehicles')
+            LOG_WARNING('Ignoring limit for observers in development mode.')
         minTotalLevel, maxTotalLevel = limits['totalLevel']
         if not minTotalLevel <= totalLevel <= maxTotalLevel:
             return (False, 'limit/totalLevel')
@@ -159,6 +185,9 @@ SETTING_DEFAULTS = {'ver': 1,
  'creator': '',
  'creatorClanDBID': 0,
  'creatorClanAbbrev': '',
+ 'creatorIGRType': IGR_TYPE.NONE,
+ 'creatorDBID': 0,
+ 'creatorAttrs': 0,
  'isOpened': False,
  'battlesLimit': 0,
  'winsLimit': 0,
@@ -179,7 +208,8 @@ SETTING_DEFAULTS = {'ver': 1,
  'division': PREBATTLE_COMPANY_DIVISION.ABSOLUTE,
  'gameplaysMask': 0,
  'vehicleLockMode': 0,
- 'vehicleLockTimeFactors': {}}
+ 'vehicleLockTimeFactors': {},
+ 'observeBothTeams': True}
 LIMIT_DEFAULTS = {'maxCountTotal': 256,
  'minCount': 1,
  'totalLevel': (0, 65535),
@@ -190,6 +220,7 @@ LIMIT_DEFAULTS = {'maxCountTotal': 256,
  'components': {},
  'ammo': None,
  'shells': {},
+ 'tags': None,
  'nations': None}
 
 def _collectCurrentReplaceableVehicleComponents(vehicleDescr):
@@ -208,6 +239,20 @@ def _collectCurrentReplaceableVehicleComponents(vehicleDescr):
             res.append(gunDescr['compactDescr'])
 
     return res
-# okay decompyling res/scripts/common/prebattle_shared.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:43 EST
+
+
+def getClanWarsExtraEquipments(clansEquipments, joinedAccountsDBIDs, prebattleID):
+    cache = vehicles.g_cache
+    equipmentIDs = cache.equipmentIDs()
+    equipments = cache.equipments()
+    extraEquipments = {}
+    for team, info in clansEquipments.iteritems():
+        accountDBIDs = filter(lambda dbID: dbID in joinedAccountsDBIDs, info['top_leaders'])
+        if accountDBIDs:
+            extraEquipments[accountDBIDs[0]] = {'prebattleID': prebattleID,
+             'clanDBID': 0,
+             'rev': 0,
+             'equipments': [ equipments[equipmentIDs[equipmentName]].compactDescr for equipmentName in info['equipments'] ]}
+
+    return extraEquipments
+# okay decompiling ./res/scripts/common/prebattle_shared.pyc

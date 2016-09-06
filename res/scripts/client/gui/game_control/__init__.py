@@ -1,87 +1,114 @@
-# 2013.11.15 11:25:34 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/game_control/__init__.py
-import BigWorld
-from gui.game_control.roaming import RoamingController
+import constants
+from gui.game_control.BoostersController import BoostersController
+from gui.game_control.ExternalLinksHandler import ExternalLinksHandler
+from gui.game_control.InternalLinksHandler import InternalLinksHandler
+from gui.shared import g_eventBus, events
+from gui.game_control.BrowserController import BrowserController
+from gui.game_control.PromoController import PromoController
+from gui.game_control.RefSystem import RefSystem
+from gui.game_control.RentalsController import RentalsController
+from gui.game_control.controllers import ControllersCollection
+from gui.game_control.events_notifications import EventsNotificationsController
+from gui.game_control.gc_constants import CONTROLLER
+from gui.game_control.relogin_controller import ReloginController
 from gui.game_control.AOGAS import AOGASController
-from gui.game_control.captcha_control import CaptchaController
 from gui.game_control.GameSessionController import GameSessionController
 from gui.game_control.IGR import IGRController
 from gui.game_control.wallet import WalletController
+from gui.game_control.NotifyController import NotifyController
+from gui.game_control.SoundEventChecker import SoundEventChecker
+from gui.game_control.ServerStats import ServerStats
+from gui.game_control.ChinaController import ChinaController
+from gui.game_control.AwardController import AwardController
+from gui.game_control.fallout_controller import FalloutController
+from gui.game_control.clan_lock_controller import ClanLockController
 
-class _GameControllers(object):
+class _GameControllers(ControllersCollection):
 
     def __init__(self):
-        super(_GameControllers, self).__init__()
-        self.__roaming = RoamingController()
-        self.__captcha = CaptchaController()
-        self.__aogas = AOGASController()
-        self.__gameSession = GameSessionController()
-        self.__igr = IGRController()
-        self.__wallet = WalletController()
-
-    @property
-    def captcha(self):
-        return self.__captcha
-
-    @property
-    def aogas(self):
-        return self.__aogas
-
-    @property
-    def gameSession(self):
-        return self.__gameSession
-
-    @property
-    def igr(self):
-        return self.__igr
-
-    @property
-    def roaming(self):
-        return self.__roaming
-
-    @property
-    def wallet(self):
-        return self.__wallet
+        super(_GameControllers, self).__init__({CONTROLLER.RELOGIN: ReloginController,
+         CONTROLLER.AOGAS: AOGASController,
+         CONTROLLER.GAME_SESSION: GameSessionController,
+         CONTROLLER.RENTALS: RentalsController,
+         CONTROLLER.IGR: IGRController,
+         CONTROLLER.WALLET: WalletController,
+         CONTROLLER.NOTIFIER: NotifyController,
+         CONTROLLER.LINKS: ExternalLinksHandler,
+         CONTROLLER.INTERNAL_LINKS: InternalLinksHandler,
+         CONTROLLER.SOUND_CHECKER: SoundEventChecker,
+         CONTROLLER.SERVER_STATS: ServerStats,
+         CONTROLLER.REF_SYSTEM: RefSystem,
+         CONTROLLER.BROWSER: BrowserController,
+         CONTROLLER.PROMO: PromoController,
+         CONTROLLER.EVENTS_NOTIFICATION: EventsNotificationsController,
+         CONTROLLER.AWARD: AwardController,
+         CONTROLLER.BOOSTERS: BoostersController,
+         CONTROLLER.FALLOUT: FalloutController,
+         CONTROLLER.CLAN_LOCK: ClanLockController})
+        if constants.IS_CHINA:
+            self._addController(CONTROLLER.CHINA, ChinaController)
+        self.__collectUiStats = True
+        self.__logUXEvents = False
 
     def init(self):
-        self.__captcha.init()
-        self.__aogas.init()
-        self.__gameSession.init()
-        self.__igr.init()
-        self.__roaming.init()
-        self.__wallet.init()
+        super(_GameControllers, self).init()
+        g_eventBus.addListener(events.GUICommonEvent.LOBBY_VIEW_LOADED, self.onLobbyInited)
 
     def fini(self):
-        self.__igr.fini()
-        self.__captcha.fini()
-        self.__aogas.fini()
-        self.__gameSession.fini()
-        self.__roaming.fini()
-        self.__wallet.fini()
+        g_eventBus.removeListener(events.GUICommonEvent.LOBBY_VIEW_LOADED, self.onLobbyInited)
+        super(_GameControllers, self).fini()
+
+    @property
+    def collectUiStats(self):
+        return self.__collectUiStats
+
+    @property
+    def needLogUXEvents(self):
+        return self.__logUXEvents
 
     def onAccountShowGUI(self, ctx):
-        self.__captcha.start()
-        self.__aogas.start(ctx)
-        self.__gameSession.start(ctx.get('sessionStartedAt', -1))
-        self.__igr.start(ctx)
-        self.__wallet.start()
-
-    def onAvatarBecomePlayer(self):
-        self.__aogas.disableNotifyAccount()
-        self.__gameSession.stop(True)
-        self.__roaming.stop()
-
-    def onAccountBecomePlayer(self):
-        self.__roaming.start(BigWorld.player().serverSettings)
-
-    def onDisconnected(self):
-        self.__aogas.stop()
-        self.__gameSession.stop()
-        self.__igr.clear()
-        self.__roaming.onDisconnected()
+        self.onLobbyStarted(ctx)
+        self.__collectUiStats = ctx.get('collectUiStats', True)
+        self.__logUXEvents = ctx.get('logUXEvents', False)
 
 
 g_instance = _GameControllers()
-# okay decompyling res/scripts/client/gui/game_control/__init__.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:25:34 EST
+
+def getEventsNotificationCtrl():
+    return _getController(CONTROLLER.EVENTS_NOTIFICATION)
+
+
+def getBrowserCtrl():
+    return _getController(CONTROLLER.BROWSER)
+
+
+def getChinaCtrl():
+    assert constants.IS_CHINA, 'China controller only available if IS_CHINA = True'
+    return _getController(CONTROLLER.CHINA)
+
+
+def getIGRCtrl():
+    return _getController(CONTROLLER.IGR)
+
+
+def getRefSysCtrl():
+    return _getController(CONTROLLER.REF_SYSTEM)
+
+
+def getRoamingCtrl():
+    return _getController(CONTROLLER.RELOGIN)
+
+
+def getWalletCtrl():
+    return _getController(CONTROLLER.WALLET)
+
+
+def getFalloutCtrl():
+    return _getController(CONTROLLER.FALLOUT)
+
+
+def _getController(controller):
+    return g_instance.getController(controller)
+# okay decompiling ./res/scripts/client/gui/game_control/__init__.pyc

@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/common/invites.py
 from enumerations import Enumeration
 INVITE_TYPES = Enumeration('InviteTypes', ['BARTER',
  'TEAM',
@@ -31,3 +33,4 @@ INVITE_STATUS = Enumeration('Invite statuses', ['accepted',
  'rejected',
  'invalid',
  'invalidTTL'])
+# okay decompiling ./res/scripts/common/invites.pyc

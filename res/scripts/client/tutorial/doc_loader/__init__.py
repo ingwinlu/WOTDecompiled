@@ -1,16 +1,21 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/tutorial/doc_loader/__init__.py
 import ResMgr
+from tutorial import settings
+from tutorial.doc_loader import gui_config
 from tutorial.doc_loader.parsers import DescriptorParser, ChapterParser
-from tutorial.settings import GLOBAL_REFS_FILE_PATH
 from tutorial.logger import LOG_CURRENT_EXCEPTION
 
-def loadDescriptorData(filePath, exParsers = None, clearCache = False):
+def loadDescriptorData(setting, exParsers=None, clearCache=False):
     try:
         if exParsers is not None:
             imported = __import__(exParsers, globals(), locals(), ['init'])
             getattr(imported, 'init')()
         if clearCache:
-            ResMgr.purge(filePath)
-        return DescriptorParser().parse(filePath)
+            ResMgr.purge(setting.descriptorPath)
+        classPath = setting.descriptorParser
+        parser = settings.createTutorialElement(classPath)
+        return parser.parse(setting.descriptorPath)
     except Exception:
         LOG_CURRENT_EXCEPTION()
         return
@@ -18,10 +23,11 @@ def loadDescriptorData(filePath, exParsers = None, clearCache = False):
     return
 
 
-def loadChapterData(chapter, afterBattle = False, initial = False):
+def loadChapterData(chapter, chapterParser, afterBattle=False, initial=False):
     if chapter is not None and not chapter.isValid():
         try:
-            ChapterParser().parse(chapter, afterBattle=afterBattle, initial=initial)
+            parser = settings.createTutorialElement(chapterParser)
+            parser.parse(chapter, afterBattle=afterBattle, initial=initial)
         except Exception:
             LOG_CURRENT_EXCEPTION()
             return
@@ -30,10 +36,21 @@ def loadChapterData(chapter, afterBattle = False, initial = False):
 
 
 def clearChapterData(chapter):
-    ResMgr.purge(GLOBAL_REFS_FILE_PATH)
+    ResMgr.purge(settings.GLOBAL_REFS_FILE_PATH)
     defPath = chapter.getFilePath(afterBattle=False)
     abPath = chapter.getFilePath(afterBattle=True)
     ResMgr.purge(defPath)
     if defPath != abPath:
         ResMgr.purge(abPath)
     chapter.clear()
+
+
+def getQuestsDescriptor():
+    global _questsDescriptor
+    if _questsDescriptor is None:
+        _questsDescriptor = loadDescriptorData(settings.TUTORIAL_SETTINGS.QUESTS)
+    return _questsDescriptor
+
+
+_questsDescriptor = None
+# okay decompiling ./res/scripts/client/tutorial/doc_loader/__init__.pyc

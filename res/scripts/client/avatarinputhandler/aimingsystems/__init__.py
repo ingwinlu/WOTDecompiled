@@ -1,11 +1,13 @@
-# 2013.11.15 11:25:18 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/AvatarInputHandler/AimingSystems/__init__.py
+import math
 import BigWorld
 import Math
-from Math import Vector3, Matrix
-import math
+from Math import Vector3
 from AvatarInputHandler import mathUtils
+from AvatarInputHandler.mathUtils import MatrixProviders
 from ProjectileMover import collideDynamicAndStatic
+from vehicle_systems.tankStructure import TankPartNames
 from debug_utils import LOG_CODEPOINT_WARNING
 
 class IAimingSystem(object):
@@ -33,7 +35,7 @@ class IAimingSystem(object):
         pass
 
 
-def getTurretJointMat(vehicleTypeDescriptor, vehicleMatrix, turretYaw = 0.0):
+def getTurretJointMat(vehicleTypeDescriptor, vehicleMatrix, turretYaw=0.0):
     turretOffset = vehicleTypeDescriptor.chassis['hullPosition'] + vehicleTypeDescriptor.hull['turretPositions'][0]
     turretJointMat = mathUtils.createRTMatrix(Vector3(turretYaw, 0, 0), turretOffset)
     turretJointMat.postMultiply(vehicleMatrix)
@@ -47,19 +49,29 @@ def getGunJointMat(vehicleTypeDescriptor, turretMatrix, gunPitch):
     return gunMat
 
 
-def getPlayerTurretMats(turretYaw = 0.0, gunPitch = 0.0):
+def getPlayerTurretMats(turretYaw=0.0, gunPitch=0.0):
     player = BigWorld.player()
     vehicleTypeDescriptor = player.vehicleTypeDescriptor
-    vehicleMatrix = player.getOwnVehicleMatrix()
+    vehicleMatrix = player.getOwnVehicleStabilisedMatrix()
     turretMat = getTurretJointMat(vehicleTypeDescriptor, vehicleMatrix, turretYaw)
     return (turretMat, getGunJointMat(vehicleTypeDescriptor, turretMat, gunPitch))
 
 
-def getPlayerGunMat(turretYaw = 0.0, gunPitch = 0.0):
+def getPlayerGunMat(turretYaw=0.0, gunPitch=0.0):
     return getPlayerTurretMats(turretYaw, gunPitch)[1]
 
 
-def getTurretYawGunPitch(vehTypeDescr, vehicleMatrix, targetPos, compensateGravity = False):
+def getTurretMatrixProvider(vehicleTypeDescriptor, vehicleMatrixProvider, turretYawMatrixProvider):
+    turretOffset = vehicleTypeDescriptor.chassis['hullPosition'] + vehicleTypeDescriptor.hull['turretPositions'][0]
+    return MatrixProviders.product(turretYawMatrixProvider, MatrixProviders.product(mathUtils.createTranslationMatrix(turretOffset), vehicleMatrixProvider))
+
+
+def getGunMatrixProvider(vehicleTypeDescriptor, turretMatrixProvider, gunPitchMatrixProvider):
+    gunOffset = vehicleTypeDescriptor.turret['gunPosition']
+    return MatrixProviders.product(gunPitchMatrixProvider, MatrixProviders.product(mathUtils.createTranslationMatrix(gunOffset), turretMatrixProvider))
+
+
+def getTurretYawGunPitch(vehTypeDescr, vehicleMatrix, targetPos, compensateGravity=False):
     turretOffs = vehTypeDescr.hull['turretPositions'][0] + vehTypeDescr.chassis['hullPosition']
     gunOffs = vehTypeDescr.turret['gunPosition']
     speed = vehTypeDescr.shot['speed']
@@ -67,9 +79,11 @@ def getTurretYawGunPitch(vehTypeDescr, vehicleMatrix, targetPos, compensateGravi
     return BigWorld.wg_getShotAngles(turretOffs, gunOffs, vehicleMatrix, speed, gravity, 0.0, 0.0, targetPos, False)
 
 
-def getDesiredShotPoint(start, dir, onlyOnGround = False, isStrategicMode = False):
+def getDesiredShotPoint(start, dir, onlyOnGround=False, isStrategicMode=False, terrainOnlyCheck=False):
     end = start + dir.scale(10000.0)
     if isStrategicMode:
+        if terrainOnlyCheck:
+            return __collideTerrainOnly(start, end)
         point1 = __collideStaticOnly(start, end)
         point2 = collideDynamicAndStatic(start, end, (BigWorld.player().playerVehicleID,), skipGun=isStrategicMode)
         if point1 is None or point2 is None:
@@ -93,8 +107,9 @@ def shootInSkyPoint(startPos, dir):
     start = startPos
     dirFromCam.normalise()
     vehicle = BigWorld.player().vehicle
-    if vehicle is not None and vehicle.inWorld and vehicle.isStarted:
-        shotPos = Math.Vector3(vehicle.appearance.modelsDesc['gun']['model'].position)
+    if vehicle is not None and vehicle.inWorld and vehicle.isStarted and not vehicle.isTurretDetached:
+        compoundModel = vehicle.appearance.compoundModel
+        shotPos = Math.Vector3(compoundModel.node(TankPartNames.GUN).position)
         shotDesc = vehicle.typeDescriptor.shot
     else:
         type = BigWorld.player().arena.vehicles[BigWorld.player().playerVehicleID]['vehicleType']
@@ -121,12 +136,26 @@ def shootInSkyPoint(startPos, dir):
     return finalPoint
 
 
+def __collideTerrainOnly(start, end):
+    waterHeight = BigWorld.wg_collideWater(start, end, False)
+    resultWater = None
+    if waterHeight != -1:
+        resultWater = start - Math.Vector3(0, waterHeight, 0)
+    testResTerrain = BigWorld.wg_collideSegment(BigWorld.player().spaceID, start, end, 128, 8)
+    result = testResTerrain[0] if testResTerrain is not None else None
+    if resultWater is not None:
+        distance = (result - start).length
+        if distance - waterHeight < 0.2:
+            return result
+        return resultWater
+    else:
+        return result
+
+
 def __collideStaticOnly(startPoint, endPoint):
     res = None
     testRes = BigWorld.wg_collideSegment(BigWorld.player().spaceID, startPoint, endPoint, 128)
     if testRes is not None:
         res = (testRes[0], None)
     return res
-# okay decompyling res/scripts/client/avatarinputhandler/aimingsystems/__init__.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:25:18 EST
+# okay decompiling ./res/scripts/client/avatarinputhandler/aimingsystems/__init__.pyc

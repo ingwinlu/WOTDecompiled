@@ -1,85 +1,72 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/FlockExotic.py
 import BigWorld
 import math
-from Vehicle import Vehicle
 import random
 import Math
-from debug_utils import LOG_CURRENT_EXCEPTION
+import FlockManager
 from Flock import FlockLike
+from helpers.CallbackDelayer import CallbackDelayer
+from debug_utils import LOG_CURRENT_EXCEPTION, LOG_ERROR
 
-class FlockExotic(BigWorld.Entity, FlockLike):
-    __TRIGGER_CHECK_PERIOD = 1
+class FlockExotic(BigWorld.Entity, FlockLike, CallbackDelayer):
 
     def __init__(self):
         BigWorld.Entity.__init__(self)
         FlockLike.__init__(self)
-        self.__checkTriggerCallbackId = None
-        self.__respawnCallbackId = None
-        self.__motors = []
+        CallbackDelayer.__init__(self)
         self.flightAngleMin = math.radians(self.flightAngleMin)
         self.flightAngleMax = math.radians(self.flightAngleMax)
         if self.flightAngleMin < 0:
             self.flightAngleMin += math.ceil(abs(self.flightAngleMin) / (math.pi * 2)) * math.pi * 2
         elif self.flightAngleMin > math.pi * 2:
             self.flightAngleMin -= math.floor(self.flightAngleMin / (math.pi * 2)) * math.pi * 2
-        return
+        self.__isTriggered = False
+        self.__models = []
 
     def prerequisites(self):
         return self._getModelsToLoad()
 
-    def __createMotors(self):
-        del self.__motors[:]
-        for i in xrange(self.modelCount):
-            motor = BigWorld.LinearHomer()
-            self.__motors.append(motor)
-            motorMatrix = Math.Matrix()
-            motorMatrix.setIdentity()
-            motor.target = motorMatrix
-            motor.acceleration = 0
-            motor.proximity = 0.5
+    def __createMotor(self, positionStart, positionEnd, speed, flightTime):
+        time1 = BigWorld.time()
+        time2 = time1 + self.accelerationTime
+        time3 = time1 + flightTime
+        initSpeed = speed * random.uniform(self.initSpeedRandom[0], self.initSpeedRandom[1])
+        controlPoint1 = (positionStart, initSpeed, time1)
+        controlPoint2 = (positionStart + (initSpeed + speed) / 2.0, speed, time2)
+        motor = BigWorld.PyTimedWarplaneMotor(controlPoint1, controlPoint2, 0.0)
+        motor.addTrajectoryPoint(positionEnd, speed, time3)
+        return motor
 
     def onEnterWorld(self, prereqs):
-        self._loadModels(prereqs)
-        for model in self.models:
-            model.visible = False
-
-        self.__createMotors()
-        self.__respawnCallbackId = BigWorld.callback(self.respawnTime, self.__respawnTrigger)
-        self._switchSounds(False)
+        self.__loadModels(prereqs)
+        FlockManager.getManager().addFlock(self.position, self.triggerRadius, self.explosionRadius, self.respawnTime, self)
 
     def onLeaveWorld(self):
+        self.__models = []
         self.models = []
-        if self.__checkTriggerCallbackId is not None:
-            BigWorld.cancelCallback(self.__checkTriggerCallbackId)
-            self.__checkTriggerCallbackId = None
-        if self.__respawnCallbackId is not None:
-            BigWorld.cancelCallback(self.__respawnCallbackId)
-            self.__respawnCallbackId = None
         FlockLike.destroy(self)
-        return
+        CallbackDelayer.destroy(self)
 
     def name(self):
         return 'FlockExotic'
 
-    def __checkTrigger(self):
-        self.__checkTriggerCallbackId = None
-        isTriggered = False
-        for id, entity in BigWorld.entities.items():
-            if isinstance(entity, Vehicle):
-                distanceVec = self.position - entity.position
-                distanceVec.y = 0
-                if distanceVec.lengthSquared <= self.triggerRadius * self.triggerRadius:
-                    self.__onTrigger()
-                    isTriggered = True
-                    break
+    def __loadModels(self, prereqs):
+        try:
+            for modelId in prereqs.keys():
+                if modelId in prereqs.failedIDs:
+                    LOG_ERROR('Failed to load flock model: %s' % modelId)
+                    continue
+                model = prereqs[modelId]
+                model.outsideOnly = 1
+                model.moveAttachments = True
+                model.visible = False
+                self.__models.append(model)
+                animSpeed = random.uniform(self.animSpeedMin, self.animSpeedMax)
+                model.actionScale = animSpeed
 
-        if not isTriggered:
-            self.__checkTriggerCallbackId = BigWorld.callback(FlockExotic.__TRIGGER_CHECK_PERIOD, self.__checkTrigger)
-        return
-
-    def __respawnTrigger(self):
-        self.__respawnCallbackId = None
-        self.__checkTriggerCallbackId = BigWorld.callback(FlockExotic.__TRIGGER_CHECK_PERIOD, self.__checkTrigger)
-        return
+        except Exception:
+            LOG_CURRENT_EXCEPTION()
 
     def __getRandomSpawnPos(self):
         randHeight = random.uniform(0, self.spawnHeight)
@@ -89,7 +76,6 @@ class FlockExotic(BigWorld.Entity, FlockLike):
 
     def __getRandomTargetPos(self, startPos):
         randHeight = random.uniform(0, self.flightHeight)
-        arc = 0
         arc = self.flightAngleMax - self.flightAngleMin
         if self.flightAngleMax < self.flightAngleMin:
             arc = 2 * math.pi - abs(arc)
@@ -100,30 +86,35 @@ class FlockExotic(BigWorld.Entity, FlockLike):
         dir *= self.speed * self.lifeTime
         return startPos + dir
 
-    def __onTrigger(self):
-        for model, motor in zip(self.models, self.__motors):
+    def onTrigger(self):
+        flightTime = None
+        for model in self.__models:
             model.visible = True
+            self.addModel(model)
+            model.action('FlockAnimAction')()
             model.position = self.__getRandomSpawnPos()
-            model.addMotor(motor)
             targetPos = self.__getRandomTargetPos(model.position)
-            motor.target.setTranslate(targetPos)
             dir = targetPos - model.position
             dirLength = dir.length
+            speed = self.speed * random.uniform(self.speedRandom[0], self.speedRandom[1])
             if dirLength > 0:
-                dir *= self.speed / dirLength
-                motor.velocity = dir
+                velocity = dir * speed / dirLength
             else:
-                motor.velocity = Math.Vector3(0, self.speed, 0)
+                velocity = Math.Vector3(0, speed, 0)
+            flightTime = dirLength / velocity.length
+            motor = self.__createMotor(model.position, targetPos, velocity, flightTime)
+            model.addMotor(motor)
 
-        if len(self.__motors) > 0:
-            self.__motors[0].proximityCallback = self.__onFlightEnd
-        self._switchSounds(True)
+        if flightTime is not None and len(self.__models) > 0:
+            self.delayCallback(flightTime, self.__onFlightEnd)
+            self._addSound(self.__models[0], self.flightSound)
+        return
 
     def __onFlightEnd(self):
-        self._switchSounds(False)
+        self._delSound()
         for model in self.models:
             model.motors = ()
             model.position = self.position
             model.visible = False
-
-        self.__respawnCallbackId = BigWorld.callback(self.respawnTime, self.__respawnTrigger)
+            self.delModel(model)
+# okay decompiling ./res/scripts/client/flockexotic.pyc

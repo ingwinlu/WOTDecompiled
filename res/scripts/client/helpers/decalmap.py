@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/helpers/DecalMap.py
 import BigWorld
 import ResMgr
 from debug_utils import *
@@ -12,6 +14,8 @@ class DecalMap:
         self._readCfg(dataSec)
 
     def initGroups(self, scaleFactor):
+        if BigWorld.isForwardPipeline():
+            return
         try:
             for group in self.__cfg['groups'].items():
                 BigWorld.wg_addDecalGroup(group[0], group[1]['lifeTime'] * scaleFactor, group[1]['trianglesCount'] * scaleFactor)
@@ -59,10 +63,11 @@ class DecalMap:
             for texture in dataSec['textures'].values():
                 textures[texture.name] = texture.readString('texture')
 
-            dataSec = ResMgr.openSection('scripts/item_defs/vehicles/common/chassis_effects.xml/decals')
-            if dataSec is None:
+            chassisEffectsSection = ResMgr.openSection('scripts/item_defs/vehicles/common/chassis_effects.xml')
+            if not chassisEffectsSection or chassisEffectsSection['decals'] is None:
                 LOG_ERROR('Failed to read chassis_effects.xml file')
                 return
+            dataSec = chassisEffectsSection['decals']
             for group in dataSec['bufferPrefs'].values():
                 desc = dict()
                 desc['lifeTime'] = _readFloat(group, 'lifeTime', 0, 1000, 1)
@@ -71,11 +76,22 @@ class DecalMap:
 
             for dsTexSet in dataSec['textureSets'].values():
                 ts = {}
-                for dsTex in dsTexSet.values():
-                    texName = dsTexSet.readString(dsTex.name)
-                    texIndex = BigWorld.wg_decalTextureIndex(texName)
-                    ts[dsTex.name] = texIndex
-                    self.__texMap[texName] = texIndex
+                _DIF_TEXT = 0
+                _BUMP_TEXT = 1
+                _HMAP_TEXT = 2
+                for dsMaterial in dsTexSet.values():
+                    tsMaterial = [None, None, None]
+                    ts[dsMaterial.name] = tsMaterial
+                    for dsTexture in dsMaterial.values():
+                        texName = dsMaterial.readString(dsTexture.name)
+                        texIndex = BigWorld.wg_traceTextureIndex(texName)
+                        self.__texMap[texName] = texIndex
+                        textListIndex = _DIF_TEXT
+                        if dsTexture.name == 'ANM':
+                            textListIndex = _BUMP_TEXT
+                        elif dsTexture.name == 'GMM':
+                            textListIndex = _HMAP_TEXT
+                        tsMaterial[textListIndex] = texIndex
 
                 self.__textureSets[dsTexSet.name] = ts
 
@@ -93,3 +109,4 @@ def _readFloat(dataSec, name, minVal, maxVal, defaultVal):
         value = min(maxVal, value)
         value = max(minVal, value)
         return value
+# okay decompiling ./res/scripts/client/helpers/decalmap.pyc

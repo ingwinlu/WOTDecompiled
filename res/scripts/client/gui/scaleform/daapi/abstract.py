@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/daapi/abstract.py
 from debug_utils import LOG_DEBUG
 
 class StatsStorageMeta(object):
@@ -71,3 +73,4 @@ class StatsStorageMeta(object):
         else:
             self.flashObject.as_setNations(nations)
         return
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/abstract.pyc

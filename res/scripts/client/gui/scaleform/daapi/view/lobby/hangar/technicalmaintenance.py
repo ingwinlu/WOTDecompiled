@@ -1,29 +1,31 @@
-# 2013.11.15 11:26:03 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/hangar/TechnicalMaintenance.py
-from AccountCommands import LOCK_REASON
 from CurrentVehicle import g_currentVehicle
-from PlayerEvents import g_playerEvents
-from debug_utils import LOG_ERROR, LOG_DEBUG
+from debug_utils import LOG_DEBUG
 from gui import SystemMessages, DialogsInterface
 from gui.ClientUpdateManager import g_clientUpdateManager
+from gui.shared.event_bus import EVENT_BUS_SCOPE
+from gui.shared.tooltips.formatters import packItemActionTooltipData
 from gui.Scaleform.daapi.view.meta.TechnicalMaintenanceMeta import TechnicalMaintenanceMeta
-from gui.Scaleform.daapi.view.meta.WindowViewMeta import WindowViewMeta
-from gui.Scaleform.framework.entities.View import View
 from gui.Scaleform.daapi.view.dialogs import I18nConfirmDialogMeta
-from gui.shared.gui_items.processors.vehicle import VehicleLayoutProcessor
+from gui.shared.ItemsCache import CACHE_SYNC_REASON
+from gui.shared.gui_items import GUI_ITEM_TYPE
+from gui.shared.gui_items.processors.vehicle import VehicleLayoutProcessor, VehicleRepairer, VehicleAutoRepairProcessor, VehicleAutoLoadProcessor, VehicleAutoEquipProcessor
+from gui.shared.money import Currency
 from gui.shared.utils import decorators
-from gui.shared.utils.functions import getShortDescr, isModuleFitVehicle
-from gui.shared.utils.gui_items import getVehicleFullName, VehicleItem, compactItem, getItemByCompact, InventoryItem
-from gui.shared.utils.requesters import StatsRequester, Requester, ShopRequester, StatsRequesterr, AvailableItemsRequester, VehicleItemsRequester
-from gui.shared import events, g_itemsCache
+from gui.shared.utils.requesters import REQ_CRITERIA as _RC
+from gui.shared import events, g_itemsCache, event_dispatcher as shared_events
 from helpers import i18n
 from helpers.i18n import makeString
+from account_helpers.settings_core.settings_constants import TUTORIAL
 
-class TechnicalMaintenance(View, TechnicalMaintenanceMeta, WindowViewMeta):
+class TechnicalMaintenance(TechnicalMaintenanceMeta):
 
-    def __init__(self):
+    def __init__(self, _=None):
         super(TechnicalMaintenance, self).__init__()
         self.__currentVehicleId = None
+        self.__isConfirmDialogShown = False
+        self.__layout = {}
         return
 
     def onCancelClick(self):
@@ -33,22 +35,26 @@ class TechnicalMaintenance(View, TechnicalMaintenanceMeta, WindowViewMeta):
         self.destroy()
 
     def _populate(self):
-        super(View, self)._populate()
-        g_playerEvents.onShopResync += self._onShopResync
+        super(TechnicalMaintenance, self)._populate()
+        g_itemsCache.onSyncCompleted += self._onShopResync
+        self.addListener(events.TechnicalMaintenanceEvent.RESET_EQUIPMENT, self.__resetEquipment, scope=EVENT_BUS_SCOPE.LOBBY)
         g_clientUpdateManager.addCallbacks({'stats.credits': self.onCreditsChange,
          'stats.gold': self.onGoldChange,
-         'cache.mayConsumeWalletResources': self.onGoldChange})
+         'cache.mayConsumeWalletResources': self.onGoldChange,
+         'cache.vehsLock': self.__onCurrentVehicleChanged})
         g_currentVehicle.onChanged += self.__onCurrentVehicleChanged
         if g_currentVehicle.isPresent():
-            self.__currentVehicleId = g_currentVehicle.invID
+            self.__currentVehicleId = g_currentVehicle.item.intCD
         self.populateTechnicalMaintenance()
         self.populateTechnicalMaintenanceEquipmentDefaults()
+        self.setupContextHints(TUTORIAL.TECHNICAL_MAINTENANCE)
 
     def _dispose(self):
-        g_playerEvents.onShopResync -= self._onShopResync
+        g_itemsCache.onSyncCompleted -= self._onShopResync
         g_clientUpdateManager.removeObjectCallbacks(self)
         g_currentVehicle.onChanged -= self.__onCurrentVehicleChanged
-        super(View, self)._dispose()
+        self.removeListener(events.TechnicalMaintenanceEvent.RESET_EQUIPMENT, self.__resetEquipment, scope=EVENT_BUS_SCOPE.LOBBY)
+        super(TechnicalMaintenance, self)._dispose()
 
     def onCreditsChange(self, value):
         value = g_itemsCache.items.stats.credits
@@ -58,97 +64,88 @@ class TechnicalMaintenance(View, TechnicalMaintenanceMeta, WindowViewMeta):
         value = g_itemsCache.items.stats.gold
         self.as_setGoldS(value)
 
-    def _onShopResync(self):
-        self.populateTechnicalMaintenance()
+    def _onShopResync(self, reason, diff):
+        if not g_currentVehicle.isPresent():
+            self.destroy()
+            return
+        if reason == CACHE_SYNC_REASON.SHOP_RESYNC:
+            self.populateTechnicalMaintenance()
+            self.populateTechnicalMaintenanceEquipment(**self.__layout)
 
     def getEquipment(self, eId1, currency1, eId2, currency2, eId3, currency3, slotIndex):
         eIdsCD = []
-        for item in [ getItemByCompact(x) for x in (eId1, eId2, eId3) ]:
+        for item in (eId1, eId2, eId3):
             if item is None:
                 eIdsCD.append(None)
             else:
-                eIdsCD.append(item.compactDescr)
+                eIdsCD.append(int(item))
 
         self.populateTechnicalMaintenanceEquipment(eIdsCD[0], currency1, eIdsCD[1], currency2, eIdsCD[2], currency3, slotIndex)
         return
 
+    def updateEquipmentCurrency(self, equipmentIndex, currency):
+        key = 'currency%d' % (int(equipmentIndex) + 1)
+        params = {key: currency}
+        self.__seveCurrentLayout(**params)
+
     @decorators.process('loadStats')
-    def setRefillSettings(self, vehicleCompact, repair, shells, equipment):
-        vcls = yield Requester('vehicle').getFromInventory()
-        vehicle = getItemByCompact(vehicleCompact)
-        for v in vcls:
-            if v.inventoryId == vehicle.inventoryId:
-                vehicle = v
-
+    def setRefillSettings(self, intCD, repair, load, equip):
+        vehicle = g_itemsCache.items.getItemByCD(int(intCD))
         if vehicle.isAutoRepair != repair:
-            yield vehicle.setAutoRepair(repair)
-        if vehicle.isAutoLoad != shells:
-            yield vehicle.setAutoLoad(shells)
-        if vehicle.isAutoEquip != equipment:
-            yield vehicle.setAutoEquip(equipment)
+            yield VehicleAutoRepairProcessor(vehicle, repair).request()
+        if vehicle.isAutoLoad != load:
+            yield VehicleAutoLoadProcessor(vehicle, load).request()
+        if vehicle.isAutoEquip != equip:
+            yield VehicleAutoEquipProcessor(vehicle, equip).request()
 
-    def showModuleInfo(self, moduleId):
-        if moduleId is None:
-            return LOG_ERROR('There is error while attempting to show module info window: ', str(moduleId))
-        else:
-            self.fireEvent(events.ShowWindowEvent(events.ShowWindowEvent.SHOW_MODULE_INFO_WINDOW, {'moduleId': moduleId,
-             'vehicleDescr': g_currentVehicle.item.descriptor}))
-            return
+    def showModuleInfo(self, itemCD):
+        if itemCD is not None and int(itemCD) > 0:
+            shared_events.showModuleInfo(itemCD, g_currentVehicle.item.descriptor)
+        return
 
-    @decorators.process('techMaintenance')
     def populateTechnicalMaintenance(self):
-        shopRqs = yield ShopRequester().request()
-        statsRqs = yield StatsRequesterr().request()
-        goldShellsForCredits = shopRqs.isEnabledBuyingGoldShellsForCredits
-        data = {'gold': statsRqs.gold,
-         'credits': statsRqs.credits}
+        money = g_itemsCache.items.stats.money
+        goldShellsForCredits = g_itemsCache.items.shop.isEnabledBuyingGoldShellsForCredits
+        data = {'gold': money.gold,
+         'credits': money.credits}
         if g_currentVehicle.isPresent():
-            iVehicles = yield Requester('vehicle').getFromInventory()
-            for v in iVehicles:
-                if v.inventoryId == g_currentVehicle.invID:
-                    vehicle = v
-                    break
-
-            gun = VehicleItem(vehicle.descriptor.gun)
-            iAmmo = yield Requester('shell').getFromInventory()
-            sAmmo = yield Requester('shell').getFromShop()
+            vehicle = g_currentVehicle.item
             casseteCount = vehicle.descriptor.gun['clip'][0]
-            data.update({'vehicleId': vehicle.pack(),
+            casseteText = makeString('#menu:technicalMaintenance/ammoTitleEx') % casseteCount
+            data.update({'vehicleId': str(vehicle.intCD),
              'repairCost': vehicle.repairCost,
              'maxRepairCost': vehicle.descriptor.getMaxRepairCost(),
              'autoRepair': vehicle.isAutoRepair,
-             'maxAmmo': gun.descriptor['maxAmmo'],
-             'casseteFieldText': '' if casseteCount == 1 else makeString('#menu:technicalMaintenance/ammoTitleEx') % casseteCount,
-             'shells': []})
-            shells = data.get('shells')
+             'autoShells': vehicle.isAutoLoad,
+             'autoEqip': vehicle.isAutoEquip,
+             'maxAmmo': vehicle.gun.maxAmmo,
+             'gunIntCD': vehicle.gun.intCD,
+             'casseteFieldText': '' if casseteCount == 1 else casseteText,
+             'shells': [],
+             'infoAfterShellBlock': ''})
+            shells = data['shells']
             for shell in vehicle.shells:
-                shopShell = sAmmo[sAmmo.index(shell)] if shell in sAmmo else None
-                if shopShell:
-                    iCount = iAmmo[iAmmo.index(shell)].count if shell in iAmmo else 0
-                    sPrice = (yield shopShell.getPrice()) if shell is not shopShell else (0, 0)
-                    if goldShellsForCredits:
-                        sPrice = (sPrice[0] + sPrice[1] * shopRqs.exchangeRateForShellsAndEqs, sPrice[1])
-                    priceCurrency = 'gold'
-                    if sPrice[1] == 0 or goldShellsForCredits and shell.boughtForCredits:
-                        priceCurrency = 'credits'
-                    buyCount = max(shell.default - iCount - shell.count, 0)
-                    shells.append({'id': compactItem(shopShell),
-                     'compactDescr': shopShell.compactDescr,
-                     'type': shell.type,
-                     'icon': '../maps/icons/ammopanel/ammo/%s' % shell.descriptor['icon'][0],
-                     'count': shell.count,
-                     'userCount': shell.default,
-                     'step': casseteCount,
-                     'inventoryCount': iCount,
-                     'goldShellsForCredits': goldShellsForCredits,
-                     'prices': list(sPrice)[:2],
-                     'currency': priceCurrency,
-                     'ammoName': shell.longName,
-                     'tableName': shell.tableName,
-                     'maxAmmo': gun.descriptor['maxAmmo']})
+                price = shell.altPrice
+                defaultPrice = shell.defaultAltPrice
+                action = None
+                if price != defaultPrice:
+                    action = packItemActionTooltipData(shell)
+                shells.append({'id': str(shell.intCD),
+                 'type': shell.type,
+                 'icon': '../maps/icons/ammopanel/ammo/%s' % shell.descriptor['icon'][0],
+                 'count': shell.count,
+                 'userCount': shell.defaultCount,
+                 'step': casseteCount,
+                 'inventoryCount': shell.inventoryCount,
+                 'goldShellsForCredits': goldShellsForCredits,
+                 'prices': shell.altPrice,
+                 'currency': shell.getBuyPriceCurrency(),
+                 'ammoName': shell.longUserNameAbbr,
+                 'tableName': shell.getShortInfo(vehicle, True),
+                 'maxAmmo': vehicle.gun.maxAmmo,
+                 'userCredits': money.toDict(),
+                 'actionPriceData': action})
 
-            data.update({'autoShells': vehicle.isAutoLoad,
-             'autoEqip': vehicle.isAutoEquip})
         self.as_setDataS(data)
         return
 
@@ -159,151 +156,96 @@ class TechnicalMaintenance(View, TechnicalMaintenanceMeta, WindowViewMeta):
         params = {}
         for i, e in enumerate(g_currentVehicle.item.eqsLayout):
             params['eId%s' % (i + 1)] = e.intCD if e else None
+            params['currency%s' % (i + 1)] = e.getBuyPriceCurrency() if e else None
 
         self.populateTechnicalMaintenanceEquipment(**params)
         return
 
-    @decorators.process('techMaintenance')
-    def populateTechnicalMaintenanceEquipment(self, eId1 = None, currency1 = None, eId2 = None, currency2 = None, eId3 = None, currency3 = None, slotIndex = None):
-        shopRqs = yield ShopRequester().request()
-        goldEqsForCredits = shopRqs.isEnabledBuyingGoldEqsForCredits
-        credits, gold = g_itemsCache.items.stats.money
-        myVehicles = yield Requester('vehicle').getFromInventory()
-        modulesAllVehicle = VehicleItemsRequester(myVehicles).getItems(['equipment'])
-        oldStyleVehicle = None
-        for v in myVehicles:
-            if v.inventoryId == g_currentVehicle.invID:
-                oldStyleVehicle = v
-                break
-
-        newStyleVehicle = g_currentVehicle.item
-        availableData = yield AvailableItemsRequester(oldStyleVehicle, 'equipment').request()
-        shopEqs = yield Requester('equipment').getFromShop()
-        invEqs = yield Requester('equipment').getFromInventory()
-        eqs = oldStyleVehicle.equipmentsLayout
-
-        def getShopModule(module):
-            for eq in shopEqs:
-                if eq == module:
-                    return eq
-
-            return None
-
-        def getInventoryModule(module):
-            for eq in invEqs:
-                if eq == module:
-                    return eq
-
-            return None
-
-        def getModuleByCD(compactDescr):
-            for eq in availableData:
-                if eq.compactDescr == compactDescr:
-                    return eq
-
-            return None
-
-        installed = [ m for m in availableData if m.isCurrent ]
+    def populateTechnicalMaintenanceEquipment(self, eId1=None, currency1=None, eId2=None, currency2=None, eId3=None, currency3=None, slotIndex=None):
+        items = g_itemsCache.items
+        goldEqsForCredits = items.shop.isEnabledBuyingGoldEqsForCredits
+        vehicle = g_currentVehicle.item
+        money = g_itemsCache.items.stats.money
+        installedItems = list(vehicle.eqs)
         currencies = [None, None, None]
+        selectedItems = [None, None, None]
         if eId1 is not None or eId2 is not None or eId3 is not None or slotIndex is not None:
-            installed = [ getModuleByCD(id) for id in (eId1, eId2, eId3) if id is not None ]
+            selectedItems = map(lambda id: (items.getItemByCD(id) if id is not None else None), (eId1, eId2, eId3))
             currencies = [currency1, currency2, currency3]
-        data = []
-        for item in availableData:
-            if item in installed:
-                invEq = getInventoryModule(item)
-                shopModule = getShopModule(item)
-                i = InventoryItem(itemTypeName='equipment', compactDescr=item.compactDescr, count=invEq.count if invEq is not None else 0, priceOrder=shopModule.priceOrder if shopModule is not None else (0, 0))
-                if item == getModuleByCD(eId1):
-                    i.index = 0
-                elif item == getModuleByCD(eId2):
-                    i.index = 1
-                elif item == getModuleByCD(eId3):
-                    i.index = 2
-                else:
-                    i.index = item.index
-                i.isCurrent = True
-            elif isinstance(item, InventoryItem):
-                i = InventoryItem(itemTypeName='equipment', compactDescr=item.compactDescr, count=item.count, priceOrder=item.priceOrder)
-            else:
-                i = item
-            data.append(i)
-
-        unlocks = [ m for m in data if m.isCurrent ]
-        data.sort(reverse=True)
-        installed = [0, 0, 0]
-        for m in availableData:
-            if m.isCurrent:
-                installed[m.index] = m.compactDescr
-
-        setup = [0, 0, 0]
+        inventoryVehicles = items.getVehicles(_RC.INVENTORY).values()
+        itemsCriteria = ~_RC.HIDDEN | _RC.VEHICLE.SUITABLE([vehicle], [GUI_ITEM_TYPE.EQUIPMENT])
+        data = sorted(g_itemsCache.items.getItems(GUI_ITEM_TYPE.EQUIPMENT, itemsCriteria).values(), reverse=True)
+        vehicle.eqs = list(selectedItems)
         modules = []
-        if len(eqs):
-            setup = eqs
         for module in data:
-            vehCount = 0
-            try:
-                vehCount = modulesAllVehicle[modulesAllVehicle.index(module)].count
-            except Exception:
-                pass
-
-            invCount = 0
-            try:
-                invCount = invEqs[invEqs.index(module)].count
-            except Exception:
-                pass
-
-            shopModule = getShopModule(module)
-            price = (yield shopModule.getPrice()) if shopModule is not None else (0, 0)
-            if goldEqsForCredits:
-                price = (price[0] + price[1] * shopRqs.exchangeRateForShellsAndEqs, price[1])
-            priceCurrency = 'gold'
-            if not price[1]:
-                priceCurrency = 'credits'
-            elif goldEqsForCredits and module.index is not None:
-                if module.index < len(eqs) and eqs[module.index] < 0:
-                    priceCurrency = 'credits'
-                elif currencies[module.index] is not None:
-                    priceCurrency = currencies[module.index]
             fits = []
             for i in xrange(3):
-                fits.append(isModuleFitVehicle(module, newStyleVehicle, price, (credits, gold), unlocks, i)[1])
+                fits.append(self.__getStatus(module.mayInstall(vehicle, i)[1]))
 
-            modules.append({'id': compactItem(module),
-             'name': module.name,
-             'desc': getShortDescr(module.getTableName(oldStyleVehicle)),
-             'target': module.target,
-             'compactDescr': module.compactDescr,
-             'prices': list(price)[:2],
+            price = module.altPrice
+            defaultPrice = module.defaultAltPrice
+            index = None
+            if module in selectedItems:
+                index = selectedItems.index(module)
+                priceCurrency = currencies[index] or Currency.CREDITS
+            else:
+                priceCurrency = module.getBuyPriceCurrency()
+            action = None
+            if price != defaultPrice:
+                action = packItemActionTooltipData(module)
+            modules.append({'id': str(module.intCD),
+             'name': module.userName,
+             'desc': module.fullDescription,
+             'target': module.getTarget(vehicle),
+             'compactDescr': module.intCD,
+             'prices': price,
              'currency': priceCurrency,
              'icon': module.icon,
-             'index': module.index,
-             'inventoryCount': invCount,
-             'vehicleCount': vehCount,
-             'count': module.count if isinstance(module, InventoryItem) else 0,
+             'index': index,
+             'inventoryCount': module.inventoryCount,
+             'vehicleCount': len(module.getInstalledVehicles(inventoryVehicles)),
+             'count': module.inventoryCount,
              'fits': fits,
-             'goldEqsForCredits': goldEqsForCredits})
+             'goldEqsForCredits': goldEqsForCredits,
+             'userCredits': money.toDict(),
+             'actionPriceData': action,
+             'moduleLabel': module.getGUIEmblemID()})
 
+        vehicle.eqs = list(installedItems)
+        installed = map(lambda e: (e.intCD if e is not None else None), installedItems)
+        setup = map(lambda e: (e.intCD if e is not None else None), selectedItems)
+        self.__seveCurrentLayout(eId1=eId1, currency1=currency1, eId2=eId2, currency2=currency2, eId3=eId3, currency3=currency3)
         self.as_setEquipmentS(installed, setup, modules)
         return
 
     @decorators.process('updateMyVehicles')
     def repair(self):
-        myVehicles = yield Requester('vehicle').getFromInventory()
-        oldStyleVehicle = None
-        for v in myVehicles:
-            if v.inventoryId == g_currentVehicle.invID:
-                oldStyleVehicle = v
-                break
-
-        if oldStyleVehicle.repairCost > 0:
-            success, message = yield oldStyleVehicle.repair()
-            SystemMessages.g_instance.pushMessage(message, SystemMessages.SM_TYPE.Repair if success else SystemMessages.SM_TYPE.Error)
-        return
+        vehicle = g_currentVehicle.item
+        if vehicle.isBroken:
+            result = yield VehicleRepairer(vehicle).request()
+            if result and len(result.userMsg):
+                SystemMessages.g_instance.pushI18nMessage(result.userMsg, type=result.sysMsgType)
 
     def fillVehicle(self, needRepair, needAmmo, needEquipment, isPopulate, isUnload, isOrderChanged, shells, equipment):
+        shellsLayout = []
+        eqsLayout = []
+        for shell in shells:
+            buyGoldShellForCredits = shell.goldShellsForCredits and shell.prices[1] > 0 and shell.currency == Currency.CREDITS
+            shellsLayout.append(int(shell.id) if not buyGoldShellForCredits else -int(shell.id))
+            shellsLayout.append(int(shell.userCount))
+
+        for ei in equipment:
+            if ei is not None:
+                intCD = int(ei.id)
+                buyGoldEqForCredits = ei.goldEqsForCredits and ei.prices[1] > 0 and ei.currency == Currency.CREDITS
+                eqsLayout.append(intCD if not buyGoldEqForCredits else -intCD)
+                eqsLayout.append(1)
+            else:
+                eqsLayout.append(0)
+                eqsLayout.append(0)
+
         if not needRepair and not needAmmo and not needEquipment:
-            self.__fillTechnicalMaintenance(shells, equipment)
+            self.__setVehicleLayouts(g_currentVehicle.item, shellsLayout, eqsLayout)
         else:
             msgPrefix = '{0}'
             if needRepair:
@@ -317,47 +259,30 @@ class TechnicalMaintenance(View, TechnicalMaintenanceMeta, WindowViewMeta):
             else:
                 msgPrefix = msgPrefix.format('')
             msg = i18n.makeString(''.join(['#dialogs:technicalMaintenanceConfirm/msg', msgPrefix]))
+            if not self.__isConfirmDialogShown:
 
-            def fillConfirmationCallback(isConfirmed):
-                if isConfirmed:
-                    if needRepair:
-                        self.repair()
-                    self.__fillTechnicalMaintenance(shells, equipment)
+                def fillConfirmationCallback(isConfirmed):
+                    if isConfirmed:
+                        if needRepair:
+                            self.repair()
+                        self.__setVehicleLayouts(g_currentVehicle.item, shellsLayout, eqsLayout)
+                    self.__isConfirmDialogShown = False
 
-            DialogsInterface.showDialog(I18nConfirmDialogMeta('technicalMaintenanceConfirm', messageCtx={'content': msg}), fillConfirmationCallback)
+                DialogsInterface.showDialog(I18nConfirmDialogMeta('technicalMaintenanceConfirm', messageCtx={'content': msg}), fillConfirmationCallback)
+                self.__isConfirmDialogShown = True
+        return
 
-    def __onCurrentVehicleChanged(self):
+    def __onCurrentVehicleChanged(self, *args):
         if g_currentVehicle.isLocked() or not g_currentVehicle.isPresent():
             self.destroy()
         else:
             self.populateTechnicalMaintenance()
-            if g_currentVehicle.isPresent() and g_currentVehicle.invID != self.__currentVehicleId:
+            if g_currentVehicle.isPresent() and g_currentVehicle.item.intCD != self.__currentVehicleId:
                 self.populateTechnicalMaintenanceEquipmentDefaults()
-                self.__currentVehicleId = g_currentVehicle.invID
-
-    def __fillTechnicalMaintenance(self, ammo, equipment):
-        shellsLayout = []
-        eqsLayout = []
-        for shell in ammo:
-            buyGoldShellForCredits = shell.goldShellsForCredits and shell.prices[1] > 0 and shell.currency == 'credits'
-            shellsLayout.append(shell.compactDescr if not buyGoldShellForCredits else -shell.compactDescr)
-            shellsLayout.append(int(shell.userCount))
-
-        for ei in equipment:
-            if ei is not None:
-                item = getItemByCompact(ei.id)
-                buyGoldEqForCredits = ei.goldEqsForCredits and ei.prices[1] > 0 and ei.currency == 'credits'
-                eqsLayout.append(item.compactDescr if not buyGoldEqForCredits else -item.compactDescr)
-                eqsLayout.append(1)
-            else:
-                eqsLayout.append(0)
-                eqsLayout.append(0)
-
-        self.__setVehicleLayouts(g_currentVehicle.item, shellsLayout, eqsLayout)
-        return
+                self.__currentVehicleId = g_currentVehicle.item.intCD
 
     @decorators.process('techMaintenance')
-    def __setVehicleLayouts(self, vehicle, shellsLayout = list(), eqsLayout = list()):
+    def __setVehicleLayouts(self, vehicle, shellsLayout=list(), eqsLayout=list()):
         LOG_DEBUG('setVehicleLayouts', shellsLayout, eqsLayout)
         result = yield VehicleLayoutProcessor(vehicle, shellsLayout, eqsLayout).request()
         if result and result.auxData:
@@ -367,6 +292,19 @@ class TechnicalMaintenance(View, TechnicalMaintenanceMeta, WindowViewMeta):
         if result and len(result.userMsg):
             SystemMessages.g_instance.pushI18nMessage(result.userMsg, type=result.sysMsgType)
         self.destroy()
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/lobby/hangar/technicalmaintenance.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:04 EST
+
+    def __seveCurrentLayout(self, **kwargs):
+        self.__layout.update(kwargs)
+
+    def __resetEquipment(self, event):
+        equipmentCD = event.ctx.get('eqCD', None)
+        if equipmentCD is not None:
+            self.as_resetEquipmentS(equipmentCD)
+        return
+
+    def __getStatus(self, reason):
+        if reason is not None:
+            return '#menu:moduleFits/' + reason.replace(' ', '_')
+        else:
+            return ''
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/hangar/technicalmaintenance.pyc

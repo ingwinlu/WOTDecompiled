@@ -1,41 +1,40 @@
-# 2013.11.15 11:26:44 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/SettingsInterface.py
-import sys
 from functools import partial
 import BigWorld
-import weakref
 import itertools
+import BattleReplay
 import SoundGroups
-import ResMgr
-import ArenaType
-from gui.Scaleform.managers.windows_stored_data import g_windowsStoredData
 import nations
-from account_helpers import gameplay_ctx
-from account_helpers.SettingsCore import g_settingsCore
+import CommandMapping
+import Settings
+from gui.battle_control import g_sessionProvider
+from gui.Scaleform.locale.SETTINGS import SETTINGS
+from gui.Scaleform.managers.windows_stored_data import g_windowsStoredData
+from account_helpers.settings_core.options import APPLY_METHOD, KeyboardSettings
+from account_helpers.settings_core.settings_constants import SOUND, GRAPHICS
 from gui import GUI_SETTINGS, g_guiResetters
-from gui.BattleContext import g_battleContext
 from gui.GraphicsPresets import GraphicsPresets
 from gui.GraphicsResolutions import g_graficsResolutions
 from gui.shared.utils.key_mapping import getScaleformKey
-from gui.Scaleform import VoiceChatInterface
 from windows import UIInterface
 from debug_utils import LOG_DEBUG, LOG_NOTE, LOG_ERROR
-from account_helpers.AccountSettings import AccountSettings
 from post_processing import g_postProcessing
-import CommandMapping
-import Settings
 from adisp import process
 from gui.Scaleform.Waiting import Waiting
 from Vibroeffects import VibroManager
-from LogitechMonitor import LogitechMonitor
 from helpers import getClientOverride
+from account_helpers.settings_core.SettingsCore import g_settingsCore
+from messenger.m_constants import PROTO_TYPE
+from messenger.proto import proto_getter
 
 class SettingsInterface(UIInterface):
     KEYBOARD_MAPPING_COMMANDS = {'movement': {'forward': 'CMD_MOVE_FORWARD',
                   'backward': 'CMD_MOVE_BACKWARD',
                   'left': 'CMD_ROTATE_LEFT',
                   'right': 'CMD_ROTATE_RIGHT',
-                  'auto_rotation': 'CMD_CM_VEHICLE_SWITCH_AUTOROTATION'},
+                  'auto_rotation': 'CMD_CM_VEHICLE_SWITCH_AUTOROTATION',
+                  'block_tracks': 'CMD_BLOCK_TRACKS'},
      'cruis_control': {'forward': 'CMD_INCREMENT_CRUISE_MODE',
                        'backward': 'CMD_DECREMENT_CRUISE_MODE',
                        'stop_fire': 'CMD_STOP_UNTIL_FIRE'},
@@ -64,43 +63,80 @@ class SettingsInterface(UIInterface):
                 'camera_down': 'CMD_CM_CAMERA_ROTATE_DOWN',
                 'camera_left': 'CMD_CM_CAMERA_ROTATE_LEFT',
                 'camera_right': 'CMD_CM_CAMERA_ROTATE_RIGHT'},
-     'voicechat': {'pushToTalk': 'CMD_VOICECHAT_MUTE'},
+     'voicechat': {'pushToTalk': 'CMD_VOICECHAT_MUTE',
+                   'voicechat_enable': 'CMD_VOICECHAT_ENABLE'},
      'logitech_keyboard': {'switch_view': 'CMD_LOGITECH_SWITCH_VIEW'},
      'minimap': {'sizeUp': 'CMD_MINIMAP_SIZE_UP',
                  'sizeDown': 'CMD_MINIMAP_SIZE_DOWN',
                  'visible': 'CMD_MINIMAP_VISIBLE'}}
-    KEYBOARD_MAPPING_BLOCKS = {'movement': ('forward', 'backward', 'left', 'right', 'auto_rotation'),
+    KEYBOARD_MAPPING_BLOCKS = {'movement': ('forward',
+                  'backward',
+                  'left',
+                  'right',
+                  'auto_rotation',
+                  'block_tracks'),
      'cruis_control': ('forward', 'backward', 'stop_fire'),
-     'firing': ('fire', 'lock_target', 'lock_target_off', 'alternate_mode', 'reloadPartialClip'),
+     'firing': ('fire',
+                'lock_target',
+                'lock_target_off',
+                'alternate_mode',
+                'reloadPartialClip'),
      'vehicle_other': ('showHUD', 'showRadialMenu'),
-     'equipment': ('item01', 'item02', 'item03', 'item04', 'item05', 'item06', 'item07', 'item08'),
-     'shortcuts': ('attack', 'to_base', 'positive', 'negative', 'help_me', 'reload'),
-     'camera': ('camera_up', 'camera_down', 'camera_left', 'camera_right'),
-     'voicechat': ('pushToTalk',),
+     'equipment': ('item01',
+                   'item02',
+                   'item03',
+                   'item04',
+                   'item05',
+                   'item06',
+                   'item07',
+                   'item08'),
+     'shortcuts': ('attack',
+                   'to_base',
+                   'positive',
+                   'negative',
+                   'help_me',
+                   'reload'),
+     'camera': ('camera_up',
+                'camera_down',
+                'camera_left',
+                'camera_right'),
+     'voicechat': ('pushToTalk', 'voicechat_enable'),
      'logitech_keyboard': ('switch_view',),
      'minimap': ('sizeUp', 'sizeDown', 'visible')}
-    KEYBOARD_MAPPING_BLOCKS_ORDER = ('movement', 'cruis_control', 'firing', 'vehicle_other', 'equipment', 'shortcuts', 'camera', 'voicechat', 'minimap', 'logitech_keyboard')
+    KEYBOARD_MAPPING_BLOCKS_ORDER = ('movement',
+     'cruis_control',
+     'firing',
+     'vehicle_other',
+     'equipment',
+     'shortcuts',
+     'camera',
+     'voicechat',
+     'logitech_keyboard',
+     'minimap')
     POPULATE_UI = 'SettingsDialog.PopulateUI'
     APPLY_SETTINGS = 'SettingsDialog.ApplySettings'
     COMMIT_SETTINGS = 'SettingsDialog.CommitSettings'
+    SETTINGS_TAB_SELECTED = 'SettingsDialog.onTabSelected'
     DELAY_SETTINGS = 'SettingsDialog.DelaySettings'
     AUTODETECT_QUALITY = 'SettingsDialog.AutodetectQuality'
-    CURSOR_VALUES = {'mixing': 3,
-     'gunTag': 6,
-     'centralTag': 8,
-     'net': 3,
+    SET_DIALOG_VISIBILITY = 'SettingsDialog.setVisibility'
+    CURSOR_VALUES = {'mixing': 4,
+     'gunTag': 15,
+     'centralTag': 14,
+     'net': 4,
      'reloader': 0,
      'condition': 0,
      'cassette': 0,
      'reloaderTimer': 0}
-    SNIPER_VALUES = {'snpMixing': 3,
+    SNIPER_VALUES = {'snpMixing': 4,
      'snpGunTag': 6,
-     'snpCentralTag': 8,
-     'snpNet': 3,
+     'snpCentralTag': 14,
+     'snpNet': 4,
      'snpReloader': 0,
      'snpCondition': 0,
      'snpCassette': 0,
-     'snpReloaderTimer': 0}
+     'snpReloaderTimer': 0,
+     'snpZoomIndicator': 0}
     MARKER_VALUES = {'Hp': 4,
      'Name': 3}
     MARKER_TYPES = ['Base', 'Alt']
@@ -125,7 +161,7 @@ class SettingsInterface(UIInterface):
     GAMEPLAY_KEY_FORMAT = 'gameplay_{0:>s}'
     GAMEPLAY_PREFIX = 'gameplay_'
 
-    def __init__(self, enableRedefineKeysMode = True):
+    def __init__(self, enableRedefineKeysMode=True):
         UIInterface.__init__(self)
         if not GUI_SETTINGS.minimapSize and self.KEYBOARD_MAPPING_BLOCKS.has_key('minimap'):
             del self.KEYBOARD_MAPPING_BLOCKS['minimap']
@@ -135,6 +171,8 @@ class SettingsInterface(UIInterface):
         self.__currentSettings = None
         self.__settingsUI = None
         self.__altVoiceSetting = g_settingsCore.options.getSetting('alternativeVoices')
+        self.graphicsChangeConfirmationRevert = None
+        self.__dialogIsVisibility = False
         if not GUI_SETTINGS.voiceChat and self.KEYBOARD_MAPPING_COMMANDS.has_key('voicechat'):
             if self.KEYBOARD_MAPPING_COMMANDS.has_key('voicechat'):
                 del self.KEYBOARD_MAPPING_COMMANDS['voicechat']
@@ -145,19 +183,26 @@ class SettingsInterface(UIInterface):
             self.KEYBOARD_MAPPING_BLOCKS_ORDER = tuple(self.KEYBOARD_MAPPING_BLOCKS_ORDER)
         return
 
+    @proto_getter(PROTO_TYPE.BW_CHAT2)
+    def bwProto(self):
+        return None
+
     def populateUI(self, proxy):
         UIInterface.populateUI(self, proxy)
         self.uiHolder.addExternalCallbacks({SettingsInterface.POPULATE_UI: self.onPopulateUI,
          SettingsInterface.APPLY_SETTINGS: self.onApplySettings,
          SettingsInterface.COMMIT_SETTINGS: self.onCommitSettings,
+         SettingsInterface.SETTINGS_TAB_SELECTED: self.onTabSelected,
          SettingsInterface.DELAY_SETTINGS: self.onDelaySettings,
          SettingsInterface.AUTODETECT_QUALITY: self.onAutodetectSettings,
+         SettingsInterface.SET_DIALOG_VISIBILITY: self.onSetVisibility,
          'SettingsDialog.useRedifineKeysMode': self.onUseRedifineKeyMode,
          'SettingsDialog.processVivoxTest': self.onProcessVivoxTest,
          'SettingsDialog.voiceChatEnable': self.onVoiceChatEnable,
          'SettingsDialog.updateCaptureDevices': self.onUpdateCaptureDevices,
          'SettingsDialog.setVivoxMicVolume': self.onSetVivoxMicVolume,
-         'SettingsDialog.killDialog': self.onDialogClose})
+         'SettingsDialog.killDialog': self.onDialogClose,
+         'SettingsDialog.graphicsChangeConfirmationStatus': self.graphicsChangeConfirmationStatus})
         VibroManager.g_instance.onConnect += self.__vm_onConnect
         VibroManager.g_instance.onDisconnect += self.__vm_onDisconnect
         g_guiResetters.add(self.onRecreateDevice)
@@ -168,7 +213,7 @@ class SettingsInterface(UIInterface):
             self.__settingsUI.script = None
             self.__settingsUI = None
         self.__altVoiceSetting = None
-        self.uiHolder.removeExternalCallbacks(SettingsInterface.POPULATE_UI, SettingsInterface.APPLY_SETTINGS, SettingsInterface.COMMIT_SETTINGS, SettingsInterface.DELAY_SETTINGS, SettingsInterface.AUTODETECT_QUALITY, 'SettingsDialog.useRedifineKeysMode', 'SettingsDialog.processVivoxTest', 'SettingsDialog.voiceChatEnable', 'SettingsDialog.updateCaptureDevices', 'SettingsDialog.setVivoxMicVolume', 'SettingsDialog.killDialog')
+        self.uiHolder.removeExternalCallbacks(SettingsInterface.POPULATE_UI, SettingsInterface.APPLY_SETTINGS, SettingsInterface.COMMIT_SETTINGS, SettingsInterface.SETTINGS_TAB_SELECTED, SettingsInterface.DELAY_SETTINGS, SettingsInterface.AUTODETECT_QUALITY, SettingsInterface.SET_DIALOG_VISIBILITY, 'SettingsDialog.useRedifineKeysMode', 'SettingsDialog.processVivoxTest', 'SettingsDialog.voiceChatEnable', 'SettingsDialog.updateCaptureDevices', 'SettingsDialog.setVivoxMicVolume', 'SettingsDialog.killDialog')
         VibroManager.g_instance.onConnect -= self.__vm_onConnect
         VibroManager.g_instance.onDisconnect -= self.__vm_onDisconnect
         g_guiResetters.discard(self.onRecreateDevice)
@@ -179,7 +224,7 @@ class SettingsInterface(UIInterface):
     def altVoicesPreview(self, soundMode):
         if not self.__altVoiceSetting.isOptionEnabled():
             return True
-        if not g_battleContext.isInBattle:
+        if not g_sessionProvider.getCtx().isInBattle:
             SoundGroups.g_instance.enableVoiceSounds(True)
         self.__altVoiceSetting.preview(soundMode)
         return self.__altVoiceSetting.playPreviewSound(self.uiHolder.soundManager)
@@ -200,33 +245,12 @@ class SettingsInterface(UIInterface):
         self.__voiceChatEnable(isEnable)
 
     def __voiceChatEnable(self, isEnable):
-        if isEnable is None:
+        if BattleReplay.isPlaying():
+            return
+        elif isEnable is None:
             return
         else:
-            preveVoIP = Settings.g_instance.userPrefs.readBool(Settings.KEY_ENABLE_VOIP)
-            import VOIP
-            if preveVoIP != isEnable:
-                VOIP.getVOIPManager().enable(isEnable)
-                Settings.g_instance.userPrefs.writeBool(Settings.KEY_ENABLE_VOIP, bool(isEnable))
-                from gui.WindowsManager import g_windowsManager
-                if g_windowsManager.battleWindow is not None and not isEnable:
-                    g_windowsManager.battleWindow.speakingPlayersReset()
-                LOG_NOTE('Change state of voip: %s' % str(isEnable))
-            return
-
-    def __changeCaptureDevice(self, captureDeviceIdx):
-        if captureDeviceIdx is None or captureDeviceIdx == -1:
-            return
-        else:
-            import VOIP
-            rh = VOIP.getVOIPManager()
-            devices = [ device.decode(sys.getfilesystemencoding()).encode('utf-8') for device in rh.captureDevices ]
-            if captureDeviceIdx < len(devices):
-                newCaptureDevice = devices[captureDeviceIdx]
-                previousDevice = Settings.g_instance.userPrefs.readString(Settings.KEY_VOIP_DEVICE)
-                if previousDevice != newCaptureDevice:
-                    Settings.g_instance.userPrefs.writeString(Settings.KEY_VOIP_DEVICE, newCaptureDevice)
-                    LOG_NOTE('Change device of voip: %s' % str(newCaptureDevice))
+            g_settingsCore.applySetting('enableVoIP', isEnable)
             return
 
     def onUseRedifineKeyMode(self, callbackId, isUse):
@@ -251,11 +275,15 @@ class SettingsInterface(UIInterface):
         settings['monitor'] = {'current': self.resolutions.monitorIndex,
          'real': self.resolutions.realMonitorIndex,
          'options': self.resolutions.monitorsList}
-        settings['fullScreen'] = not self.resolutions.isVideoWindowed
-        settings['windowSize'] = {'current': self.resolutions.windowSizeIndex,
-         'options': self.resolutions.windowSizesList}
-        settings['resolution'] = {'current': self.resolutions.videoModeIndex,
-         'options': self.resolutions.videoModesList}
+        settings['fullScreen'] = g_settingsCore.getSetting('fullScreen')
+        settings['windowSize'] = {'current': g_settingsCore.getSetting('windowSize'),
+         'options': g_settingsCore.options.getSetting('windowSize').getOptions()}
+        settings['resolution'] = {'current': g_settingsCore.getSetting('resolution'),
+         'options': g_settingsCore.options.getSetting('resolution').getOptions()}
+        settings['refreshRate'] = {'current': g_settingsCore.getSetting('refreshRate'),
+         'options': g_settingsCore.options.getSetting('refreshRate').getOptions()}
+        settings['interfaceScale'] = {'current': g_settingsCore.getSetting('interfaceScale'),
+         'options': g_settingsCore.options.getSetting('interfaceScale').getOptions()}
         return settings
 
     def __getSettings(self):
@@ -271,6 +299,8 @@ class SettingsInterface(UIInterface):
         markers = {'enemy': g_settingsCore.getSetting('enemy'),
          'dead': g_settingsCore.getSetting('dead'),
          'ally': g_settingsCore.getSetting('ally')}
+        datetimeIdx = g_settingsCore.getSetting('showDateMessage') << 0 | g_settingsCore.getSetting('showTimeMessage') << 1
+        zoomOption = g_settingsCore.options.getSetting('increasedZoom')
         config = {'locale': getClientOverride(),
          'aspectRatio': {'current': self.resolutions.aspectRatioIndex,
                          'options': self.resolutions.aspectRatiosList},
@@ -281,9 +311,11 @@ class SettingsInterface(UIInterface):
          'customAA': {'current': self.resolutions.customAAModeIndex,
                       'options': self.resolutions.customAAModesList},
          'gamma': self.resolutions.gamma,
+         'masterVolumeToggle': g_settingsCore.getSetting(SOUND.MASTER_TOGGLE),
+         'soundQuality': g_settingsCore.getSetting(SOUND.SOUND_QUALITY),
+         'soundQualityVisible': g_settingsCore.getSetting(SOUND.SOUND_QUALITY_VISIBLE),
          'masterVolume': round(SoundGroups.g_instance.getMasterVolume() * 100),
          'musicVolume': round(SoundGroups.g_instance.getVolume('music') * 100),
-         'voiceVolume': round(SoundGroups.g_instance.getVolume('voice') * 100),
          'vehiclesVolume': round(SoundGroups.g_instance.getVolume('vehicles') * 100),
          'effectsVolume': round(SoundGroups.g_instance.getVolume('effects') * 100),
          'guiVolume': round(SoundGroups.g_instance.getVolume('gui') * 100),
@@ -291,24 +323,41 @@ class SettingsInterface(UIInterface):
          'masterVivoxVolume': round(SoundGroups.g_instance.getVolume('masterVivox') * 100),
          'micVivoxVolume': round(SoundGroups.g_instance.getVolume('micVivox') * 100),
          'masterFadeVivoxVolume': round(SoundGroups.g_instance.getVolume('masterFadeVivox') * 100),
-         'captureDevice': self.__getCaptureDeviceSettings(),
-         'voiceChatNotSupported': rh.vivoxDomain == '' or not VoiceChatInterface.g_instance.ready,
-         'datetimeIdx': g_settingsCore.serverSettings.getGameSetting('datetimeIdx', 2),
+         'dynamicRange': g_settingsCore.options.getSetting('dynamicRange').pack(),
+         'soundDevice': g_settingsCore.options.getSetting('soundDevice').pack(),
+         'captureDevice': g_settingsCore.options.getSetting(SOUND.CAPTURE_DEVICES).pack(),
+         'voiceChatNotSupported': not g_settingsCore.getSetting(SOUND.VOIP_SUPPORTED),
+         'datetimeIdx': datetimeIdx,
          'enableOlFilter': g_settingsCore.getSetting('enableOlFilter'),
          'enableSpamFilter': g_settingsCore.getSetting('enableSpamFilter'),
-         'enableStoreChatMws': g_settingsCore.getSetting('enableStoreMws'),
-         'enableStoreChatCws': g_settingsCore.getSetting('enableStoreCws'),
+         'receiveFriendshipRequest': g_settingsCore.getSetting('receiveFriendshipRequest'),
+         'receiveInvitesInBattle': g_settingsCore.getSetting('receiveInvitesInBattle'),
          'invitesFromFriendsOnly': g_settingsCore.getSetting('invitesFromFriendsOnly'),
-         'storeReceiverInBattle': g_settingsCore.getSetting('storeReceiverInBattle'),
+         'disableBattleChat': g_settingsCore.getSetting('disableBattleChat'),
+         'chatContactsListOnly': g_settingsCore.getSetting('chatContactsListOnly'),
+         'receiveClanInvitesNotifications': g_settingsCore.getSetting('receiveClanInvitesNotifications'),
          'dynamicCamera': g_settingsCore.getSetting('dynamicCamera'),
          'horStabilizationSnp': g_settingsCore.getSetting('horStabilizationSnp'),
-         'enableVoIP': VOIP.getVOIPManager().channelsMgr.enabled,
+         'increasedZoom': zoomOption.get(),
+         'sniperModeByShift': g_settingsCore.getSetting('sniperModeByShift'),
+         'enableVoIP': g_settingsCore.getSetting('enableVoIP'),
          'enablePostMortemEffect': g_settingsCore.getSetting('enablePostMortemEffect'),
-         'nationalVoices': AccountSettings.getSettings('nationalVoices'),
-         'isColorBlind': AccountSettings.getSettings('isColorBlind'),
+         'enablePostMortemDelay': g_settingsCore.getSetting('enablePostMortemDelay'),
+         'isColorBlind': g_settingsCore.getSetting('isColorBlind'),
+         'graphicsQualityHDSD': g_settingsCore.getSetting('graphicsQualityHDSD'),
          'useServerAim': g_settingsCore.getSetting('useServerAim'),
          'showVehiclesCounter': g_settingsCore.getSetting('showVehiclesCounter'),
+         'showMarksOnGun': g_settingsCore.getSetting('showMarksOnGun'),
+         'simplifiedTTC': g_settingsCore.getSetting('simplifiedTTC'),
+         'showBattleEfficiencyRibbons': g_settingsCore.getSetting('showBattleEfficiencyRibbons'),
          'minimapAlpha': g_settingsCore.getSetting('minimapAlpha'),
+         'showVectorOnMap': g_settingsCore.getSetting('showVectorOnMap'),
+         'showSectorOnMap': g_settingsCore.getSetting('showSectorOnMap'),
+         'showVehModelsOnMap': g_settingsCore.options.getSetting('showVehModelsOnMap').pack(),
+         'minimapViewRange': g_settingsCore.getSetting('minimapViewRange'),
+         'minimapMaxViewRange': g_settingsCore.getSetting('minimapMaxViewRange'),
+         'minimapDrawRange': g_settingsCore.getSetting('minimapDrawRange'),
+         'battleLoadingInfo': g_settingsCore.options.getSetting('battleLoadingInfo').pack(),
          'vibroIsConnected': vManager.connect(),
          'vibroGain': vManager.getGain() * 100,
          'vibroEngine': vEffGroups.get('engine', vEffDefGroup).gain * 100,
@@ -319,9 +368,15 @@ class SettingsInterface(UIInterface):
          'vibroDamage': vEffGroups.get('damage', vEffDefGroup).gain * 100,
          'vibroGUI': vEffGroups.get('gui', vEffDefGroup).gain * 100,
          'ppShowLevels': g_settingsCore.getSetting('ppShowLevels'),
-         'ppShowTypes': AccountSettings.getSettings('players_panel')['showTypes'],
-         'replayEnabled': g_settingsCore.getSetting('replayEnabled'),
+         'ppShowTypes': g_settingsCore.getSetting('ppShowTypes'),
+         'replayEnabled': g_settingsCore.options.getSetting('replayEnabled').pack(),
          'fpsPerfomancer': g_settingsCore.getSetting('fpsPerfomancer'),
+         'dynamicRenderer': g_settingsCore.getSetting('dynamicRenderer'),
+         'colorFilterIntensity': g_settingsCore.getSetting('colorFilterIntensity'),
+         'colorFilterImages': g_settingsCore.getSetting('colorFilterImages'),
+         'fov': g_settingsCore.getSetting('fov'),
+         'dynamicFov': g_settingsCore.getSetting('dynamicFov'),
+         'enableOpticalSnpEffect': g_settingsCore.getSetting('enableOpticalSnpEffect'),
          'arcade': {'values': g_settingsCore.options.getSetting('arcade').toAccountSettings(),
                     'options': SettingsInterface.CURSOR_VALUES},
          'sniper': {'values': g_settingsCore.options.getSetting('sniper').toAccountSettings(),
@@ -337,14 +392,12 @@ class SettingsInterface(UIInterface):
 
             config['alternativeVoices'] = {'current': self.__altVoiceSetting.get(),
              'options': altVoices}
-        gameplayMask = gameplay_ctx.getMask()
-        for name in ArenaType.g_gameplayNames:
+        for name in ('ctf', 'domination', 'assault', 'nations'):
             key = self.GAMEPLAY_KEY_FORMAT.format(name)
-            bit = ArenaType.getVisibilityMask(ArenaType.getGameplayIDForName(name))
-            config[key] = gameplayMask & bit > 0
+            config[key] = g_settingsCore.getSetting(key)
 
         settings.append(config)
-        if not LogitechMonitor.isPresentColor():
+        if KeyboardSettings.isGroupHidden('logitech_keyboard'):
             if self.KEYBOARD_MAPPING_BLOCKS.has_key('logitech_keyboard'):
                 del self.KEYBOARD_MAPPING_BLOCKS['logitech_keyboard']
         else:
@@ -405,55 +458,31 @@ class SettingsInterface(UIInterface):
                  'value': value}
 
         settings.append(mouse)
+        extraData = {'increasedZoom': zoomOption.getExtraData(),
+         'keyboardImportantBinds': g_settingsCore.getSetting('keyboardImportantBinds')}
+        settings.append(extraData)
         g_windowsStoredData.stop()
         return settings
 
-    def __getCaptureDeviceSettings(self):
-        import VOIP
-        rh = VOIP.getVOIPManager()
-        devices = [ device.decode(sys.getfilesystemencoding()).encode('utf-8') for device in rh.captureDevices ]
-        currentDeviceName = Settings.g_instance.userPrefs.readString(Settings.KEY_VOIP_DEVICE)
-        currentCaptureDeviceIdx = -1
-        try:
-            currentCaptureDeviceIdx = devices.index(currentDeviceName)
-        except:
-            try:
-                currentCaptureDeviceIdx = rh.captureDevices.index(rh.currentCaptureDevice)
-            except:
-                pass
-
-        settings = {'current': currentCaptureDeviceIdx,
-         'options': devices}
-        return settings
-
-    def onUpdateCaptureDevices(self, callbackId):
+    def onUpdateCaptureDevices(self, callbshowVectorOnMapackId):
         self.__updateCaptureDevices()
 
     @process
     def __updateCaptureDevices(self):
         Waiting.show('__updateCaptureDevices')
-        devices = yield VoiceChatInterface.g_instance.requestCaptureDevices()
-        currentDeviceName = Settings.g_instance.userPrefs.readString(Settings.KEY_VOIP_DEVICE)
-        currentCaptureDeviceIdx = -1
-        try:
-            currentCaptureDeviceIdx = devices.index(currentDeviceName)
-        except Exception:
-            try:
-                import VOIP
-                currentCaptureDeviceIdx = devices.index(VOIP.getVOIPManager().currentCaptureDevice)
-            except Exception:
-                pass
-
-        value = [currentCaptureDeviceIdx]
-        value.extend([ d.decode(sys.getfilesystemencoding()).encode('utf-8') for d in devices ])
+        yield self.bwProto.voipController.requestCaptureDevices()
+        opt = g_settingsCore.options.getSetting(SOUND.CAPTURE_DEVICES)
         Waiting.hide('__updateCaptureDevices')
-        self.call('SettingsDialog.updateCaptureDevices', value)
+        self.call('SettingsDialog.updateCaptureDevices', [opt.get()] + opt.getOptions())
 
     def onRecreateDevice(self):
-        if self.__settingsUI:
+        if self.__settingsUI and self.__dialogIsVisibility:
             if self.__currentSettings and self.__currentSettings != self.__getVideoSettings():
                 self.__currentSettings = self.__getVideoSettings()
                 self.__settingsUI.buildGraphicsData(self.__getVideoSettings())
+
+    def onSetVisibility(self, callbackID, isVisibility):
+        self.__dialogIsVisibility = isVisibility
 
     def onAutodetectSettings(self, callbackID):
         presetIndex = BigWorld.autoDetectGraphicsSettings()
@@ -462,15 +491,14 @@ class SettingsInterface(UIInterface):
     def onPopulateUI(self, *args):
         self.graphicsPresets.checkCurrentPreset(True)
         self.__currentSettings = self.__getVideoSettings()
-        VoiceChatInterface.g_instance.processFailedMessage()
         if self.__settingsUI:
             self.__settingsUI.script = None
             self.__settingsUI = None
         settingsDialogName = args[1]
         self.__settingsUI = self.uiHolder.getMember(settingsDialogName)
-        if self.__settingsUI:
+        if self.__settingsUI and self.__dialogIsVisibility:
             settings = self.__getSettings()
-            self.__settingsUI.buildData(settings[0], settings[1], settings[2], settings[3])
+            self.__settingsUI.buildData(settings[0], settings[1], settings[2], settings[3], settings[4])
             self.__settingsUI.buildGraphicsData(self.__getVideoSettings())
             self.__settingsUI.script = self
         else:
@@ -478,35 +506,60 @@ class SettingsInterface(UIInterface):
         return
 
     def onApplySettings(self, callbackId, settings):
-        monitorIndex, presetIndex, settingsList, fullscreen = settings
+        monitorIndex, presetIndex, settingsList, fullscreen, masterVolumeToggle, soundQuality = settings
         if (not self.resolutions.isVideoWindowed or fullscreen) and (monitorIndex != self.resolutions.realMonitorIndex or self.resolutions.monitorChanged):
             self.call('SettingsDialog.ApplySettings', ['restartNeeded'])
             return
-        applyPresets = self.graphicsPresets.checkApplyGraphicsPreset(int(presetIndex), settingsList)
-        self.call('SettingsDialog.ApplySettings', [applyPresets])
+        isSoundChanged = masterVolumeToggle is not g_settingsCore.getSetting(SOUND.MASTER_TOGGLE) or soundQuality is not g_settingsCore.getSetting(SOUND.SOUND_QUALITY)
+        applyMethod = g_settingsCore.options.getApplyMethod(settingsList)
+        method = 'apply'
+        if applyMethod == APPLY_METHOD.RESTART or isSoundChanged:
+            method = 'restartNeeded'
+        elif applyMethod == APPLY_METHOD.DELAYED:
+            method = 'hasPendingSettings'
+        self.call('SettingsDialog.ApplySettings', [method])
 
     def onDelaySettings(self, *args):
-        self.apply(False, *args)
+        g_settingsCore.options.revert()
 
     def onCommitSettings(self, *args):
         self.apply(True, *args)
 
+    def onTabSelected(self, cbID, tabId):
+        if tabId == SETTINGS.SOUNDTITLE:
+            self.bwProto.voipController.invalidateInitialization()
+
     def apply(self, restartApproved, callbackId, settings):
         restartClient = False
+        interfaceScaled = False
+        g_settingsCore.isDeviseRecreated = False
+        isSoundChanged = settings[SOUND.MASTER_TOGGLE] is not g_settingsCore.getSetting(SOUND.MASTER_TOGGLE) or settings[SOUND.SOUND_QUALITY] is not g_settingsCore.getSetting(SOUND.SOUND_QUALITY)
         import VOIP
-        ppSettings = dict(AccountSettings.getSettings('players_panel'))
-        ppSettings['showTypes'] = settings['ppShowTypes']
         if (not self.resolutions.isVideoWindowed or settings['fullScreen']) and (settings['monitor'] != self.resolutions.realMonitorIndex or self.resolutions.monitorChanged):
             restartClient = True
-        AccountSettings.setSettings('players_panel', ppSettings)
+        if g_settingsCore.getSetting('interfaceScale') != settings['interfaceScale']:
+            interfaceScaled = True
+        g_settingsCore.applySetting('ppShowTypes', settings['ppShowTypes'])
         g_settingsCore.applySetting('ppShowLevels', settings['ppShowLevels'])
         g_settingsCore.applySetting('replayEnabled', settings['replayEnabled'])
         g_settingsCore.applySetting('fpsPerfomancer', settings['fpsPerfomancer'])
-        AccountSettings.setSettings('nationalVoices', settings['nationalVoices'])
-        AccountSettings.setSettings('isColorBlind', settings['isColorBlind'])
+        g_settingsCore.applySetting('colorFilterIntensity', settings['colorFilterIntensity'])
+        g_settingsCore.applySetting('fov', settings['fov'])
+        g_settingsCore.applySetting('dynamicFov', settings['dynamicFov'])
+        g_settingsCore.applySetting('enableOpticalSnpEffect', settings['enableOpticalSnpEffect'])
+        g_settingsCore.applySetting('isColorBlind', settings['isColorBlind'])
         g_settingsCore.applySetting('useServerAim', settings['useServerAim'])
         g_settingsCore.applySetting('showVehiclesCounter', settings['showVehiclesCounter'])
+        g_settingsCore.applySetting('showMarksOnGun', settings['showMarksOnGun'])
+        g_settingsCore.applySetting('simplifiedTTC', settings['simplifiedTTC'])
         g_settingsCore.applySetting('minimapAlpha', settings['minimapAlpha'])
+        g_settingsCore.applySetting('showVectorOnMap', settings['showVectorOnMap'])
+        g_settingsCore.applySetting('showSectorOnMap', settings['showSectorOnMap'])
+        g_settingsCore.applySetting('showVehModelsOnMap', settings['showVehModelsOnMap'])
+        g_settingsCore.applySetting('minimapViewRange', settings['minimapViewRange'])
+        g_settingsCore.applySetting('minimapMaxViewRange', settings['minimapMaxViewRange'])
+        g_settingsCore.applySetting('minimapDrawRange', settings['minimapDrawRange'])
+        g_settingsCore.applySetting('battleLoadingInfo', settings['battleLoadingInfo'])
         arcade = g_settingsCore.options.getSetting('arcade').fromAccountSettings(settings['arcade'])
         sniper = g_settingsCore.options.getSetting('sniper').fromAccountSettings(settings['sniper'])
         g_settingsCore.applySetting('arcade', arcade)
@@ -514,8 +567,13 @@ class SettingsInterface(UIInterface):
         g_settingsCore.applySetting('enemy', settings['markers']['enemy'])
         g_settingsCore.applySetting('dead', settings['markers']['dead'])
         g_settingsCore.applySetting('ally', settings['markers']['ally'])
+        g_settingsCore.applySetting('interfaceScale', settings['interfaceScale'])
+        if 'showBattleEfficiencyRibbons' in settings:
+            g_settingsCore.applySetting('showBattleEfficiencyRibbons', settings['showBattleEfficiencyRibbons'])
         g_settingsCore.applySetting('dynamicCamera', settings['dynamicCamera'])
         g_settingsCore.applySetting('horStabilizationSnp', settings['horStabilizationSnp'])
+        g_settingsCore.applySetting('increasedZoom', settings['increasedZoom'])
+        g_settingsCore.applySetting('sniperModeByShift', settings['sniperModeByShift'])
         if self.__altVoiceSetting.isOptionEnabled():
             altVoices = settings.get('alternativeVoices')
             if altVoices is not None:
@@ -536,8 +594,9 @@ class SettingsInterface(UIInterface):
 
         vManager.setGroupsSettings(vEffGroups)
         self.__voiceChatEnable(settings['enableVoIP'])
-        self.__changeCaptureDevice(settings[Settings.KEY_VOIP_DEVICE])
+        g_settingsCore.applySetting(SOUND.CAPTURE_DEVICES, settings[Settings.KEY_VOIP_DEVICE])
         g_settingsCore.applySetting('enablePostMortemEffect', settings['enablePostMortemEffect'])
+        g_settingsCore.applySetting('enablePostMortemDelay', settings['enablePostMortemDelay'])
         self.uiHolder.clearCommands()
         keyboard = settings['controls']['keyboard']
         keyboardMapping = {}
@@ -572,14 +631,29 @@ class SettingsInterface(UIInterface):
         g_settingsCore.applySetting('mouseHorzInvert', bool(mouse['horInvert']['value']))
         g_settingsCore.applySetting('mouseVertInvert', bool(mouse['vertInvert']['value']))
         g_settingsCore.applySetting('backDraftInvert', bool(mouse['backDraftInvert']['value']))
-        self.resolutions.applyChanges(settings['fullScreen'], settings['vertSync'], settings['tripleBuffered'], settings['windowSize'] if not settings['fullScreen'] else settings['resolution'], settings['aspectRatio'], settings['multisampling'], settings['customAA'], settings['gamma'], settings['monitor'])
+        g_settingsCore.applySetting('monitor', settings['monitor'])
+        isFullScreen = bool(settings['fullScreen'])
+        if isFullScreen:
+            g_settingsCore.applySetting('refreshRate', settings['refreshRate'])
+            g_settingsCore.applySetting('resolution', settings['resolution'])
+            g_settingsCore.applySetting('aspectRatio', settings['aspectRatio'])
+            g_settingsCore.applySetting('gamma', settings['gamma'])
+        else:
+            g_settingsCore.applySetting('windowSize', settings['windowSize'])
+        g_settingsCore.applySetting('fullScreen', isFullScreen)
+        g_settingsCore.applySetting('multisampling', settings['multisampling'])
+        g_settingsCore.applySetting('customAA', settings['customAA'])
+        g_settingsCore.applySetting('vertSync', settings['vertSync'])
+        g_settingsCore.applySetting('tripleBuffered', settings['tripleBuffered'])
         if round(SoundGroups.g_instance.getVolume('masterVivox') * 100) != settings['masterVivoxVolume']:
             VOIP.getVOIPManager().setMasterVolume(settings['masterVivoxVolume'])
         if round(SoundGroups.g_instance.getVolume('micVivox') * 100) != settings['micVivoxVolume']:
             VOIP.getVOIPManager().setMicrophoneVolume(settings['micVivoxVolume'])
+        for s in (SOUND.MASTER_TOGGLE, SOUND.SOUND_QUALITY):
+            g_settingsCore.applySetting(s, settings[s])
+
         SoundGroups.g_instance.setMasterVolume(float(settings['masterVolume']) / 100)
         SoundGroups.g_instance.setVolume('music', float(settings['musicVolume']) / 100)
-        SoundGroups.g_instance.setVolume('voice', float(settings['voiceVolume']) / 100)
         SoundGroups.g_instance.setVolume('vehicles', float(settings['vehiclesVolume']) / 100)
         SoundGroups.g_instance.setVolume('effects', float(settings['effectsVolume']) / 100)
         SoundGroups.g_instance.setVolume('gui', float(settings['guiVolume']) / 100)
@@ -587,34 +661,50 @@ class SettingsInterface(UIInterface):
         SoundGroups.g_instance.setVolume('masterVivox', float(settings['masterVivoxVolume']) / 100)
         SoundGroups.g_instance.setVolume('micVivox', float(settings['micVivoxVolume']) / 100)
         SoundGroups.g_instance.setVolume('masterFadeVivox', float(settings['masterFadeVivoxVolume']) / 100)
-        if len(VOIP.getVOIPManager().captureDevices):
-            device = VOIP.getVOIPManager().captureDevices[0]
-            if len(VOIP.getVOIPManager().captureDevices) > settings['captureDevice']:
-                device = VOIP.getVOIPManager().captureDevices[settings['captureDevice']]
-            VOIP.getVOIPManager().setCaptureDevice(device)
+        g_settingsCore.applySetting('dynamicRange', settings['dynamicRange'])
+        g_settingsCore.applySetting('soundDevice', settings['soundDevice'])
         g_settingsCore.applySetting('showDateMessage', settings['datetimeIdx'] & 1)
         g_settingsCore.applySetting('showTimeMessage', settings['datetimeIdx'] & 2)
         g_settingsCore.applySetting('enableOlFilter', settings['enableOlFilter'])
         g_settingsCore.applySetting('enableSpamFilter', settings['enableSpamFilter'])
         g_windowsStoredData.start()
-        g_settingsCore.applySetting('enableStoreMws', settings['enableStoreChatMws'])
-        g_settingsCore.applySetting('enableStoreCws', settings['enableStoreChatCws'])
+        g_settingsCore.applySetting('receiveFriendshipRequest', settings['receiveFriendshipRequest'])
+        g_settingsCore.applySetting('receiveInvitesInBattle', settings.get('receiveInvitesInBattle'))
+        g_settingsCore.applySetting('receiveClanInvitesNotifications', settings.get('receiveClanInvitesNotifications'))
         g_windowsStoredData.stop()
         g_settingsCore.applySetting('invitesFromFriendsOnly', settings['invitesFromFriendsOnly'])
-        g_settingsCore.applySetting('storeReceiverInBattle', settings['storeReceiverInBattle'])
-        gameplayKeys = filter(lambda item: item.startswith(self.GAMEPLAY_PREFIX) and bool(settings[item]), settings.keys())
-        prefixLen = len(self.GAMEPLAY_PREFIX)
-        gameplay_ctx.setMaskByNames(map(lambda key: str(key[prefixLen:]), gameplayKeys))
+        g_settingsCore.applySetting('disableBattleChat', settings['disableBattleChat'])
+        g_settingsCore.applySetting('chatContactsListOnly', settings['chatContactsListOnly'])
+        gameplayKeys = filter(lambda item: item.startswith(self.GAMEPLAY_PREFIX), settings.keys())
+        for key in gameplayKeys:
+            g_settingsCore.applySetting(key, settings[key])
+
         qualitySettings = settings['quality']
-        applyPresets = self.graphicsPresets.checkApplyGraphicsPreset(int(settings['graphicsQuality']), qualitySettings)
-        if applyPresets:
-            self.graphicsPresets.applyGraphicsPresets(int(settings['graphicsQuality']), qualitySettings)
-            if applyPresets == 'restartNeeded':
-                BigWorld.commitPendingGraphicsSettings()
-                restartClient = True
-            elif applyPresets == 'hasPendingSettings':
-                BigWorld.commitPendingGraphicsSettings()
-        g_settingsCore.applyStorages()
+        applyMethod = g_settingsCore.options.getApplyMethod(qualitySettings)
+        for key in GraphicsPresets.GRAPHICS_QUALITY_SETTINGS:
+            value = qualitySettings.get(key)
+            if value is not None:
+                g_settingsCore.applySetting(key, value)
+
+        g_settingsCore.applySetting('dynamicRenderer', settings['dynamicRenderer'])
+        if applyMethod == APPLY_METHOD.RESTART or isSoundChanged:
+            BigWorld.commitPendingGraphicsSettings()
+            restartClient = True
+        elif applyMethod == APPLY_METHOD.DELAYED:
+            BigWorld.commitPendingGraphicsSettings()
+        confirmators = g_settingsCore.applyStorages(restartClient)
+        for confirmation, revert in confirmators:
+            if confirmation is not None:
+                if confirmation == 'graphicsChangeConfirmation':
+
+                    def callback(isConfirmed):
+                        if not isConfirmed:
+                            g_settingsCore.isChangesConfirmed = False
+                            revert()
+
+                    self.graphicsChangeConfirmationRevert = revert
+                    self.call('SettingsDialog.ApplySettings', [confirmation])
+
         g_postProcessing.refresh()
         if restartClient:
             BigWorld.savePreferences()
@@ -622,23 +712,36 @@ class SettingsInterface(UIInterface):
                 from BattleReplay import g_replayCtrl
                 if g_replayCtrl.isPlaying and g_replayCtrl.playbackSpeed == 0:
                     g_replayCtrl.setPlaybackSpeedIdx(5)
-                BigWorld.callback(0.3, BigWorld.restartGame)
+                BigWorld.callback(0.3, self.__restartGame)
+            elif g_settingsCore.isDeviseRecreated:
+                g_settingsCore.isDeviseRecreated = False
             else:
                 BigWorld.callback(0.0, partial(BigWorld.changeVideoMode, -1, BigWorld.isVideoWindowed()))
+        if interfaceScaled:
+            self.__settingsUI.buildGraphicsData(self.__getVideoSettings())
         return
+
+    def __restartGame(self):
+        BigWorld.savePreferences()
+        BigWorld.restartGame()
 
     def onDialogClose(self, _):
         if self.__altVoiceSetting.isOptionEnabled():
             self.__altVoiceSetting.revert()
-        if not g_battleContext.isInBattle:
+        if not g_sessionProvider.getCtx().isInBattle:
             SoundGroups.g_instance.enableVoiceSounds(False)
-        elif hasattr(BigWorld.player(), 'vehicle'):
+        elif hasattr(BigWorld.player(), 'vehicle') and BigWorld.player().vehicle:
             SoundGroups.g_instance.soundModes.setCurrentNation(nations.NAMES[BigWorld.player().vehicle.typeDescriptor.type.id[0]])
         g_settingsCore.clearStorages()
+        self.__dialogIsVisibility = False
         if self.__settingsUI:
             self.__settingsUI.script = None
             self.__settingsUI = None
         return
-# okay decompyling res/scripts/client/gui/scaleform/settingsinterface.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:45 EST
+
+    def graphicsChangeConfirmationStatus(self, callbackId, isConfirmed):
+        if not isConfirmed and self.graphicsChangeConfirmationRevert is not None:
+            self.graphicsChangeConfirmationRevert()
+            self.graphicsChangeConfirmationRevert = None
+        return
+# okay decompiling ./res/scripts/client/gui/scaleform/settingsinterface.pyc

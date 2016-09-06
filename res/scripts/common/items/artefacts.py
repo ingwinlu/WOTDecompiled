@@ -1,7 +1,8 @@
-# 2013.11.15 11:27:35 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/common/items/artefacts.py
-from types import IntType
-import items, nations
+import Math
+import items
+import nations
 from items import _xml, vehicles
 from debug_utils import *
 from constants import IS_CLIENT, IS_BASEAPP, IS_CELLAPP, IS_WEB, IS_DEVELOPMENT
@@ -13,7 +14,7 @@ elif IS_WEB:
 
 class OptionalDevice(object):
 
-    def get(self, key, defVal = None):
+    def get(self, key, defVal=None):
         return self.__dict__.get(key, defVal)
 
     def __getitem__(self, key):
@@ -76,7 +77,7 @@ class StaticFactorDevice(OptionalDevice):
             attrDict = getattr(vehicleDescr, self.__attr[0])
             attrName = self.__attr[1]
         val = attrDict[attrName]
-        if type(val) is IntType:
+        if isinstance(val, int):
             attrDict[attrName] = int(val * self.__factor)
         else:
             attrDict[attrName] = val * self.__factor
@@ -96,7 +97,7 @@ class StaticAdditiveDevice(OptionalDevice):
             attrDict = getattr(vehicleDescr, self.__attr[0])
             attrName = self.__attr[1]
         val = attrDict[attrName]
-        if type(val) is IntType:
+        if isinstance(val, int):
             attrDict[attrName] = int(val + self.__value)
         else:
             attrDict[attrName] = val + self.__value
@@ -175,7 +176,7 @@ class AntifragmentationLining(OptionalDevice):
 
 class Equipment(object):
 
-    def get(self, key, defVal = None):
+    def get(self, key, defVal=None):
         return self.__dict__.get(key, defVal)
 
     def __getitem__(self, key):
@@ -216,6 +217,9 @@ class Equipment(object):
     def extraName(self):
         return self.name
 
+    def updateVehicleAttrFactors(self, factors):
+        pass
+
     def _readConfig(self, xmlCtx, scriptSection):
         pass
 
@@ -252,12 +256,25 @@ class Extinguisher(Equipment):
             self.fireStartingChanceFactor = _xml.readPositiveFloat(xmlCtx, section, 'fireStartingChanceFactor')
         self.autoactivate = section.readBool('autoactivate', False)
 
+    def updateVehicleAttrFactors(self, factors):
+        try:
+            factors['engine/fireStartingChance'] *= self.fireStartingChanceFactor
+        except:
+            pass
+
 
 class Fuel(Equipment):
 
     def _readConfig(self, xmlCtx, section):
         self.enginePowerFactor = _xml.readPositiveFloat(xmlCtx, section, 'enginePowerFactor')
         self.turretRotationSpeedFactor = _xml.readPositiveFloat(xmlCtx, section, 'turretRotationSpeedFactor')
+
+    def updateVehicleAttrFactors(self, factors):
+        try:
+            factors['engine/power'] *= self.enginePowerFactor
+            factors['turret/rotationSpeed'] *= self.turretRotationSpeedFactor
+        except:
+            pass
 
 
 class Stimulator(Equipment):
@@ -279,12 +296,72 @@ class RemovedRpmLimiter(Equipment):
         self.enginePowerFactor = _xml.readPositiveFloat(xmlCtx, section, 'enginePowerFactor')
         self.engineHpLossPerSecond = _xml.readPositiveFloat(xmlCtx, section, 'engineHpLossPerSecond')
 
+    def updateVehicleAttrFactors(self, factors):
+        try:
+            factors['engine/power'] *= self.enginePowerFactor
+        except:
+            pass
+
 
 class Afterburning(Equipment):
 
     def _readConfig(self, xmlCtx, section):
         self.enginePowerFactor = _xml.readPositiveFloat(xmlCtx, section, 'enginePowerFactor')
         self.durationSeconds = _xml.readInt(xmlCtx, section, 'durationSeconds', 1)
+
+    def updateVehicleAttrFactors(self, factors):
+        try:
+            factors['engine/power'] *= self.enginePowerFactor
+        except:
+            pass
+
+
+class Artillery(Equipment):
+
+    def _readConfig(self, xmlCtx, section):
+        self.delay = _xml.readPositiveFloat(xmlCtx, section, 'delay')
+        self.duration = _xml.readPositiveFloat(xmlCtx, section, 'duration')
+        self.shotsNumber = _xml.readNonNegativeInt(xmlCtx, section, 'shotsNumber')
+        self.areaRadius = _xml.readPositiveFloat(xmlCtx, section, 'areaRadius')
+        self.shellCompactDescr = _xml.readInt(xmlCtx, section, 'shellCompactDescr')
+        self.piercingPower = _xml.readTupleOfPositiveInts(xmlCtx, section, 'piercingPower', 2)
+        self.areaVisual = _xml.readStringOrNone(xmlCtx, section, 'areaVisual')
+        self.areaColor = _xml.readIntOrNone(xmlCtx, section, 'areaColor')
+        self.areaMarker = _xml.readStringOrNone(xmlCtx, section, 'areaMarker')
+        self.areaLength = self.areaWidth = self.areaRadius * 2
+        self.reusable = _xml.readBool(xmlCtx, section, 'reusable')
+        self.cooldownTime = _xml.readNonNegativeFloat(xmlCtx, section, 'cooldownTime') if self.reusable else 0.0
+        self.deployTime = _xml.readNonNegativeFloat(xmlCtx, section, 'deployTime')
+
+
+class Bomber(Equipment):
+
+    def _readConfig(self, xmlCtx, section):
+        self.delay = _xml.readPositiveFloat(xmlCtx, section, 'delay')
+        self.modelName = _xml.readString(xmlCtx, section, 'modelName')
+        if IS_CLIENT:
+            self.soundEvent = _xml.readString(xmlCtx, section, 'wwsoundEvent')
+        self.speed = _xml.readInt(xmlCtx, section, 'speed')
+        self.heights = _xml.readTupleOfPositiveInts(xmlCtx, section, 'heights', 2)
+        self.areaLength = _xml.readPositiveFloat(xmlCtx, section, 'areaLength')
+        self.areaWidth = _xml.readPositiveFloat(xmlCtx, section, 'areaWidth')
+        self.antepositions = _xml.readTupleOfFloats(xmlCtx, section, 'antepositions')
+        self.lateropositions = _xml.readTupleOfFloats(xmlCtx, section, 'lateropositions')
+        self.bombingMask = tuple((bool(v) for v in _xml.readTupleOfInts(xmlCtx, section, 'bombingMask')))
+        if not len(self.antepositions) == len(self.lateropositions) == len(self.bombingMask):
+            _xml.raiseWrongSection(xmlCtx, 'bombers number mismatch')
+        self.waveFraction = _xml.readPositiveFloat(xmlCtx, section, 'waveFraction')
+        self.bombsNumber = _xml.readNonNegativeInt(xmlCtx, section, 'bombsNumber')
+        self.shellCompactDescr = _xml.readInt(xmlCtx, section, 'shellCompactDescr')
+        self.tracerKind = _xml.readInt(xmlCtx, section, 'tracerKind')
+        self.piercingPower = _xml.readTupleOfPositiveInts(xmlCtx, section, 'piercingPower', 2)
+        self.gravity = _xml.readPositiveFloat(xmlCtx, section, 'gravity')
+        self.areaVisual = _xml.readStringOrNone(xmlCtx, section, 'areaVisual')
+        self.areaColor = _xml.readIntOrNone(xmlCtx, section, 'areaColor')
+        self.areaMarker = _xml.readStringOrNone(xmlCtx, section, 'areaMarker')
+        self.reusable = _xml.readBool(xmlCtx, section, 'reusable')
+        self.cooldownTime = _xml.readNonNegativeFloat(xmlCtx, section, 'cooldownTime') if self.reusable else 0.0
+        self.deployTime = _xml.readNonNegativeFloat(xmlCtx, section, 'deployTime')
 
 
 class _VehicleFilter(object):
@@ -433,6 +510,4 @@ def _readWeight(xmlCtx, section):
 
 
 _readTags = vehicles._readTags
-# okay decompyling res/scripts/common/items/artefacts.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:36 EST
+# okay decompiling ./res/scripts/common/items/artefacts.pyc

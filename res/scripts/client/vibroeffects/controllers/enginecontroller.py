@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/Vibroeffects/Controllers/EngineController.py
 import BigWorld
 import Vibroeffects.VibroManager as VibroManager
 from debug_utils import *
@@ -125,3 +127,4 @@ class EngineController:
         else:
             VibroManager.g_instance.stopEffect(self.__turnLeftEffect)
             VibroManager.g_instance.stopEffect(self.__turnRightEffect)
+# okay decompiling ./res/scripts/client/vibroeffects/controllers/enginecontroller.pyc

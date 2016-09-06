@@ -1,11 +1,18 @@
-# 2013.11.15 11:26:34 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/locale/PREBATTLE.py
 
 
 class PREBATTLE(object):
+    """
+    DO NOT MODIFY!
+    Generated with yaml.
+    __author__ = 'yaml_processor'
+    null
+    """
     LABELS_PLAYER = '#prebattle:labels/player'
     LABELS_VEHICLE = '#prebattle:labels/vehicle'
     LABELS_LEVEL = '#prebattle:labels/level'
+    LABELS_MEMBERS = '#prebattle:labels/members'
     LABELS_STATS_MAXPLAYERS = '#prebattle:labels/stats/maxPlayers'
     LABELS_STATS_TOTALLEVEL = '#prebattle:labels/stats/totalLevel'
     LABELS_STATS_SUMLEVEL = '#prebattle:labels/stats/sumLevel'
@@ -39,6 +46,13 @@ class PREBATTLE(object):
     LABELS_COMPANY_PLAYERS_BOTTOM = '#prebattle:labels/company/players/bottom'
     LABELS_COMPANY_STATS_COUNT = '#prebattle:labels/company/stats/count'
     LABELS_COMPANY_QUEUE = '#prebattle:labels/company/queue'
-# okay decompyling res/scripts/client/gui/scaleform/locale/prebattle.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:34 EST
+    SWITCHPERIPHERYWINDOW_COMPANY_HEADER = '#prebattle:switchPeripheryWindow/company/header'
+    SWITCHPERIPHERYWINDOW_COMPANY_DESCRIPTION = '#prebattle:switchPeripheryWindow/company/description'
+    SWITCHPERIPHERYWINDOW_COMPANY_SELECTSERVERLABEL = '#prebattle:switchPeripheryWindow/company/selectServerLabel'
+    SWITCHPERIPHERYWINDOW_COMPANY_APPLYSWITCHLABEL = '#prebattle:switchPeripheryWindow/company/applySwitchLabel'
+    SWITCHPERIPHERYWINDOW_FORT_HEADER = '#prebattle:switchPeripheryWindow/fort/header'
+    SWITCHPERIPHERYWINDOW_FORT_DESCRIPTION = '#prebattle:switchPeripheryWindow/fort/description'
+    SWITCHPERIPHERYWINDOW_FORT_SELECTSERVERLABEL = '#prebattle:switchPeripheryWindow/fort/selectServerLabel'
+    SWITCHPERIPHERYWINDOW_FORT_APPLYSWITCHLABEL = '#prebattle:switchPeripheryWindow/fort/applySwitchLabel'
+    COMPANYLISTVIEW_FILTERBUTTON_LABEL = '#prebattle:companyListView/filterButton/label'
+# okay decompiling ./res/scripts/client/gui/scaleform/locale/prebattle.pyc

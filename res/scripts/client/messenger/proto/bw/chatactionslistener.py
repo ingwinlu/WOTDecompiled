@@ -1,9 +1,11 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/messenger/proto/bw/ChatActionsListener.py
 from ChatManager import chatManager
 from debug_utils import LOG_ERROR
 
 class ChatActionsListener(object):
 
-    def __init__(self, responseHandlers = None):
+    def __init__(self, responseHandlers=None):
         super(ChatActionsListener, self).__init__()
         if responseHandlers is not None:
             self._responseHandlers = responseHandlers
@@ -11,10 +13,10 @@ class ChatActionsListener(object):
             self._responseHandlers = {}
         return
 
-    def addListener(self, callback, action, cid = None):
+    def addListener(self, callback, action, cid=None):
         chatManager.subscribeChatAction(callback, action, cid)
 
-    def removeListener(self, callback, action, cid = None):
+    def removeListener(self, callback, action, cid=None):
         chatManager.unsubscribeChatAction(callback, action, cid)
 
     def removeAllListeners(self):
@@ -29,3 +31,4 @@ class ChatActionsListener(object):
         else:
             LOG_ERROR('handleChatActionFailureEvent: response handler for response %s(%s) not registered' % (actionResponse, actionResponse.index()))
             return False
+# okay decompiling ./res/scripts/client/messenger/proto/bw/chatactionslistener.pyc

@@ -1,6 +1,14 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/locale/AOGAS.py
 
 
 class AOGAS(object):
+    """
+    DO NOT MODIFY!
+    Generated with yaml.
+    __author__ = 'yaml_processor'
+    null
+    """
     NOTIFICATION_TITLE = '#AOGAS:NOTIFICATION/TITLE'
     NOTIFICATION_CLOSE = '#AOGAS:NOTIFICATION/CLOSE'
     AOND_1 = '#AOGAS:AOND_1'
@@ -9,3 +17,4 @@ class AOGAS(object):
     AOND_MORE_3 = '#AOGAS:AOND_MORE_3'
     AOND_MORE_5 = '#AOGAS:AOND_MORE_5'
     RESET = '#AOGAS:RESET'
+# okay decompiling ./res/scripts/client/gui/scaleform/locale/aogas.pyc

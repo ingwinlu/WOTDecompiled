@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/ChatManager.py
 from chat_shared import CHAT_ACTIONS, CHAT_CHANNEL_BATTLE, CHAT_CHANNEL_BATTLE_TEAM
 import Event
 from Singleton import Singleton
@@ -15,11 +17,11 @@ class ChatManager(Singleton):
         self.__chatActionCallbacks = {}
         return
 
-    def subscribeChatAction(self, callback, action, channelId = None):
+    def subscribeChatAction(self, callback, action, channelId=None):
         cbs = self.__getChatActionCallbacks(action, channelId)
         cbs += callback
 
-    def unsubscribeChatAction(self, callback, action, channelId = None):
+    def unsubscribeChatAction(self, callback, action, channelId=None):
         cbs = self.__getChatActionCallbacks(action, channelId)
         cbs -= callback
 
@@ -71,3 +73,4 @@ class ChatManager(Singleton):
 
 
 chatManager = ChatManager.instance()
+# okay decompiling ./res/scripts/client/chatmanager.pyc

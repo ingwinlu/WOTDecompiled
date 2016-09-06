@@ -1,44 +1,45 @@
-# 2013.11.15 11:26:08 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/prb_windows/PrebattleWindow.py
 from CurrentVehicle import g_currentVehicle
 from adisp import process
 from debug_utils import LOG_ERROR
-from gui.Scaleform.daapi.view.lobby.prb_windows.sf_settings import PRB_WINDOW_VIEW_ALIAS
+from gui.LobbyContext import g_lobbyContext
 from gui.Scaleform.daapi.view.meta.PrebattleWindowMeta import PrebattleWindowMeta
-from gui.Scaleform.daapi.view.meta.WindowViewMeta import WindowViewMeta
-from gui.Scaleform.framework import AppRef, VIEW_TYPE
-from gui.Scaleform.framework.entities.View import View
+from gui.Scaleform.framework import ViewTypes
 from gui.Scaleform.framework.managers.containers import POP_UP_CRITERIA
+from gui.Scaleform.genConsts.PREBATTLE_ALIASES import PREBATTLE_ALIASES
 from gui.Scaleform.managers.windows_stored_data import DATA_TYPE, TARGET_ID
 from gui.Scaleform.managers.windows_stored_data import stored_window
-from gui.prb_control import context, info
+from gui.prb_control.context import prb_ctx
 from gui.prb_control.formatters import messages
+from gui.prb_control.items import prb_items
 from gui.prb_control.prb_helpers import PrbListener
+from gui.prb_control.settings import CTRL_ENTITY_TYPE
 from gui.shared import events, EVENT_BUS_SCOPE
+from gui.shared.events import FocusEvent
 from helpers import int2roman
 from messenger import g_settings, MessengerEntry
 from messenger.ext import channel_num_gen
-from messenger.gui.Scaleform.sf_settings import MESSENGER_VIEW_ALIAS
-from messenger.m_constants import USER_GUI_TYPE
-from messenger.proto.bw import find_criteria
+from messenger.gui.Scaleform.view.lobby import MESSENGER_VIEW_ALIAS
+from messenger.m_constants import USER_GUI_TYPE, PROTO_TYPE
 from messenger.proto.events import g_messengerEvents
+from messenger.proto import proto_getter
 from messenger.storage import storage_getter
 from prebattle_shared import decodeRoster
 
 @stored_window(DATA_TYPE.CAROUSEL_WINDOW, TARGET_ID.CHANNEL_CAROUSEL)
+class PrebattleWindow(PrebattleWindowMeta, PrbListener):
 
-class PrebattleWindow(View, WindowViewMeta, PrebattleWindowMeta, PrbListener, AppRef):
-
-    def __init__(self, prbName = 'prebattle'):
+    def __init__(self, prbName='prebattle'):
         super(PrebattleWindow, self).__init__()
         self.__prbName = prbName
-        self.__clientID = channel_num_gen.getClientID4Prebattle(self.prbFunctional.getPrbType())
+        self.__clientID = channel_num_gen.getClientID4Prebattle(self.prbFunctional.getEntityType())
+
+    def onFocusIn(self, alias):
+        self.fireEvent(FocusEvent(FocusEvent.COMPONENT_FOCUSED, {'clientID': self.__clientID}))
 
     def onWindowClose(self):
-        chat = self.chat
-        if chat:
-            chat.minimize()
-        self.destroy()
+        self.requestToLeave()
 
     def onWindowMinimize(self):
         chat = self.chat
@@ -46,8 +47,16 @@ class PrebattleWindow(View, WindowViewMeta, PrebattleWindowMeta, PrbListener, Ap
             chat.minimize()
         self.destroy()
 
+    def onSourceLoaded(self):
+        if self.prbFunctional and not self.prbFunctional.hasEntity():
+            self.destroy()
+
     @storage_getter('users')
     def usersStorage(self):
+        return None
+
+    @proto_getter(PROTO_TYPE.BW_CHAT2)
+    def bwProto(self):
         return None
 
     @process
@@ -56,20 +65,20 @@ class PrebattleWindow(View, WindowViewMeta, PrebattleWindowMeta, PrbListener, Ap
             waitingID = 'prebattle/player_ready'
         else:
             waitingID = 'prebattle/player_not_ready'
-        result = yield self.prbDispatcher.sendPrbRequest(context.SetPlayerStateCtx(value, waitingID=waitingID))
+        result = yield self.prbDispatcher.sendPrbRequest(prb_ctx.SetPlayerStateCtx(value, waitingID=waitingID))
         if result:
             self.as_toggleReadyBtnS(not value)
 
-    @process
     def requestToLeave(self):
-        yield self.prbDispatcher.leave(context.LeavePrbCtx(waitingID='prebattle/leave'))
+        self.prbDispatcher.doLeaveAction(prb_ctx.LeavePrbCtx(waitingID='prebattle/leave'))
 
     def showPrebattleSendInvitesWindow(self):
         if self.canSendInvite():
-            self.fireEvent(events.ShowWindowEvent(events.ShowWindowEvent.SHOW_SEND_INVITES_WINDOW, {'prbName': self.__prbName}), scope=EVENT_BUS_SCOPE.LOBBY)
+            self.fireEvent(events.LoadViewEvent(PREBATTLE_ALIASES.SEND_INVITES_WINDOW_PY, ctx={'prbName': self.__prbName,
+             'ctrlType': CTRL_ENTITY_TYPE.PREBATTLE}), scope=EVENT_BUS_SCOPE.LOBBY)
 
     def showFAQWindow(self):
-        self.fireEvent(events.ShowWindowEvent(events.ShowWindowEvent.SHOW_FAQ_WINDOW), scope=EVENT_BUS_SCOPE.LOBBY)
+        self.fireEvent(events.LoadViewEvent(MESSENGER_VIEW_ALIAS.FAQ_WINDOW), scope=EVENT_BUS_SCOPE.LOBBY)
 
     def getClientID(self):
         return self.__clientID
@@ -89,23 +98,23 @@ class PrebattleWindow(View, WindowViewMeta, PrebattleWindowMeta, PrbListener, Ap
     def isReadyBtnEnabled(self):
         functional = self.prbFunctional
         team, assigned = decodeRoster(functional.getRosterKey())
-        return g_currentVehicle.isReadyToPrebattle() and functional.getTeamState().isInQueue() and not assigned
+        return g_currentVehicle.isReadyToPrebattle() and not (functional.getTeamState().isInQueue() and assigned)
 
     def isLeaveBtnEnabled(self):
         functional = self.prbFunctional
         team, assigned = decodeRoster(functional.getRosterKey())
-        return functional.getTeamState().isInQueue() and functional.getPlayerInfo().isReady() and not assigned
+        return not (functional.getTeamState().isInQueue() and functional.getPlayerInfo().isReady() and assigned)
 
     def startListening(self):
         self.startPrbListening()
         g_currentVehicle.onChanged += self._handleCurrentVehicleChanged
-        g_messengerEvents.users.onUserRosterChanged += self._onUserRosterChanged
+        g_messengerEvents.users.onUserActionReceived += self._onUserActionReceived
 
     def stopListening(self):
         self.stopPrbListening()
         self.removeListener(events.MessengerEvent.PRB_CHANNEL_CTRL_INITED, self.__handlePrbChannelControllerInited, scope=EVENT_BUS_SCOPE.LOBBY)
         g_currentVehicle.onChanged -= self._handleCurrentVehicleChanged
-        g_messengerEvents.users.onUserRosterChanged -= self._onUserRosterChanged
+        g_messengerEvents.users.onUserActionReceived -= self._onUserActionReceived
 
     @property
     def chat(self):
@@ -134,8 +143,9 @@ class PrebattleWindow(View, WindowViewMeta, PrebattleWindowMeta, PrbListener, Ap
 
     def onPlayerStateChanged(self, functional, roster, playerInfo):
         team, assigned = decodeRoster(roster)
-        data = {'uid': playerInfo.dbID,
+        data = {'dbID': playerInfo.dbID,
          'state': playerInfo.state,
+         'igrType': playerInfo.igrType,
          'icon': '',
          'vShortName': '',
          'vLevel': '',
@@ -164,9 +174,9 @@ class PrebattleWindow(View, WindowViewMeta, PrebattleWindowMeta, PrbListener, Ap
         self.stopListening()
 
     def _closeSendInvitesWindow(self):
-        container = self.app.containerManager.getContainer(VIEW_TYPE.WINDOW)
+        container = self.app.containerManager.getContainer(ViewTypes.WINDOW)
         if container is not None:
-            window = container.getView(criteria={POP_UP_CRITERIA.VIEW_ALIAS: PRB_WINDOW_VIEW_ALIAS.SEND_INVITES_WINDOW})
+            window = container.getView(criteria={POP_UP_CRITERIA.VIEW_ALIAS: PREBATTLE_ALIASES.SEND_INVITES_WINDOW_PY})
             if window is not None:
                 window.destroy()
         return
@@ -176,10 +186,10 @@ class PrebattleWindow(View, WindowViewMeta, PrebattleWindowMeta, PrbListener, Ap
 
     def _makeAccountsData(self, accounts):
         result = []
-        isPlayerSpeaking = self.app.voiceChatManager.isPlayerSpeaking
+        isPlayerSpeaking = self.bwProto.voipController.isPlayerSpeaking
         getUser = self.usersStorage.getUser
         getColors = g_settings.getColorScheme('rosters').getColors
-        accounts = sorted(accounts, cmp=info.getPlayersComparator())
+        accounts = sorted(accounts, cmp=prb_items.getPlayersComparator())
         for account in accounts:
             vContourIcon = ''
             vShortName = ''
@@ -197,18 +207,20 @@ class PrebattleWindow(View, WindowViewMeta, PrebattleWindowMeta, PrbListener, Ap
                 vLevel = int2roman(vehicle.level)
                 vType = vehicle.type
             result.append({'accID': account.accID,
-             'uid': account.dbID,
+             'dbID': account.dbID,
              'userName': account.name,
+             'clanAbbrev': account.clanAbbrev,
+             'region': g_lobbyContext.getRegionCode(account.dbID),
              'fullName': account.getFullName(),
+             'igrType': account.igrType,
              'time': account.time,
-             'himself': account.isCurrentPlayer(),
              'isCreator': account.isCreator,
              'state': account.state,
              'icon': vContourIcon,
              'vShortName': vShortName,
              'vLevel': vLevel,
              'vType': vType,
-             'chatRoster': user.getRoster() if user else 0,
+             'tags': list(user.getTags()) if user else [],
              'isPlayerSpeaking': isPlayerSpeaking(account.dbID),
              'colors': getColors(key)})
 
@@ -217,7 +229,7 @@ class PrebattleWindow(View, WindowViewMeta, PrebattleWindowMeta, PrbListener, Ap
     def _handleCurrentVehicleChanged(self):
         self.as_enableReadyBtnS(self.isReadyBtnEnabled())
 
-    def _onUserRosterChanged(self, actionIndex, user):
+    def _onUserActionReceived(self, actionIndex, user):
         self._setRosterList(self.prbFunctional.getRosters())
 
     def _onRegisterFlashComponent(self, viewPy, alias):
@@ -225,9 +237,7 @@ class PrebattleWindow(View, WindowViewMeta, PrebattleWindowMeta, PrbListener, Ap
             channels = MessengerEntry.g_instance.gui.channelsCtrl
             controller = None
             if channels:
-                prbType = self.prbFunctional.getPrbType()
-                if prbType:
-                    controller = channels.getControllerByCriteria(find_criteria.BWPrbChannelFindCriteria(prbType))
+                controller = channels.getController(self.__clientID)
             if controller is not None:
                 controller.setView(viewPy)
             else:
@@ -245,11 +255,9 @@ class PrebattleWindow(View, WindowViewMeta, PrebattleWindowMeta, PrbListener, Ap
             if controller is None:
                 LOG_ERROR('Channel controller is not defined', ctx)
                 return
-            if prbType is self.prbFunctional.getPrbType():
+            if prbType is self.prbFunctional.getEntityType():
                 chat = self.chat
                 if chat is not None:
                     controller.setView(chat)
             return
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/lobby/prb_windows/prebattlewindow.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:09 EST
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/prb_windows/prebattlewindow.pyc

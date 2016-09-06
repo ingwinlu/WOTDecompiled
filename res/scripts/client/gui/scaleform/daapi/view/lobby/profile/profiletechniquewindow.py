@@ -1,4 +1,4 @@
-# 2013.11.15 11:26:11 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/profile/ProfileTechniqueWindow.py
 from gui.Scaleform.daapi.view.lobby.profile.QueuedVehicleDossierReceiver import QueuedVehicleDossierReceiver
 from gui.Scaleform.daapi.view.lobby.profile.ProfileTechnique import ProfileTechnique
@@ -6,7 +6,7 @@ from gui.Scaleform.daapi.view.lobby.profile.ProfileTechnique import ProfileTechn
 class ProfileTechniqueWindow(ProfileTechnique):
 
     def __init__(self, *args):
-        ProfileTechnique.__init__(self, *args)
+        super(ProfileTechniqueWindow, self).__init__(*args)
         self.__dataReceiver = QueuedVehicleDossierReceiver()
         self.__currentlyRequestingVehicleId = None
         self.__dataReceiver.onDataReceived += self.__requestedDataReceived
@@ -15,9 +15,6 @@ class ProfileTechniqueWindow(ProfileTechnique):
     def __requestedDataReceived(self, databaseID, vehicleID):
         if self.__currentlyRequestingVehicleId == vehicleID:
             self._receiveVehicleDossier(vehicleID, databaseID)
-
-    def _populate(self):
-        super(ProfileTechniqueWindow, self)._populate()
 
     def requestData(self, data):
         self.as_responseVehicleDossierS(None)
@@ -31,6 +28,4 @@ class ProfileTechniqueWindow(ProfileTechnique):
         self.__dataReceiver = None
         super(ProfileTechniqueWindow, self)._dispose()
         return
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/lobby/profile/profiletechniquewindow.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:11 EST
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/profile/profiletechniquewindow.pyc

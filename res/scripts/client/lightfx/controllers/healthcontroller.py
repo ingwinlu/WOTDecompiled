@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/LightFx/Controllers/HealthController.py
 from LightFx import LightManager
 
 class HealthController:
@@ -31,3 +33,4 @@ class HealthController:
             LightManager.g_instance.startLightEffect('Death')
         self.__prevHealth = health
         self.__prevHealthEffect = curHealthEffect
+# okay decompiling ./res/scripts/client/lightfx/controllers/healthcontroller.pyc

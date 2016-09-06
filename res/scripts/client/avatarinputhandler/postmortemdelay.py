@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/AvatarInputHandler/PostmortemDelay.py
 import BigWorld
 import Math
 from AvatarInputHandler.DynamicCameras.ArcadeCamera import ArcadeCamera
@@ -16,7 +18,7 @@ class PostmortemDelay:
     KILLER_VEHICLE_PITCH_OFFSET = -0.3
 
     def __init__(self, arcadeCamera, onStop):
-        raise isinstance(arcadeCamera, ArcadeCamera) or AssertionError
+        assert isinstance(arcadeCamera, ArcadeCamera)
         self.__killerVehicleID = None
         self.__bActive = False
         self.__bChoiceWindowActive = False
@@ -56,7 +58,11 @@ class PostmortemDelay:
             self.__showChoiceWindow(False)
             self.__fadeScreen(bFade=False)
             self.__bKillerVisionActive = False
-            self.__moveCameraTo(BigWorld.player().playerVehicleID)
+            try:
+                self.__moveCameraTo(BigWorld.player().playerVehicleID)
+            except:
+                pass
+
             self.__killerVehicleID = None
             self.__savedPivotSettings = None
             self.__savedCameraDistance = None
@@ -69,29 +75,31 @@ class PostmortemDelay:
 
             return
 
-    def __fadeScreen(self, bFade = True):
+    def __fadeScreen(self, bFade=True):
         if self.__bFadeScreenActive == bFade:
             return
         self.__bFadeScreenActive = bFade
         if bFade:
             pass
 
-    def __showChoiceWindow(self, bShow = True):
+    def __showChoiceWindow(self, bShow=True):
         if self.__bChoiceWindowActive == bShow:
             return
         self.__bChoiceWindowActive = bShow
         if bShow:
             self.__onContinueBattle()
 
-    def __moveCameraTo(self, vehicleID, sourceVehicleID = None):
+    def __moveCameraTo(self, vehicleID, sourceVehicleID=None):
         vehicle = BigWorld.entity(vehicleID)
         if vehicle is None:
             if vehicleID == BigWorld.player().playerVehicleID:
-                self.__setCameraSettings(targetMP=BigWorld.player().getOwnVehicleMatrix(), pivotSettings=self.__savedPivotSettings, cameraDistance=self.__savedCameraDistance, yawPitch=self.__savedYawPitch)
+                targetMatrix = BigWorld.player().getOwnVehicleStabilisedMatrix()
+                self.__setCameraSettings(targetMP=targetMatrix, pivotSettings=self.__savedPivotSettings, cameraDistance=self.__savedCameraDistance, yawPitch=self.__savedYawPitch)
                 return True
             return False
         else:
-            self.__setCameraSettings(targetMP=vehicle.matrix, pivotSettings=self.__savedPivotSettings, cameraDistance=self.__savedCameraDistance, yawPitch=self.__savedYawPitch)
+            targetMatrix = vehicle.matrix
+            self.__setCameraSettings(targetMP=targetMatrix, pivotSettings=self.__savedPivotSettings, cameraDistance=self.__savedCameraDistance, yawPitch=self.__savedYawPitch)
             if sourceVehicleID is not None:
                 sourceVehicle = BigWorld.entity(sourceVehicleID)
                 if sourceVehicle is not None:
@@ -108,7 +116,7 @@ class PostmortemDelay:
                     self.__setCameraSettings(pivotSettings=self.KILLER_VEHICLE_CAMERA_PIVOT_SETTINGS, cameraDistance=self.KILLER_VEHICLE_CAMERA_DISTANCE, yawPitch=(yaw, pitch))
             return True
 
-    def __setCameraSettings(self, targetMP = None, pivotSettings = None, cameraDistance = None, yawPitch = None):
+    def __setCameraSettings(self, targetMP=None, pivotSettings=None, cameraDistance=None, yawPitch=None):
         if targetMP is not None:
             self.__arcadeCamera.vehicleMProv = targetMP
         if pivotSettings is not None:
@@ -165,3 +173,4 @@ class PostmortemDelay:
             BigWorld.cancelCallback(self.__cbIDWait)
             self.__cbIDWait = None
         return
+# okay decompiling ./res/scripts/client/avatarinputhandler/postmortemdelay.pyc

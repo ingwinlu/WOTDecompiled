@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/AuxiliaryFx/__init__.py
 from AuxiliaryFx.FxController import AuxiliaryFxController
 from AuxiliaryFx.Roccat import RoccatFxManager
 import AuxiliaryFx
@@ -69,7 +71,7 @@ class _ChatActionsHandler:
         invitesManager = g_prbLoader.getInvitesManager()
         if invitesManager is not None:
             invitesManager.onReceivedInviteListModified += self.__onReceivedInviteListModified
-            invitesManager.onReceivedInviteListInited += self.__onReceivedInviteListModified
+            invitesManager.onInvitesListInited += self.__onReceivedInviteListModified
         g_messengerEvents.serviceChannel.onServerMessageReceived += self.__onSysMessage
         g_messengerEvents.serviceChannel.onClientMessageReceived += self.__onSysMessage
         g_messengerEvents.channels.onConnectStateChanged += self.__onConnectStateChanged
@@ -79,10 +81,14 @@ class _ChatActionsHandler:
         invitesManager = g_prbLoader.getInvitesManager()
         if invitesManager is not None:
             invitesManager.onReceivedInviteListModified -= self.__onReceivedInviteListModified
-            invitesManager.onReceivedInviteListInited -= self.__onReceivedInviteListModified
+            invitesManager.onInvitesListInited -= self.__onReceivedInviteListModified
         g_messengerEvents.serviceChannel.onServerMessageReceived -= self.__onSysMessage
         g_messengerEvents.serviceChannel.onClientMessageReceived -= self.__onSysMessage
         g_messengerEvents.channels.onConnectStateChanged -= self.__onConnectStateChanged
+        if g_connectionManager is not None:
+            g_connectionManager.onDisconnected -= self.__onDisconnected
+        if g_playerEvents is not None:
+            g_playerEvents.onAccountBecomePlayer -= self.__subscribe
         return
 
     def __onDisconnected(self):
@@ -94,9 +100,9 @@ class _ChatActionsHandler:
         else:
             g_instance.execEffect('stopInvitationEffect')
 
-    def __onSysMessage(self, formatted, isPriority, notify, auxData):
+    def __onSysMessage(self, clientID, formatted, settings):
         gameGreetingName = gui.SystemMessages.SM_TYPE.GameGreeting.name()
-        if gameGreetingName not in auxData:
+        if gameGreetingName not in settings.auxData:
             g_instance.execEffect('systemMessageEffect')
 
     def __onConnectStateChanged(self, channel):
@@ -104,3 +110,4 @@ class _ChatActionsHandler:
             data = channel.getProtoData()
             if not isCurrentPlayer(data.owner) and channel.isPrivate():
                 g_instance.execEffect('channelOpenedEffect')
+# okay decompiling ./res/scripts/client/auxiliaryfx/__init__.pyc

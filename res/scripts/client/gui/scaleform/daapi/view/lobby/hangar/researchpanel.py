@@ -1,16 +1,13 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/hangar/ResearchPanel.py
 from CurrentVehicle import g_currentVehicle
-from adisp import process
 from debug_utils import LOG_ERROR
+from gui.shared import g_itemsCache, event_dispatcher as shared_events
+from gui.shared.gui_items.Vehicle import getLobbyDescription
 from gui.ClientUpdateManager import g_clientUpdateManager
 from gui.Scaleform.daapi.view.meta.ResearchPanelMeta import ResearchPanelMeta
-from gui.Scaleform.framework.entities.DAAPIModule import DAAPIModule
-from gui.shared import events, EVENT_BUS_SCOPE
-from gui.shared.utils.requesters import StatsRequester
 
-class ResearchPanel(ResearchPanelMeta, DAAPIModule):
-
-    def __init__(self):
-        super(ResearchPanel, self).__init__()
+class ResearchPanel(ResearchPanelMeta):
 
     def _populate(self):
         super(ResearchPanel, self)._populate()
@@ -24,26 +21,18 @@ class ResearchPanel(ResearchPanelMeta, DAAPIModule):
 
     def goToResearch(self):
         if g_currentVehicle.isPresent():
-            Event = events.LoadEvent
-            exitEvent = Event(Event.LOAD_HANGAR)
-            loadEvent = Event(Event.LOAD_RESEARCH, ctx={'rootCD': g_currentVehicle.item.intCD,
-             'exit': exitEvent})
-            self.fireEvent(loadEvent, scope=EVENT_BUS_SCOPE.LOBBY)
+            shared_events.showResearchView(g_currentVehicle.item.intCD)
         else:
             LOG_ERROR('Current vehicle is not preset')
 
-    @process
     def onCurrentVehicleChanged(self):
         if g_currentVehicle.isPresent():
-            xps = yield StatsRequester().getVehicleTypeExperiences()
+            xps = g_itemsCache.items.stats.vehiclesXPs
             xp = xps.get(g_currentVehicle.item.intCD, 0)
-            self.as_setEarnedXPS(xp)
-            self.as_setEliteS(g_currentVehicle.item.isElite)
+            vehicle = g_currentVehicle.item
+            self.as_updateCurrentVehicleS(vehicle.userName, vehicle.type, getLobbyDescription(vehicle), xp, vehicle.isElite, g_currentVehicle.item.isPremiumIGR)
         else:
-            self.as_setEarnedXPS(0)
-            self.as_setEliteS(False)
-            yield lambda callback = None: callback
-        return
+            self.as_updateCurrentVehicleS('', '', '', 0, False, False)
 
     def onVehicleTypeXPChanged(self, xps):
         if g_currentVehicle.isPresent():
@@ -56,3 +45,4 @@ class ResearchPanel(ResearchPanelMeta, DAAPIModule):
             vehCD = g_currentVehicle.item.intCD
             if vehCD in elite:
                 self.as_setEliteS(True)
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/hangar/researchpanel.pyc

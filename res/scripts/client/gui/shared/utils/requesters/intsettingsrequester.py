@@ -1,11 +1,11 @@
-# 2013.11.15 11:27:04 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/shared/utils/requesters/IntSettingsRequester.py
 import BigWorld
+import copy
+import constants
 from adisp import async, process
 from debug_utils import LOG_ERROR
 from gui.shared.utils import code2str
-import BattleReplay
-__author__ = 'a_brukish'
 
 class IntSettingsRequester(object):
     """
@@ -63,7 +63,25 @@ class IntSettingsRequester(object):
      'MARKERS_ENEMY': 49,
      'MARKERS_DEAD': 50,
      'MARKERS_ALLY': 51,
-     'CAROUSEL_FILTER': 53}
+     'GUI_START_BEHAVIOR': 52,
+     'EULA_VERSION': 54,
+     'GAMEPLAY': 55,
+     'FORT': 56,
+     'USERS_STORAGE_REV': 57,
+     'CONTACTS': 58,
+     'GAME_EXTENDED': constants.USER_SERVER_SETTINGS.GAME_EXTENDED,
+     'FALLOUT': 60,
+     'TUTORIAL': 61,
+     'AIM_ARCADE_4': 63,
+     'AIM_SNIPER_4': 64,
+     'MARKS_ON_GUN': constants.USER_SERVER_SETTINGS.HIDE_MARKS_ON_GUN,
+     'ONCE_ONLY_HINTS': 70,
+     'CMD_BLOCK_TRACKS': 71,
+     'CMD_VOICECHAT_ENABLE': 72,
+     'CAROUSEL_FILTER_1': 73,
+     'CAROUSEL_FILTER_2': 74,
+     'FALLOUT_CAROUSEL_FILTER_1': 75,
+     'FALLOUT_CAROUSEL_FILTER_2': 76}
 
     def __init__(self):
         self.__cache = dict()
@@ -83,7 +101,7 @@ class IntSettingsRequester(object):
         callback(value)
 
     @async
-    def _requestCache(self, callback = None):
+    def _requestCache(self, callback=None):
         """
         Request data from server
         """
@@ -91,7 +109,7 @@ class IntSettingsRequester(object):
 
     @async
     @process
-    def request(self, callback = None):
+    def request(self, callback=None):
         """
         Public request method. Validate player entity to request
         possibility and itself as single callback argument.
@@ -99,7 +117,7 @@ class IntSettingsRequester(object):
         self.__cache = yield self._requestCache()
         callback(self)
 
-    def getCacheValue(self, key, defaultValue = None):
+    def getCacheValue(self, key, defaultValue=None):
         """
         Public interface method to get value from cache.
         
@@ -118,13 +136,13 @@ class IntSettingsRequester(object):
         intSettings = dict(map(lambda item: (self.SETTINGS[item[0]], int(item[1])), settings.iteritems()))
         yield self._addIntSettings(intSettings)
 
-    def getSetting(self, key, defaultValue = None):
+    def getSetting(self, key, defaultValue=None):
         return self.getCacheValue(self.SETTINGS[key], defaultValue)
 
     @async
-    def _addIntSettings(self, settings, callback = None):
+    def _addIntSettings(self, settings, callback=None):
+        import BattleReplay
         if not BattleReplay.g_replayCtrl.isPlaying:
+            self.__cache.update(settings)
             BigWorld.player().intUserSettings.addIntSettings(settings, callback)
-# okay decompyling res/scripts/client/gui/shared/utils/requesters/intsettingsrequester.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:05 EST
+# okay decompiling ./res/scripts/client/gui/shared/utils/requesters/intsettingsrequester.pyc

@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/account_helpers/SyncController.py
 import BigWorld
 import AccountCommands
 import cPickle
@@ -33,7 +35,7 @@ class SyncController:
             self.__sendSyncRequest(syncID, partial(self.__onSyncResponse, syncID))
         return
 
-    def __onSyncResponse(self, syncID, requestID, resultID, errorStr, ext = {}):
+    def __onSyncResponse(self, syncID, requestID, resultID, errorStr, ext={}):
         if resultID != AccountCommands.RES_STREAM:
             self.__onOwnerSyncResponse(syncID, resultID, ext)
             for callback in self.__syncRequests.pop(syncID, []):
@@ -72,3 +74,4 @@ class SyncController:
                 LOG_CURRENT_EXCEPTION()
 
         return
+# okay decompiling ./res/scripts/client/account_helpers/synccontroller.pyc

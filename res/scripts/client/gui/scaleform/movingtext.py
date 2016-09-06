@@ -1,8 +1,12 @@
-import BigWorld, time, constants
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/MovingText.py
+import time
+import BigWorld
+import constants
 from debug_utils import *
+from gui.battle_control import g_sessionProvider
 from windows import UIInterface
 from gui import GUI_SETTINGS
-from gui.BattleContext import g_battleContext
 
 class MovingText(UIInterface):
     """
@@ -15,6 +19,7 @@ class MovingText(UIInterface):
         """ Ctor. """
         UIInterface.__init__(self)
         self.__lastUpdateTime = -1
+        self.__lastRSS = {}
 
     def populateUI(self, proxy):
         UIInterface.populateUI(self, proxy)
@@ -45,11 +50,11 @@ class MovingText(UIInterface):
         try:
             self.flashDO = self.uiHolder.getMember(moviePath)
             self.flashDO.script = self
-            self.uiHolder.respond([cid, True, g_battleContext.isInBattle])
+            self.uiHolder.respond([cid, True, g_sessionProvider.getCtx().isInBattle])
         except Exception:
             LOG_ERROR('There is error while getting moving text display object')
             LOG_CURRENT_EXCEPTION()
-            self.uiHolder.respond([cid, False, g_battleContext.isInBattle])
+            self.uiHolder.respond([cid, False, g_sessionProvider.getCtx().isInBattle])
 
     def __clearCallback(self):
         """ Clear news updating callback """
@@ -78,29 +83,20 @@ class MovingText(UIInterface):
                 g_downloader.download(self.__rssDownloadReceived, url=downloadUrl)
             return
 
-    def __rssDownloadReceived(self, *args):
+    def __rssDownloadReceived(self, rssFeed):
         """ Rss data received handler """
         if self.flashDO is not None:
             try:
-                self.flashDO.updateEntries(self.__getEntries())
+                self.__lastRSS = rssFeed
+                self.flashDO.updateEntries(self.__getEntries(rssFeed))
             except Exception:
                 LOG_ERROR('There is error while updating moving text entries')
                 LOG_CURRENT_EXCEPTION()
 
         return
 
-    @property
-    def __lastRSS(self):
-        """
-        @return: <dict> last requested rss data dict
-        """
-        from helpers.RSSDownloader import g_downloader
-        if g_downloader is not None:
-            return g_downloader.lastRSS
-        else:
-            return dict()
-
-    def isShowMovingText(self):
+    @classmethod
+    def isShowMovingText(cls):
         """
         Called from flash.
         
@@ -109,22 +105,15 @@ class MovingText(UIInterface):
         """
         return GUI_SETTINGS.movingText.show
 
-    def getEntries(self):
+    @classmethod
+    def __getEntries(cls, rssFeed):
         """
-        Called from flash.
-        
+        @param rssFeed: rss feed from feedparser request
         @return: <list of dict< 'id':<str>, 'title':<str>, 'summary':<str> >
                 list of rss entries data
         """
-        return self.__getEntries()
-
-    def __getEntries(self):
-        """
-        @return: <list of dict< 'id':<str>, 'title':<str>, 'summary':<str> >
-                list of rss entries data
-        """
-        result = list()
-        for entry in self.__lastRSS.get('entries', list()):
+        result = []
+        for entry in rssFeed.get('entries', []):
             result.append({'id': entry.get('id'),
              'title': entry.get('title'),
              'summary': entry.get('summary')})
@@ -138,7 +127,7 @@ class MovingText(UIInterface):
         @param entryID: <str> rss id to find
         @return: <dict> entry data
         """
-        for entry in self.__lastRSS.get('entries', list()):
+        for entry in self.__lastRSS.get('entries', []):
             if entry.get('id') == entryID:
                 return entry
 
@@ -158,9 +147,10 @@ class MovingText(UIInterface):
                 if browser is not None:
                     openBrowser = browser.openBrowser
                 else:
-                    LOG_ERROR('Attempting to open internal browser with page: `%s`, but\t\t\t\t\t\tbrowser is not exist. External browser will be opened.' % str(link))
+                    LOG_ERROR('Attempting to open internal browser with page: `%s`, but browser is not exist. External browser will be opened.' % str(link))
             if len(link):
                 LOG_DEBUG('Open browser at page: ', link)
                 openBrowser(link)
             del openBrowser
         return
+# okay decompiling ./res/scripts/client/gui/scaleform/movingtext.pyc

@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/OfflineEntity.py
 import BigWorld
 
 class OfflineEntity(BigWorld.Entity):
@@ -12,6 +14,9 @@ class OfflineEntity(BigWorld.Entity):
         pass
 
     def onLeaveWorld(self):
+        pass
+
+    def collideSegment(self, startPoint, endPoint, skipGun=False):
         pass
 
 
@@ -29,8 +34,6 @@ class PlayerOfflineEntity(BigWorld.Entity):
     def onLeaveWorld(self):
         pass
 
-    def newFakeModel(self):
-        return BigWorld.Model('objects/fake_model.model')
-
     def handleKeyEvent(self, event):
         return False
+# okay decompiling ./res/scripts/client/offlineentity.pyc

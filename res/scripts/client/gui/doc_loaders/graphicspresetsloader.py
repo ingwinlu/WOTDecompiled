@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/doc_loaders/GraphicsPresetsLoader.py
 import types
 import BigWorld
 import ResMgr
@@ -37,3 +39,4 @@ class GraphicsPresetsLoader(object):
             return self.__presets[key]
         else:
             return None
+# okay decompiling ./res/scripts/client/gui/doc_loaders/graphicspresetsloader.pyc

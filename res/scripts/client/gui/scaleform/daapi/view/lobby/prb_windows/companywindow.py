@@ -1,22 +1,22 @@
-# 2013.11.15 11:26:07 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/prb_windows/CompanyWindow.py
 from adisp import process
+from messenger.ext import passCensor
 from gui import makeHtmlString
 from gui.Scaleform.daapi.view.lobby.prb_windows import companies_dps
-from gui.Scaleform.daapi.view.lobby.prb_windows.PrebattleWindow import PrebattleWindow
 from gui.Scaleform.daapi.view.meta.CompanyWindowMeta import CompanyWindowMeta
 from gui.Scaleform.locale.PREBATTLE import PREBATTLE
-from gui.prb_control import context, getMaxSizeLimits, getTotalLevelLimits
-from gui.prb_control import formatters, getClassLevelLimits
+from gui.prb_control import formatters, prb_getters
+from gui.prb_control.context import prb_ctx
 from gui.prb_control.settings import REQUEST_TYPE, PREBATTLE_ROSTER
 from gui.prb_control.settings import PREBATTLE_SETTING_NAME
 from gui.shared import events, EVENT_BUS_SCOPE
 from helpers import i18n
 from items.vehicles import VEHICLE_CLASS_TAGS
 
-class CompanyWindow(PrebattleWindow, CompanyWindowMeta):
+class CompanyWindow(CompanyWindowMeta):
 
-    def __init__(self, ctx):
+    def __init__(self, ctx=None):
         super(CompanyWindow, self).__init__(prbName='company')
         self._isInvitesOpen = ctx.get('isInvitesOpen', False)
 
@@ -32,27 +32,27 @@ class CompanyWindow(PrebattleWindow, CompanyWindowMeta):
 
     @process
     def requestToAssign(self, pID):
-        yield self.prbDispatcher.sendPrbRequest(context.AssignPrbCtx(pID, PREBATTLE_ROSTER.ASSIGNED_IN_TEAM1, 'prebattle/assign'))
+        yield self.prbDispatcher.sendPrbRequest(prb_ctx.AssignPrbCtx(pID, PREBATTLE_ROSTER.ASSIGNED_IN_TEAM1, 'prebattle/assign'))
 
     @process
     def requestToUnassign(self, pID):
-        yield self.prbDispatcher.sendPrbRequest(context.AssignPrbCtx(pID, PREBATTLE_ROSTER.UNASSIGNED_IN_TEAM1, 'prebattle/assign'))
+        yield self.prbDispatcher.sendPrbRequest(prb_ctx.AssignPrbCtx(pID, PREBATTLE_ROSTER.UNASSIGNED_IN_TEAM1, 'prebattle/assign'))
 
     @process
     def requestToChangeOpened(self, isOpened):
-        result = yield self.prbDispatcher.sendPrbRequest(context.ChangeOpenedCtx(isOpened, 'prebattle/change_settings'))
+        result = yield self.prbDispatcher.sendPrbRequest(prb_ctx.ChangeOpenedCtx(isOpened, 'prebattle/change_settings'))
         if not result:
             self.as_setOpenedS(self.prbFunctional.getSettings()[PREBATTLE_SETTING_NAME.IS_OPENED])
 
     @process
     def requestToChangeComment(self, comment):
-        result = yield self.prbDispatcher.sendPrbRequest(context.ChangeCommentCtx(comment, 'prebattle/change_settings'))
+        result = yield self.prbDispatcher.sendPrbRequest(prb_ctx.ChangeCommentCtx(comment, 'prebattle/change_settings'))
         if not result:
             self.as_setCommentS(self.prbFunctional.getSettings()[PREBATTLE_SETTING_NAME.COMMENT])
 
     @process
     def requestToChangeDivision(self, divisionID):
-        result = yield self.prbDispatcher.sendPrbRequest(context.ChangeDivisionCtx(divisionID, 'prebattle/change_settings'))
+        result = yield self.prbDispatcher.sendPrbRequest(prb_ctx.ChangeDivisionCtx(divisionID, 'prebattle/change_settings'))
         if not result:
             self.as_setDivisionS(self.prbFunctional.getSettings()[PREBATTLE_SETTING_NAME.DIVISION])
 
@@ -60,6 +60,8 @@ class CompanyWindow(PrebattleWindow, CompanyWindowMeta):
         return formatters.getCompanyName()
 
     def canKickPlayer(self):
+        if self.prbFunctional.getTeamState(team=1).isInQueue():
+            return False
         return self.prbFunctional.getPermissions().canKick(team=1)
 
     def canMoveToAssigned(self):
@@ -92,7 +94,7 @@ class CompanyWindow(PrebattleWindow, CompanyWindowMeta):
                 self.as_setOpenedS(settingValue)
         elif settingName == PREBATTLE_SETTING_NAME.COMMENT:
             if not functional.isCreator():
-                self.as_setCommentS(settingValue)
+                self.as_setCommentS(passCensor(settingValue))
         elif settingName == PREBATTLE_SETTING_NAME.LIMITS:
             self.__setLimits(functional.getRosters(), functional.getSettings().getTeamLimits(1))
 
@@ -142,14 +144,14 @@ class CompanyWindow(PrebattleWindow, CompanyWindowMeta):
     def __setSettings(self):
         settings = self.prbFunctional.getSettings()
         self.as_setOpenedS(settings[PREBATTLE_SETTING_NAME.IS_OPENED])
-        self.as_setCommentS(settings[PREBATTLE_SETTING_NAME.COMMENT])
+        self.as_setCommentS(passCensor(settings[PREBATTLE_SETTING_NAME.COMMENT]))
         self.as_setDivisionsListS(companies_dps.getDivisionsList(addAll=False), settings[PREBATTLE_SETTING_NAME.DIVISION])
 
     def __setLimits(self, rosters, teamLimits):
-        totalLimit = getTotalLevelLimits(teamLimits)
+        totalLimit = prb_getters.getTotalLevelLimits(teamLimits)
         totalLevel = 0
         playersCount = 0
-        classesLimit = dict(map(lambda vehClass: (vehClass, [0, getClassLevelLimits(teamLimits, vehClass)]), VEHICLE_CLASS_TAGS))
+        classesLimit = dict(map(lambda vehClass: (vehClass, [0, prb_getters.getClassLevelLimits(teamLimits, vehClass)]), VEHICLE_CLASS_TAGS))
         invalidVehs = []
         if PREBATTLE_ROSTER.ASSIGNED_IN_TEAM1 in rosters:
             for playerInfo in rosters[PREBATTLE_ROSTER.ASSIGNED_IN_TEAM1]:
@@ -159,7 +161,7 @@ class CompanyWindow(PrebattleWindow, CompanyWindowMeta):
 
         self.as_setClassesLimitsS(map(self.__makeClassLimitItem, classesLimit.iteritems()))
         self.as_setTotalLimitLabelsS(self.__makeTotalLevelString(totalLevel, totalLimit), self.__makeMinMaxString(totalLevel, totalLimit))
-        self.as_setMaxCountLimitLabelS(self.__makeMaxCountLimitLabel(playersCount, getMaxSizeLimits(teamLimits)[0]))
+        self.as_setMaxCountLimitLabelS(self.__makeMaxCountLimitLabel(playersCount, prb_getters.getMaxSizeLimits(teamLimits)[0]))
         if PREBATTLE_ROSTER.UNASSIGNED_IN_TEAM1 in rosters:
             for playerInfo in rosters[PREBATTLE_ROSTER.UNASSIGNED_IN_TEAM1]:
                 self.__validateVehicle(playerInfo, classesLimit, invalidVehs)
@@ -217,6 +219,4 @@ class CompanyWindow(PrebattleWindow, CompanyWindowMeta):
             self.as_setChangeSettingCoolDownS(event.coolDown)
         elif event.requestID is REQUEST_TYPE.SET_PLAYER_STATE:
             self.as_setCoolDownForReadyButtonS(event.coolDown)
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/lobby/prb_windows/companywindow.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:07 EST
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/prb_windows/companywindow.pyc

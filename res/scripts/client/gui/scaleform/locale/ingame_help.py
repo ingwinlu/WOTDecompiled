@@ -1,6 +1,14 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/locale/INGAME_HELP.py
 
 
 class INGAME_HELP(object):
+    """
+    DO NOT MODIFY!
+    Generated with yaml.
+    __author__ = 'yaml_processor'
+    null
+    """
     BATTLECONTROLS_TITLE = '#ingame_help:battleControls/title'
     BATTLECONTROLS_MOVEMENTFORWARD = '#ingame_help:battleControls/movementForward'
     BATTLECONTROLS_MOVEMENTBACKWARD = '#ingame_help:battleControls/movementBackward'
@@ -9,6 +17,7 @@ class INGAME_HELP(object):
     BATTLECONTROLS_CRUISECTRLFORWARD = '#ingame_help:battleControls/cruiseCtrlForward'
     BATTLECONTROLS_CRUISECTRLBACKWARD = '#ingame_help:battleControls/cruiseCtrlBackward'
     BATTLECONTROLS_SWITCHAUTOROTATION = '#ingame_help:battleControls/switchAutorotation'
+    BATTLECONTROLS_STOPFIRE = '#ingame_help:battleControls/stopFire'
     BATTLECONTROLS_VOICECHATMUTE = '#ingame_help:battleControls/voiceChatMute'
     BATTLECONTROLS_HIDEMINIMAP = '#ingame_help:battleControls/hideMinimap'
     BATTLECONTROLS_FIRE = '#ingame_help:battleControls/fire'
@@ -57,6 +66,7 @@ class INGAME_HELP(object):
     CROSSHAIRCONTROLS_HPVALUES = '#ingame_help:crosshairControls/hpValues'
     CROSSHAIRCONTROLS_TARGETCLASS = '#ingame_help:crosshairControls/targetClass'
     CROSSHAIRCONTROLS_DAMAGEINDICATOR = '#ingame_help:crosshairControls/damageIndicator'
+    CROSSHAIRCONTROLS_RELOADTIMER = '#ingame_help:crosshairControls/reloadTimer'
     CROSSHAIRCONTROLS_RELOADINDICATOR = '#ingame_help:crosshairControls/reloadIndicator'
     CROSSHAIRCONTROLS_AMMONUMBER = '#ingame_help:crosshairControls/ammoNumber'
     CROSSHAIRCONTROLS_MARKER = '#ingame_help:crosshairControls/marker'
@@ -66,6 +76,7 @@ class INGAME_HELP(object):
     CROSSHAIRCONTROLS_EXAMPLE_HP = '#ingame_help:crosshairControls/example/hp'
     CROSSHAIRCONTROLS_EXAMPLE_DAMAGE = '#ingame_help:crosshairControls/example/damage'
     CROSSHAIRCONTROLS_EXAMPLE_NAME = '#ingame_help:crosshairControls/example/name'
+    CROSSHAIRCONTROLS_TIMELEFT = '#ingame_help:crosshairControls/timeLeft'
     MARKERMARKS_TITLE = '#ingame_help:markerMarks/title'
     MARKERMARKS_FOLLOW = '#ingame_help:markerMarks/follow'
     MARKERMARKS_HELP = '#ingame_help:markerMarks/help'
@@ -81,3 +92,4 @@ class INGAME_HELP(object):
     SETTINGS_HELP = '#ingame_help:settings/help'
     SETTINGS_BUTTON = '#ingame_help:settings/button'
     RETURNTOGAME = '#ingame_help:returnToGame'
+# okay decompiling ./res/scripts/client/gui/scaleform/locale/ingame_help.pyc

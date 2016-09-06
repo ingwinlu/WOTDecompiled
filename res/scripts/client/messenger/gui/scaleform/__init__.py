@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/messenger/gui/Scaleform/__init__.py
 MESSENGER_BATTLE_SWF_FILE = 'battle_messenger.swf'
 import enumerations
 BTMS_COMMANDS = enumerations.Enumeration('Battle messenger commands', [('ChannelsInit', lambda : 'Messenger.Battle.ChannelsInit'),
@@ -18,4 +20,19 @@ BTMS_COMMANDS = enumerations.Enumeration('Battle messenger commands', [('Channel
  ('AddToIgnored', lambda : 'Battle.UsersRoster.AddToIgnored'),
  ('RemoveFromIgnored', lambda : 'Battle.UsersRoster.RemoveFromIgnored'),
  ('AddMuted', lambda : 'Battle.UsersRoster.AddMuted'),
- ('RemoveMuted', lambda : 'Battle.UsersRoster.RemoveMuted')], instance=enumerations.CallabbleEnumItem)
+ ('RemoveMuted', lambda : 'Battle.UsersRoster.RemoveMuted'),
+ ('isHistoryEnabled', lambda : 'Messenger.Battle.isHistoryEnabled'),
+ ('upHistory', lambda : 'Messenger.Battle.upHistory'),
+ ('downHistory', lambda : 'Messenger.Battle.downHistory'),
+ ('EnabledHistoryControls', lambda : 'Messenger.Battle.EnabledHistoryControls'),
+ ('GetLatestHistory', lambda : 'Messenger.Battle.GetLatestHistory'),
+ ('ShowHistoryMessages', lambda : 'Messenger.Battle.ShowHistoryMessages'),
+ ('GetLastMessages', lambda : 'Messenger.Battle.GetLastMessages'),
+ ('ShowLatestMessages', lambda : 'Messenger.Battle.ShowLatestMessages')], instance=enumerations.CallabbleEnumItem)
+
+class FILL_COLORS(object):
+    BLACK = 'black'
+    BROWN = 'brown'
+    GREEN = 'green'
+    RED = 'red'
+# okay decompiling ./res/scripts/client/messenger/gui/scaleform/__init__.pyc

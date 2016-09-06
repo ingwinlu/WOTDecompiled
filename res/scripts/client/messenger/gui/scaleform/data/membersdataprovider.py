@@ -1,6 +1,5 @@
-# 2013.11.15 11:27:13 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/messenger/gui/Scaleform/data/MembersDataProvider.py
-from gui.LobbyContext import g_lobbyContext
 from gui.Scaleform.framework.entities.DAAPIDataProvider import DAAPIDataProvider
 from messenger import g_settings
 from messenger.m_constants import USER_GUI_TYPE
@@ -24,32 +23,29 @@ class MembersDataProvider(DAAPIDataProvider):
         self.__list = []
         members = sorted(members, key=lambda member: member.getName().lower())
         getUser = self.usersStorage.getUser
-        getColor = g_settings.getColorScheme('rosters').getColor
+        getColors = g_settings.getColorScheme('rosters').getColors
         for member in members:
-            dbID = member.getID()
+            dbID = member.getDatabaseID()
+            isOnline = member.isOnline()
             user = getUser(dbID)
             if user:
-                roster = user.getRoster()
-                himself = user.isCurrentPlayer()
-                color = getColor(user.getGuiType())
+                tags = list(user.getTags())
+                colors = getColors(user.getGuiType())
             else:
-                roster = 0
-                himself = False
-                color = getColor(USER_GUI_TYPE.OTHER)
-            self.__list.append({'uid': dbID,
+                tags = []
+                colors = getColors(USER_GUI_TYPE.OTHER)
+            self.__list.append({'dbID': dbID,
              'userName': member.getFullName(),
-             'color': color,
-             'chatRoster': roster,
-             'himself': himself,
+             'isOnline': isOnline,
+             'color': colors[0 if isOnline else 1],
+             'tags': tags,
              'isPlayerSpeaking': False})
 
     def emptyItem(self):
-        return {'uid': 0,
+        return {'dbID': 0,
          'userName': '',
+         'isOnline': False,
          'color': 0,
-         'chatRoster': 0,
-         'himself': False,
+         'tags': [],
          'isPlayerSpeaking': False}
-# okay decompyling res/scripts/client/messenger/gui/scaleform/data/membersdataprovider.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:13 EST
+# okay decompiling ./res/scripts/client/messenger/gui/scaleform/data/membersdataprovider.pyc

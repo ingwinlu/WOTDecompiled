@@ -1,12 +1,43 @@
-# 2013.11.15 11:27:09 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/messenger/doc_loaders/user_prefs.py
 from messenger.doc_loaders import _xml_helpers
 import types
-_userProps = {'datetimeIdx': ('readInt', 'writeInt', lambda value: value in xrange(0, 4)),
- 'enableOlFilter': ('readBool', 'writeBool', lambda value: type(value) is types.BooleanType),
- 'enableSpamFilter': ('readBool', 'writeBool', lambda value: type(value) is types.BooleanType),
- 'invitesFromFriendsOnly': ('readBool', 'writeBool', lambda value: type(value) is types.BooleanType),
- 'storeReceiverInBattle': ('readBool', 'writeBool', lambda value: type(value) is types.BooleanType)}
+_userProps = {'datetimeIdx': ('readInt',
+                 'writeInt',
+                 lambda value: value in xrange(0, 4),
+                 False),
+ 'enableOlFilter': ('readBool',
+                    'writeBool',
+                    lambda value: isinstance(value, types.BooleanType),
+                    False),
+ 'enableSpamFilter': ('readBool',
+                      'writeBool',
+                      lambda value: isinstance(value, types.BooleanType),
+                      False),
+ 'invitesFromFriendsOnly': ('readBool',
+                            'writeBool',
+                            lambda value: isinstance(value, types.BooleanType),
+                            False),
+ 'storeReceiverInBattle': ('readBool',
+                           'writeBool',
+                           lambda value: isinstance(value, types.BooleanType),
+                           False),
+ 'disableBattleChat': ('readBool',
+                       'writeBool',
+                       lambda value: isinstance(value, types.BooleanType),
+                       False),
+ 'chatContactsListOnly': ('readBool',
+                          'writeBool',
+                          lambda value: isinstance(value, types.BooleanType),
+                          True),
+ 'receiveFriendshipRequest': ('readBool',
+                              'writeBool',
+                              lambda value: isinstance(value, types.BooleanType),
+                              False),
+ 'receiveInvitesInBattle': ('readBool',
+                            'writeBool',
+                            lambda value: isinstance(value, types.BooleanType),
+                            True)}
 
 def loadDefault(xmlCtx, section, messengerSettings):
     data = {}
@@ -17,7 +48,7 @@ def loadDefault(xmlCtx, section, messengerSettings):
         name = _xml_helpers.readNoEmptyStr(ctx, subSec, 'name', 'Preference name is not defined')
         if name not in _userProps:
             raise _xml_helpers.XMLError(ctx, 'Preference {0:>s} is invalid'.format(name))
-        reader, _, validator = _userProps[name]
+        reader, _, validator, _ = _userProps[name]
         value = getattr(subSec, reader)('value')
         if validator(value):
             data[name] = value
@@ -29,10 +60,13 @@ def loadDefault(xmlCtx, section, messengerSettings):
 
 
 def loadFromServer(messengerSettings):
-    from account_helpers.SettingsCore import g_settingsCore
+    from account_helpers.settings_core.ServerSettingsManager import SETTINGS_SECTIONS
+    from account_helpers.settings_core.SettingsCore import g_settingsCore
     data = messengerSettings.userPrefs._asdict()
-    for key, (_, _, _) in _userProps.iteritems():
-        settingValue = g_settingsCore.serverSettings.getGameSetting(key, None)
+    core = g_settingsCore.serverSettings
+    for key, (_, _, _, isExtended) in _userProps.iteritems():
+        section = SETTINGS_SECTIONS.GAME_EXTENDED if isExtended else SETTINGS_SECTIONS.GAME
+        settingValue = core.getSectionSettings(section, key, None)
         if settingValue is not None:
             data[key] = settingValue
 
@@ -55,6 +89,4 @@ def flush(messengerSettings, data):
     if len(newData):
         messengerSettings.userPrefs = messengerSettings.userPrefs._replace(**data)
     return len(newData) > 0
-# okay decompyling res/scripts/client/messenger/doc_loaders/user_prefs.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:09 EST
+# okay decompiling ./res/scripts/client/messenger/doc_loaders/user_prefs.pyc

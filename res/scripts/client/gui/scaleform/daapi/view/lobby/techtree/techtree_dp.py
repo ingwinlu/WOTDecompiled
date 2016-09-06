@@ -1,10 +1,17 @@
-# 2013.11.15 11:26:20 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/techtree/techtree_dp.py
 from collections import defaultdict
+import operator
 from constants import IS_DEVELOPMENT
-from debug_utils import LOG_ERROR
+from debug_utils import LOG_ERROR, LOG_DEBUG
 from gui import GUI_NATIONS_ORDER_INDEX
-from gui.Scaleform.daapi.view.lobby.techtree import TREE_SHARED_REL_FILE_PATH, NATION_TREE_REL_FILE_PATH, _VEHICLE, _VEHICLE_TYPE_NAME, makeDefUnlockProps, UnlockProps
+from gui.Scaleform.daapi.view.lobby.techtree.settings import TREE_SHARED_REL_FILE_PATH, UnlockStats
+from gui.Scaleform.daapi.view.lobby.techtree.settings import NATION_TREE_REL_FILE_PATH
+from gui.Scaleform.daapi.view.lobby.techtree.settings import makeDefUnlockProps
+from gui.Scaleform.daapi.view.lobby.techtree.settings import UnlockProps
+from gui.shared.ItemsCache import g_itemsCache
+from gui.shared.gui_items import GUI_ITEM_TYPE, GUI_ITEM_TYPE_NAMES
+from gui.shared.utils.requesters.ItemsRequester import REQ_CRITERIA
 from items import _xml, vehicles, getTypeOfCompactDescr
 import nations
 import ResMgr
@@ -20,14 +27,6 @@ class _ConfigError(Exception):
         return 'Config error in {0:>s}. {1:>s}'.format(self.ctx[1], self.msg)
 
 
-def _makeList():
-    return []
-
-
-def _makeDict():
-    return {}
-
-
 def _makeLines():
     return {'outLiteral': None,
      'outPin': None,
@@ -37,6 +36,8 @@ def _makeLines():
 DISPLAY_SETTINGS = {'hasRoot': 'readBool',
  'isLevelDisplayed': 'readBool',
  'nodeRendererName': 'readString'}
+_VEHICLE = GUI_ITEM_TYPE.VEHICLE
+_VEHICLE_TYPE_NAME = GUI_ITEM_TYPE_NAMES[_VEHICLE]
 
 class _TechTreeDataProvider(object):
 
@@ -44,6 +45,7 @@ class _TechTreeDataProvider(object):
         super(_TechTreeDataProvider, self).__init__()
         self.__loaded = False
         self.__availableNations = None
+        self.__override = ''
         self._clear()
         return
 
@@ -52,9 +54,10 @@ class _TechTreeDataProvider(object):
         self.__displaySettings = {}
         self.__topLevels = defaultdict(set)
         self.__topItems = defaultdict(set)
-        self.__nextLevels = defaultdict(_makeDict)
+        self.__nextLevels = defaultdict(dict)
+        self.__unlockPrices = defaultdict(dict)
 
-    def __readShared(self, clearCache = False):
+    def __readShared(self, clearCache=False):
         if clearCache:
             ResMgr.purge(TREE_SHARED_REL_FILE_PATH)
         shared = {'settings': {},
@@ -86,6 +89,18 @@ class _TechTreeDataProvider(object):
 
             shared['settings'][settingsName] = settings
 
+        if self.__availableNations is None:
+            self.__availableNations = self.__readAvailableNations((None, TREE_SHARED_REL_FILE_PATH), section)
+        self.__readSharedMetrics(shared, xmlCtx, section)
+        if self.__override:
+            subSec = section['overrides/{0:>s}'.format(self.__override)]
+            if subSec:
+                xmlCtx = (None, '{0:>s}/overrides/{1:>s}'.format(TREE_SHARED_REL_FILE_PATH, '', self.__override))
+                self.__readSharedMetrics(shared, xmlCtx, subSec)
+        self.__readDefaultLine(shared, xmlCtx, section)
+        return shared
+
+    def __readSharedMetrics(self, shared, xmlCtx, section):
         precessed = _xml.getChildren(xmlCtx, section, 'grids')
         for name, gridSection in precessed:
             gridName = gridSection.asString
@@ -105,8 +120,6 @@ class _TechTreeDataProvider(object):
              'vertical': vertical,
              'horizontal': horizontal}
 
-        if self.__availableNations is None:
-            self.__availableNations = self.__readAvailableNations((None, TREE_SHARED_REL_FILE_PATH), section)
         precessed = _xml.getChildren(xmlCtx, section, 'lines')
         lines = shared['lines']
         for name, sub in precessed:
@@ -117,7 +130,7 @@ class _TechTreeDataProvider(object):
             pinsSec = _xml.getChildren(xmlCtx, sub, 'outPin')
             outPins = dict(((pName, pSec.asVector2.tuple()) for pName, pSec in pinsSec))
             pinsSec = _xml.getChildren(xmlCtx, sub, 'viaPin')
-            viaPins = defaultdict(_makeDict)
+            viaPins = defaultdict(dict)
             for outPin, setSec in pinsSec:
                 for inPin, pSec in setSec.items():
                     viaPins[outPin][inPin] = map(lambda section: section[1].asVector2.tuple(), pSec.items())
@@ -133,17 +146,20 @@ class _TechTreeDataProvider(object):
              'viaPins': viaPins,
              'default': default}
 
+        return
+
+    def __readDefaultLine(self, shared, xmlCtx, section):
         defSec = _xml.getSubsection(xmlCtx, section, 'default-line')
         xPath = '{0:>s}/default-line'.format(TREE_SHARED_REL_FILE_PATH)
         xmlCtx = (None, xPath)
         name = _xml.readString(xmlCtx, defSec, 'line')
         outPin = _xml.readString(xmlCtx, defSec, 'outPin')
         inPin = _xml.readString(xmlCtx, defSec, 'inPin')
-        self.__getLineInfo(xmlCtx, name, 0, outPin, inPin, lines)
+        self.__getLineInfo(xmlCtx, name, 0, outPin, inPin, shared['lines'])
         shared['default'] = {'line': name,
          'inPin': inPin,
          'outPin': outPin}
-        return shared
+        return
 
     def __getLineInfo(self, xmlCtx, lineName, nodeCD, outPin, inPin, lineShared):
         if lineName not in lineShared:
@@ -226,7 +242,7 @@ class _TechTreeDataProvider(object):
 
         return result.values()
 
-    def __readNation(self, shared, nation, clearCache = False):
+    def __readNation(self, shared, nation, clearCache=False):
         xmlPath = NATION_TREE_REL_FILE_PATH % nation
         if clearCache:
             ResMgr.purge(xmlPath)
@@ -275,6 +291,9 @@ class _TechTreeDataProvider(object):
                 nodeCD = makeIntCDByID(_VEHICLE_TYPE_NAME, nationID, vTypeID)
                 vType = getVehicle(nationID, vTypeID)
                 nextLevel = filter(lambda data: getTypeOfCompactDescr(data[1][1]) == _VEHICLE, enumerate(vType.unlocksDescrs))
+                for unlockDescr in vType.unlocksDescrs:
+                    self.__unlockPrices[unlockDescr[1]][vType.compactDescr] = unlockDescr[0]
+
                 for idx, data in nextLevel:
                     xpCost = data[0]
                     nextCD = data[1]
@@ -289,7 +308,7 @@ class _TechTreeDataProvider(object):
                 if hasRoot and row > 1 and column is 1:
                     raise _ConfigError(xmlCtx, 'In first column must be one node - root node, {0:>s} '.format(uName))
                 elif row > rows or column > columns:
-                    raise _ConfigError, (xmlCtx, 'Invalid row or column index: {0:>s}, {1:d}, {2:d}'.format(uName, row, column))
+                    raise _ConfigError(xmlCtx, 'Invalid row or column index: {0:>s}, {1:d}, {2:d}'.format(uName, row, column))
                 lines = self.__readNodeLines(nodeCD, nation, xmlCtx, nodeSection, shared)
                 displayInfo[nodeCD] = {'row': row,
                  'column': column,
@@ -340,21 +359,31 @@ class _TechTreeDataProvider(object):
 
         return coordinates
 
-    def load(self, isReload = False):
+    def load(self, isReload=False):
         if self.__loaded and not isReload:
-            return
+            return False
+        LOG_DEBUG('Tech tree data is being loaded')
         self._clear()
         try:
-            shared = self.__readShared(clearCache=isReload)
-            for nation in self.__availableNations:
-                info = self.__readNation(shared, nation, clearCache=isReload)
-                self.__displayInfo.update(info)
+            try:
+                shared = self.__readShared(clearCache=isReload)
+                for nation in self.__availableNations:
+                    info = self.__readNation(shared, nation, clearCache=isReload)
+                    self.__displayInfo.update(info)
 
-        except _ConfigError as error:
-            LOG_ERROR(error)
+            except _ConfigError as error:
+                LOG_ERROR(error)
+
         finally:
             self.__makeAbsoluteCoordinates()
             self.__loaded = True
+
+        return True
+
+    def setOverride(self, override=''):
+        if self.__override != override:
+            self.__override = override
+            self.__loaded = False
 
     def getDisplaySettings(self, nationID):
         try:
@@ -376,7 +405,7 @@ class _TechTreeDataProvider(object):
     def getNextLevel(self, vTypeCD):
         return self.__nextLevels[vTypeCD].keys()
 
-    def _findNext2Unlock(self, compare, xps = None, freeXP = 0):
+    def _findNext2Unlock(self, compare, xps=None, freeXP=0):
         xpGetter = xps.get
 
         def makeItem(item):
@@ -402,7 +431,7 @@ class _TechTreeDataProvider(object):
             recommended = getMinFreeXPSpent(mapping)
         return recommended
 
-    def isNext2Unlock(self, vTypeCD, unlocked = set(), xps = None, freeXP = 0):
+    def isNext2Unlock(self, vTypeCD, unlocked=set(), xps=None, freeXP=0):
         topLevel = self.getTopLevel(vTypeCD)
         available = False
         topIDs = set()
@@ -422,11 +451,11 @@ class _TechTreeDataProvider(object):
             result = self._findNext2Unlock(compare, xps=xps, freeXP=freeXP)
         return (available, result)
 
-    def getNext2UnlockByItems(self, itemCDs, unlocked = set(), xps = None, freeXP = 0):
+    def getNext2UnlockByItems(self, itemCDs, unlocked=set(), xps=None, freeXP=0):
         filtered = filter(lambda item: item in self.__topItems, itemCDs)
         if not len(filtered) or not len(unlocked):
             return {}
-        available = defaultdict(_makeList)
+        available = defaultdict(list)
         parentCDs = set(filter(lambda item: getTypeOfCompactDescr(item) == _VEHICLE, itemCDs))
         for item in filtered:
             if item in unlocked:
@@ -460,8 +489,46 @@ class _TechTreeDataProvider(object):
     def getAvailableNationsIndices(self):
         return map(lambda nation: nations.INDICES[nation], self.getAvailableNations())
 
+    def getUnlockPrices(self, compactDescr):
+        return self.__unlockPrices[compactDescr]
+
+    def getAllPossibleItems2Unlock(self, vehicle, unlocked):
+        items = {}
+        for unlockIdx, xpCost, nodeCD, required in vehicle.getUnlocksDescrs():
+            if required.issubset(unlocked) and nodeCD not in unlocked:
+                items[nodeCD] = UnlockProps(vehicle.intCD, unlockIdx, xpCost, required)
+
+        return items
+
+    def getUnlockedVehicleItems(self, vehicle, unlocked):
+        items = {}
+        for unlockIdx, xpCost, nodeCD, required in vehicle.getUnlocksDescrs():
+            if required.issubset(unlocked) and nodeCD in unlocked:
+                items[nodeCD] = UnlockProps(vehicle.intCD, unlockIdx, xpCost, required)
+
+        return items
+
+    def getAllVehiclePossibleXP(self, nodeCD, unlockStats):
+        criteria = REQ_CRITERIA.VEHICLE.FULLY_ELITE | ~REQ_CRITERIA.IN_CD_LIST([nodeCD])
+        eliteVehicles = g_itemsCache.items.getVehicles(criteria)
+        dirtyResult = sum(map(operator.attrgetter('xp'), eliteVehicles.values()))
+        exchangeRate = g_itemsCache.items.shop.freeXPConversion[0]
+        result = min(int(dirtyResult / exchangeRate) * exchangeRate, g_itemsCache.items.stats.gold * exchangeRate)
+        result += unlockStats.getVehTotalXP(nodeCD)
+        return result
+
+    def isVehicleAvailableToUnlock(self, nodeCD):
+        unlocks = g_itemsCache.items.stats.unlocks
+        xps = g_itemsCache.items.stats.vehiclesXPs
+        freeXP = g_itemsCache.items.stats.actualFreeXP
+        allPossibleXp = self.getAllVehiclePossibleXP(nodeCD, UnlockStats(unlocks, xps, freeXP))
+        isAvailable, props = self.isNext2Unlock(nodeCD, unlocked=set(unlocks), xps=xps, freeXP=freeXP)
+        return (isAvailable and allPossibleXp >= props.xpCost, props.xpCost, allPossibleXp)
+
+    def getUnlockProps(self, vehicleCD):
+        _, unlockProps = self.isNext2Unlock(vehicleCD, unlocked=g_itemsCache.items.stats.unlocks, xps=g_itemsCache.items.stats.vehiclesXPs, freeXP=g_itemsCache.items.stats.actualFreeXP)
+        return unlockProps
+
 
 g_techTreeDP = _TechTreeDataProvider()
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/lobby/techtree/techtree_dp.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:21 EST
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/techtree/techtree_dp.pyc

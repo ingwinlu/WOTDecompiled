@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/helpers/feedparser.py
 """Universal feed parser
 
 Handles RSS 0.9x, RSS 1.0, RSS 2.0, CDF, Atom 0.3, and Atom 1.0 feeds
@@ -40,7 +42,8 @@ except (NameError, AttributeError):
     _maketrans = string.maketrans
 
 try:
-    import base64, binascii
+    import base64
+    import binascii
 except ImportError:
     base64 = binascii = None
 else:
@@ -150,7 +153,7 @@ try:
 except ImportError:
     _XML_AVAILABLE = 0
 
-    def _xmlescape(data, entities = {}):
+    def _xmlescape(data, entities={}):
         data = data.replace('&', '&amp;')
         data = data.replace('>', '&gt;')
         data = data.replace('<', '&lt;')
@@ -201,7 +204,7 @@ else:
         def __init__(self):
             self.endbracket = re.compile('([^\'"<>]|"[^"]*"(?=>|/|\\s|\\w+=)|\'[^\']*\'(?=>|/|\\s|\\w+=))*(?=[<>])|.*?(?=[<>])')
 
-        def search(self, target, index = 0):
+        def search(self, target, index=0):
             match = self.endbracket.match(target, index)
             if match is not None:
                 return EndBracketMatch(match)
@@ -348,7 +351,7 @@ class FeedParserDict(dict):
 
     has_key = __contains__
 
-    def get(self, key, default = None):
+    def get(self, key, default=None):
         try:
             return self.__getitem__(key)
         except KeyError:
@@ -508,7 +511,7 @@ class _FeedParserMixin():
      'description'])
     html_types = [u'text/html', u'application/xhtml+xml']
 
-    def __init__(self, baseuri = None, baselang = None, encoding = u'utf-8'):
+    def __init__(self, baseuri=None, baselang=None, encoding=u'utf-8'):
         if not self._matchnamespaces:
             for k, v in self.namespaces.items():
                 self._matchnamespaces[k.lower()] = v
@@ -534,68 +537,67 @@ class _FeedParserMixin():
         self.elementstack = []
         self.basestack = []
         self.langstack = []
-        if not baseuri:
-            self.baseuri = u''
-            self.lang = baselang or None
-            self.svgOK = 0
-            self.title_depth = -1
-            self.depth = 0
-            self.feeddata['language'] = baselang and baselang.replace('_', '-')
+        self.baseuri = baseuri or u''
+        self.lang = baselang or None
+        self.svgOK = 0
+        self.title_depth = -1
+        self.depth = 0
+        if baselang:
+            self.feeddata['language'] = baselang.replace('_', '-')
         self.property_depth_map = {}
         return
 
     def _normalize_attributes(self, kv):
         k = kv[0].lower()
-        if not (k in ('rel', 'type') and kv[1].lower()):
-            v = kv[1]
-            if isinstance(self, _LooseFeedParser):
-                v = v.replace('&amp;', '&')
-                v = isinstance(v, unicode) or v.decode('utf-8')
+        v = k in ('rel', 'type') and kv[1].lower() or kv[1]
+        if isinstance(self, _LooseFeedParser):
+            v = v.replace('&amp;', '&')
+            if not isinstance(v, unicode):
+                v = v.decode('utf-8')
         return (k, v)
 
     def unknown_starttag(self, tag, attrs):
         self.depth += 1
         attrs = map(self._normalize_attributes, attrs)
         attrsD = dict(attrs)
-        if not attrsD.get('xml:base', attrsD.get('base')):
-            baseuri = self.baseuri
-            if not isinstance(baseuri, unicode):
-                baseuri = baseuri.decode(self.encoding, 'ignore')
-            if self.baseuri:
-                if not _makeSafeAbsoluteURI(self.baseuri, baseuri):
-                    self.baseuri = self.baseuri
-                else:
-                    self.baseuri = _urljoin(self.baseuri, baseuri)
-                lang = attrsD.get('xml:lang', attrsD.get('lang'))
-                if lang == '':
-                    lang = None
-                elif lang is None:
-                    lang = self.lang
-                if lang:
-                    if tag in ('feed', 'rss', 'rdf:RDF'):
-                        self.feeddata['language'] = lang.replace('_', '-')
-                self.lang = lang
-                self.basestack.append(self.baseuri)
-                self.langstack.append(lang)
-                for prefix, uri in attrs:
-                    if prefix.startswith('xmlns:'):
-                        self.trackNamespace(prefix[6:], uri)
-                    elif prefix == 'xmlns':
-                        self.trackNamespace(None, uri)
+        baseuri = attrsD.get('xml:base', attrsD.get('base')) or self.baseuri
+        if not isinstance(baseuri, unicode):
+            baseuri = baseuri.decode(self.encoding, 'ignore')
+        if self.baseuri:
+            self.baseuri = _makeSafeAbsoluteURI(self.baseuri, baseuri) or self.baseuri
+        else:
+            self.baseuri = _urljoin(self.baseuri, baseuri)
+        lang = attrsD.get('xml:lang', attrsD.get('lang'))
+        if lang == '':
+            lang = None
+        elif lang is None:
+            lang = self.lang
+        if lang:
+            if tag in ('feed', 'rss', 'rdf:RDF'):
+                self.feeddata['language'] = lang.replace('_', '-')
+        self.lang = lang
+        self.basestack.append(self.baseuri)
+        self.langstack.append(lang)
+        for prefix, uri in attrs:
+            if prefix.startswith('xmlns:'):
+                self.trackNamespace(prefix[6:], uri)
+            elif prefix == 'xmlns':
+                self.trackNamespace(None, uri)
 
-                if self.incontent and not self.contentparams.get('type', u'xml').endswith(u'xml'):
-                    if tag in ('xhtml:div', 'div'):
-                        return
-                    self.contentparams['type'] = u'application/xhtml+xml'
-                if self.incontent and self.contentparams.get('type') == u'application/xhtml+xml':
-                    if tag.find(':') != -1:
-                        prefix, tag = tag.split(':', 1)
-                        namespace = self.namespacesInUse.get(prefix, '')
-                        if tag == 'math' and namespace == 'http://www.w3.org/1998/Math/MathML':
-                            attrs.append(('xmlns', namespace))
-                        tag == 'svg' and namespace == 'http://www.w3.org/2000/svg' and attrs.append(('xmlns', namespace))
-                if tag == 'svg':
-                    self.svgOK += 1
+        if self.incontent and not self.contentparams.get('type', u'xml').endswith(u'xml'):
+            if tag in ('xhtml:div', 'div'):
+                return
+            self.contentparams['type'] = u'application/xhtml+xml'
+        if self.incontent and self.contentparams.get('type') == u'application/xhtml+xml':
+            if tag.find(':') != -1:
+                prefix, tag = tag.split(':', 1)
+                namespace = self.namespacesInUse.get(prefix, '')
+                if tag == 'math' and namespace == 'http://www.w3.org/1998/Math/MathML':
+                    attrs.append(('xmlns', namespace))
+                if tag == 'svg' and namespace == 'http://www.w3.org/2000/svg':
+                    attrs.append(('xmlns', namespace))
+            if tag == 'svg':
+                self.svgOK += 1
             return self.handle_data('<%s%s>' % (tag, self.strattrs(attrs)), escape=0)
         else:
             if tag.find(':') != -1:
@@ -691,7 +693,7 @@ class _FeedParserMixin():
 
         self.elementstack[-1][2].append(text)
 
-    def handle_data(self, text, escape = 1):
+    def handle_data(self, text, escape=1):
         if not self.elementstack:
             return
         if escape and self.contentparams.get('type') == u'application/xhtml+xml':
@@ -762,7 +764,7 @@ class _FeedParserMixin():
     def push(self, element, expectingText):
         self.elementstack.append([element, expectingText, []])
 
-    def pop(self, element, stripWhitespace = 1):
+    def pop(self, element, stripWhitespace=1):
         if not self.elementstack:
             return
         elif self.elementstack[-1][0] != element:
@@ -858,8 +860,8 @@ class _FeedParserMixin():
                 output = output.translate(_cp1252)
             if element == 'category':
                 return output
-            elif element == 'title' and -1 < self.title_depth <= self.depth:
-                return output
+            elif element == 'title':
+                return -1 < self.title_depth <= self.depth and output
             if self.inentry and not self.insource:
                 if element == 'content':
                     self.entries[-1].setdefault(element, [])
@@ -916,12 +918,12 @@ class _FeedParserMixin():
 
     @staticmethod
     def lookslikehtml(s):
-        if not re.search('</(\\w+)>', s):
-            if not re.search('&#?\\w+;', s):
-                return
-            if filter(lambda t: t.lower() not in _HTMLSanitizer.acceptable_elements, re.findall('</?(\\w+)', s)):
-                return
-            return filter(lambda e: e not in entitydefs.keys(), re.findall('&(\\w+);', s)) and None
+        if not (re.search('</(\\w+)>', s) or re.search('&#?\\w+;', s)):
+            return
+        if filter(lambda t: t.lower() not in _HTMLSanitizer.acceptable_elements, re.findall('</?(\\w+)', s)):
+            return
+        if filter(lambda e: e not in entitydefs.keys(), re.findall('&(\\w+);', s)):
+            return
         return 1
 
     def _mapToStandardPrefix(self, name):
@@ -963,7 +965,7 @@ class _FeedParserMixin():
             attrsD['href'] = href
         return attrsD
 
-    def _save(self, key, value, overwrite = False):
+    def _save(self, key, value, overwrite=False):
         context = self._getContext()
         if overwrite:
             context[key] = value
@@ -1189,7 +1191,7 @@ class _FeedParserMixin():
             context = self.feeddata
         return context
 
-    def _save_author(self, key, value, prefix = 'author'):
+    def _save_author(self, key, value, prefix='author'):
         context = self._getContext()
         context.setdefault(prefix + '_detail', FeedParserDict())
         context[prefix + '_detail'][key] = value
@@ -1202,7 +1204,7 @@ class _FeedParserMixin():
         context.setdefault('contributors', [FeedParserDict()])
         context['contributors'][-1][key] = value
 
-    def _sync_author_detail(self, key = 'author'):
+    def _sync_author_detail(self, key='author'):
         context = self._getContext()
         detail = context.get('%s_detail' % key)
         if detail:
@@ -1457,14 +1459,14 @@ class _FeedParserMixin():
         attrsD = self._itsAnHrefDamnIt(attrsD)
         if 'href' in attrsD:
             attrsD['href'] = self.resolveURI(attrsD['href'])
-        if not self.infeed:
-            if not self.inentry:
-                expectingText = self.insource
-                context.setdefault('links', [])
-                if self.inentry:
-                    self.inimage or context['links'].append(FeedParserDict(attrsD))
-                expectingText = 'href' in attrsD and 0
-                context['link'] = attrsD.get('rel') == u'alternate' and self.mapContentType(attrsD.get('type')) in self.html_types and attrsD['href']
+        expectingText = self.infeed or self.inentry or self.insource
+        context.setdefault('links', [])
+        if not (self.inentry and self.inimage):
+            context['links'].append(FeedParserDict(attrsD))
+        if 'href' in attrsD:
+            expectingText = 0
+            if attrsD.get('rel') == u'alternate' and self.mapContentType(attrsD.get('type')) in self.html_types:
+                context['link'] = attrsD['href']
         else:
             self.push('link', expectingText)
 
@@ -1714,10 +1716,10 @@ if _XML_AVAILABLE:
             if not uri:
                 return
             else:
-                if not prefix:
-                    prefix = None
-                    self.trackNamespace(prefix, uri)
-                    self.decls['xmlns:' + prefix] = prefix and uri == 'http://www.w3.org/1999/xlink' and uri
+                prefix = prefix or None
+                self.trackNamespace(prefix, uri)
+                if prefix and uri == 'http://www.w3.org/1999/xlink':
+                    self.decls['xmlns:' + prefix] = uri
                 return
 
         def startElementNS(self, name, qname, attrs):
@@ -1748,10 +1750,10 @@ if _XML_AVAILABLE:
                         break
 
             for (namespace, attrlocalname), attrvalue in attrs.items():
-                if not namespace:
-                    lowernamespace = ''.lower()
-                    prefix = self._matchnamespaces.get(lowernamespace, '')
-                    attrlocalname = prefix and prefix + ':' + attrlocalname
+                lowernamespace = (namespace or '').lower()
+                prefix = self._matchnamespaces.get(lowernamespace, '')
+                if prefix:
+                    attrlocalname = prefix + ':' + attrlocalname
                 attrsD[str(attrlocalname).lower()] = attrvalue
 
             for qname in attrs.getQNames():
@@ -2112,7 +2114,7 @@ class _MicroformatsParser():
     def toISO8601(self, dt):
         return time.strftime('%Y-%m-%dT%H:%M:%SZ', dt)
 
-    def getPropertyValue(self, elmRoot, sProperty, iPropertyType = 4, bAllowMultiple = 0, bAutoEscape = 0):
+    def getPropertyValue(self, elmRoot, sProperty, iPropertyType=4, bAllowMultiple=0, bAutoEscape=0):
         all = lambda x: 1
         sProperty = sProperty.lower()
         bFound = 0
@@ -2172,45 +2174,45 @@ class _MicroformatsParser():
                     return elmResult
             sNodeName = elmResult.name.lower()
             if iPropertyType == self.EMAIL and sNodeName == 'a':
-                if not elmResult.get('href'):
-                    sValue = ''.split('mailto:').pop().split('?')[0]
-                if sValue:
-                    sValue = bNormalize and self.normalize(sValue) or sValue.strip()
-                sValue = not sValue and sNodeName == 'abbr' and elmResult.get('title')
+                sValue = (elmResult.get('href') or '').split('mailto:').pop().split('?')[0]
             if sValue:
-                if not (bNormalize and self.normalize(sValue)):
-                    sValue = sValue.strip()
-                if not sValue and iPropertyType == self.URI:
-                    if sNodeName == 'a':
-                        sValue = elmResult.get('href')
-                    elif sNodeName == 'img':
-                        sValue = elmResult.get('src')
-                    elif sNodeName == 'object':
-                        sValue = elmResult.get('data')
-                if sValue:
-                    if not (bNormalize and self.normalize(sValue)):
-                        sValue = sValue.strip()
-                    if not sValue and sNodeName == 'img':
-                        sValue = elmResult.get('alt')
-                    if sValue:
-                        if not (bNormalize and self.normalize(sValue)):
-                            sValue = sValue.strip()
-                        if not sValue:
-                            sValue = elmResult.renderContents()
-                            sValue = re.sub('<\\S[^>]*>', '', sValue)
-                            sValue = sValue.replace('\r\n', '\n')
-                            sValue = sValue.replace('\r', '\n')
-                        sValue = sValue and (bNormalize and self.normalize(sValue) or sValue.strip())
-                    if not sValue:
-                        continue
-                    sValue = iPropertyType == self.DATE and _parse_date_iso8601(sValue)
-                bAllowMultiple and arValues.append(bAutoEscape and self.vcardEscape(sValue) or sValue)
+                sValue = bNormalize and self.normalize(sValue) or sValue.strip()
+            if not sValue and sNodeName == 'abbr':
+                sValue = elmResult.get('title')
+            if sValue:
+                sValue = bNormalize and self.normalize(sValue) or sValue.strip()
+            if not sValue and iPropertyType == self.URI:
+                if sNodeName == 'a':
+                    sValue = elmResult.get('href')
+                elif sNodeName == 'img':
+                    sValue = elmResult.get('src')
+                elif sNodeName == 'object':
+                    sValue = elmResult.get('data')
+            if sValue:
+                sValue = bNormalize and self.normalize(sValue) or sValue.strip()
+            if not sValue and sNodeName == 'img':
+                sValue = elmResult.get('alt')
+            if sValue:
+                sValue = bNormalize and self.normalize(sValue) or sValue.strip()
+            if not sValue:
+                sValue = elmResult.renderContents()
+                sValue = re.sub('<\\S[^>]*>', '', sValue)
+                sValue = sValue.replace('\r\n', '\n')
+                sValue = sValue.replace('\r', '\n')
+            if sValue:
+                sValue = bNormalize and self.normalize(sValue) or sValue.strip()
+            if not sValue:
+                continue
+            if iPropertyType == self.DATE:
+                sValue = _parse_date_iso8601(sValue)
+            if bAllowMultiple:
+                arValues.append(bAutoEscape and self.vcardEscape(sValue) or sValue)
             else:
                 return bAutoEscape and self.vcardEscape(sValue) or sValue
 
         return arValues
 
-    def findVCards(self, elmRoot, bAgentParsing = 0):
+    def findVCards(self, elmRoot, bAgentParsing=0):
         sVCards = ''
         if not bAgentParsing:
             arCards = self.getPropertyValue(elmRoot, 'vcard', bAllowMultiple=1)
@@ -2248,7 +2250,7 @@ class _MicroformatsParser():
                         sContentType = ';TYPE=' + sContentType.upper()
                     arLines.append(self.vcardFold(sProperty.upper() + sEncoding + sContentType + sValueKey + ':' + sValue))
 
-            def processTypeValue(sProperty, arDefaultType, arForceType = None):
+            def processTypeValue(sProperty, arDefaultType, arForceType=None):
                 arResults = self.getPropertyValue(elmCard, sProperty, bAllowMultiple=1)
                 for elmResult in arResults:
                     arType = self.getPropertyValue(elmResult, 'type', self.STRING, 1, 1)
@@ -2286,9 +2288,9 @@ class _MicroformatsParser():
             elif sFN:
                 arNames = self.normalize(sFN).split()
                 if len(arNames) == 2:
-                    if not arNames[0].endswith(','):
-                        bFamilyNameFirst = len(arNames[1]) == 1 or len(arNames[1]) == 2 and arNames[1].endswith('.')
-                        bFamilyNameFirst and arLines.append(self.vcardFold('N:' + arNames[0] + ';' + arNames[1]))
+                    bFamilyNameFirst = arNames[0].endswith(',') or len(arNames[1]) == 1 or len(arNames[1]) == 2 and arNames[1].endswith('.')
+                    if bFamilyNameFirst:
+                        arLines.append(self.vcardFold('N:' + arNames[0] + ';' + arNames[1]))
                     else:
                         arLines.append(self.vcardFold('N:' + arNames[1] + ';' + arNames[0]))
             sSortString = self.getPropertyValue(elmCard, 'sort-string', self.STRING, bAutoEscape=1)
@@ -2492,7 +2494,7 @@ def _resolveRelativeURIs(htmlSource, baseURI, encoding, _type):
     return p.output()
 
 
-def _makeSafeAbsoluteURI(base, rel = None):
+def _makeSafeAbsoluteURI(base, rel=None):
     if not ACCEPTABLE_URI_SCHEMES:
         try:
             return _urljoin(base, rel or u'')
@@ -2500,23 +2502,23 @@ def _makeSafeAbsoluteURI(base, rel = None):
             return u''
 
     if not base:
-        if not rel:
-            return u''
-        if not rel:
-            try:
-                scheme = urlparse.urlparse(base)[0]
-            except ValueError:
-                return u''
-
-            if not scheme or scheme in ACCEPTABLE_URI_SCHEMES:
-                return base
-            return u''
+        return rel or u''
+    if not rel:
         try:
-            uri = _urljoin(base, rel)
+            scheme = urlparse.urlparse(base)[0]
         except ValueError:
             return u''
 
-        return uri.strip().split(':', 1)[0] not in ACCEPTABLE_URI_SCHEMES and u''
+        if not scheme or scheme in ACCEPTABLE_URI_SCHEMES:
+            return base
+        return u''
+    try:
+        uri = _urljoin(base, rel)
+    except ValueError:
+        return u''
+
+    if uri.strip().split(':', 1)[0] not in ACCEPTABLE_URI_SCHEMES:
+        return u''
     return uri
 
 
@@ -3218,7 +3220,7 @@ class _HTMLSanitizer(_BaseHTMLProcessor):
 
         return ' '.join(clean)
 
-    def parse_comment(self, i, report = 1):
+    def parse_comment(self, i, report=1):
         ret = _BaseHTMLProcessor.parse_comment(self, i, report)
         if ret >= 0:
             return ret
@@ -3308,32 +3310,32 @@ class _FeedURLHandler(urllib2.HTTPDigestAuthHandler, urllib2.HTTPRedirectHandler
 
 def _open_resource(url_file_stream_or_string, etag, modified, agent, referrer, handlers, request_headers):
     """URL, filename, or string --> stream
-
+    
     This function lets you define parsers that take any input source
     (URL, pathname to local or network file, or actual data as a string)
     and deal with it in a uniform manner.  Returned object is guaranteed
     to have all the basic stdio read methods (read, readline, readlines).
     Just .close() the object when you're done with it.
-
+    
     If the etag argument is supplied, it will be used as the value of an
     If-None-Match request header.
-
+    
     If the modified argument is supplied, it can be a tuple of 9 integers
     (as returned by gmtime() in the standard Python time module) or a date
     string in any format supported by feedparser. Regardless, it MUST
     be in GMT (Greenwich Mean Time). It will be reformatted into an
     RFC 1123-compliant date and used as the value of an If-Modified-Since
     request header.
-
+    
     If the agent argument is supplied, it will be used as the value of a
     User-Agent request header.
-
+    
     If the referrer argument is supplied, it will be used as the value of a
     Referer[sic] request header.
-
+    
     If handlers is supplied, it is a list of handlers used to build a
     urllib2 opener.
-
+    
     if request_headers is supplied it is a dictionary of HTTP request headers
     that will override the values generated by FeedParser.
     """
@@ -3963,10 +3965,10 @@ def _parse_date(dateString):
 
 def _getCharacterEncoding(http_headers, xml_data):
     """Get the character encoding of the XML document
-
+    
     http_headers is a dictionary
     xml_data is a raw string (not Unicode)
-
+    
     This is so much trickier than it sounds, it's not even funny.
     According to RFC 3023 ('XML Media Types'), if the HTTP Content-Type
     is application/xml, application/*+xml,
@@ -3979,29 +3981,29 @@ def _getCharacterEncoding(http_headers, xml_data):
     within the document is ALWAYS IGNORED and only the encoding given in
     the charset parameter of the HTTP Content-Type header should be
     respected, and it defaults to 'us-ascii' if not specified.
-
+    
     Furthermore, discussion on the atom-syntax mailing list with the
     author of RFC 3023 leads me to the conclusion that any document
     served with a Content-Type of text/* and no charset parameter
     must be treated as us-ascii.  (We now do this.)  And also that it
     must always be flagged as non-well-formed.  (We now do this too.)
-
+    
     If Content-Type is unspecified (input was local file or non-HTTP source)
     or unrecognized (server just got it totally wrong), then go by the
     encoding given in the XML prefix of the document and default to
     'iso-8859-1' as per the HTTP specification (RFC 2616).
-
+    
     Then, assuming we didn't find a character encoding in the HTTP headers
     (and the HTTP Content-type allowed us to look in the body), we need
     to sniff the first few bytes of the XML data and try to determine
     whether the encoding is ASCII-compatible.  Section F of the XML
     specification shows the way here:
     http://www.w3.org/TR/REC-xml/#sec-guessing-no-ext-info
-
+    
     If the sniffed encoding is not ASCII-compatible, we need to make it
     ASCII compatible so that we can sniff further into the XML declaration
     to find the encoding attribute, which will tell us the true encoding.
-
+    
     Of course, none of this guarantees that we will be able to parse the
     feed in the declared character encoding (assuming it was declared
     correctly, which many are not).  iconv_codec can help a lot;
@@ -4011,16 +4013,16 @@ def _getCharacterEncoding(http_headers, xml_data):
 
     def _parseHTTPContentType(content_type):
         """takes HTTP Content-Type header and returns (content type, charset)
-
+        
         If no charset is specified, returns (content type, '')
         If no content type is specified, returns ('', '')
         Both return parameters are guaranteed to be lowercase strings
         """
-        if not content_type:
-            content_type = ''
-            content_type, params = cgi.parse_header(content_type)
-            charset = params.get('charset', '').replace("'", '')
-            charset = isinstance(charset, unicode) or charset.decode('utf-8', 'ignore')
+        content_type = content_type or ''
+        content_type, params = cgi.parse_header(content_type)
+        charset = params.get('charset', '').replace("'", '')
+        if not isinstance(charset, unicode):
+            charset = charset.decode('utf-8', 'ignore')
         return (content_type, charset)
 
     sniffed_xml_encoding = u''
@@ -4096,18 +4098,18 @@ def _getCharacterEncoding(http_headers, xml_data):
     text_content_types = (u'text/xml', u'text/xml-external-parsed-entity')
     if http_content_type in application_content_types or http_content_type.startswith(u'application/') and http_content_type.endswith(u'+xml'):
         acceptable_content_type = 1
-        if not http_encoding:
-            true_encoding = xml_encoding or u'utf-8'
-        elif http_content_type in text_content_types or http_content_type.startswith(u'text/') and http_content_type.endswith(u'+xml'):
-            acceptable_content_type = 1
-            true_encoding = http_encoding or u'us-ascii'
-        elif http_content_type.startswith(u'text/'):
-            true_encoding = http_encoding or u'us-ascii'
-        elif http_headers and 'content-type' not in http_headers:
-            true_encoding = xml_encoding or u'iso-8859-1'
-        else:
-            true_encoding = xml_encoding or u'utf-8'
-        true_encoding = true_encoding.lower() == u'gb2312' and u'gb18030'
+        true_encoding = http_encoding or xml_encoding or u'utf-8'
+    elif http_content_type in text_content_types or http_content_type.startswith(u'text/') and http_content_type.endswith(u'+xml'):
+        acceptable_content_type = 1
+        true_encoding = http_encoding or u'us-ascii'
+    elif http_content_type.startswith(u'text/'):
+        true_encoding = http_encoding or u'us-ascii'
+    elif http_headers and 'content-type' not in http_headers:
+        true_encoding = xml_encoding or u'iso-8859-1'
+    else:
+        true_encoding = xml_encoding or u'utf-8'
+    if true_encoding.lower() == u'gb2312':
+        true_encoding = u'gb18030'
     return (true_encoding,
      http_encoding,
      xml_encoding,
@@ -4117,7 +4119,7 @@ def _getCharacterEncoding(http_headers, xml_data):
 
 def _toUTF8(data, encoding):
     """Changes an XML data stream on the fly to specify a new encoding
-
+    
     data is a raw sequence of bytes (not Unicode) that is presumed to be in %encoding already
     encoding is a string recognized by encodings.aliases
     """
@@ -4154,36 +4156,36 @@ def _toUTF8(data, encoding):
 
 def _stripDoctype(data):
     """Strips DOCTYPE from XML document, returns (rss_version, stripped_data)
-
+    
     rss_version may be 'rss091n' or None
     stripped_data is the same XML document, minus the DOCTYPE
     """
     start = re.search(_s2bytes('<\\w'), data)
-    if not (start and start.start()):
-        start = -1
-        head, data = data[:start + 1], data[start + 1:]
-        entity_pattern = re.compile(_s2bytes('^\\s*<!ENTITY([^>]*?)>'), re.MULTILINE)
-        entity_results = entity_pattern.findall(head)
-        head = entity_pattern.sub(_s2bytes(''), head)
-        doctype_pattern = re.compile(_s2bytes('^\\s*<!DOCTYPE([^>]*?)>'), re.MULTILINE)
-        doctype_results = doctype_pattern.findall(head)
-        if not (doctype_results and doctype_results[0]):
-            doctype = _s2bytes('')
-            if doctype.lower().count(_s2bytes('netscape')):
-                version = u'rss091n'
-            else:
-                version = None
-            replacement = _s2bytes('')
-            safe_pattern = len(doctype_results) == 1 and entity_results and re.compile(_s2bytes('\\s+(\\w+)\\s+"(&#\\w+;|[^&"]*)"'))
-            safe_entities = filter(lambda e: safe_pattern.match(e), entity_results)
-            replacement = safe_entities and _s2bytes('<!DOCTYPE feed [\n  <!ENTITY') + _s2bytes('>\n  <!ENTITY ').join(safe_entities) + _s2bytes('>\n]>')
+    start = start and start.start() or -1
+    head, data = data[:start + 1], data[start + 1:]
+    entity_pattern = re.compile(_s2bytes('^\\s*<!ENTITY([^>]*?)>'), re.MULTILINE)
+    entity_results = entity_pattern.findall(head)
+    head = entity_pattern.sub(_s2bytes(''), head)
+    doctype_pattern = re.compile(_s2bytes('^\\s*<!DOCTYPE([^>]*?)>'), re.MULTILINE)
+    doctype_results = doctype_pattern.findall(head)
+    doctype = doctype_results and doctype_results[0] or _s2bytes('')
+    if doctype.lower().count(_s2bytes('netscape')):
+        version = u'rss091n'
+    else:
+        version = None
+    replacement = _s2bytes('')
+    if len(doctype_results) == 1 and entity_results:
+        safe_pattern = re.compile(_s2bytes('\\s+(\\w+)\\s+"(&#\\w+;|[^&"]*)"'))
+        safe_entities = filter(lambda e: safe_pattern.match(e), entity_results)
+        if safe_entities:
+            replacement = _s2bytes('<!DOCTYPE feed [\n  <!ENTITY') + _s2bytes('>\n  <!ENTITY ').join(safe_entities) + _s2bytes('>\n]>')
     data = doctype_pattern.sub(replacement, head) + data
     return (version, data, dict(replacement and [ (k.decode('utf-8'), v.decode('utf-8')) for k, v in safe_pattern.findall(replacement) ]))
 
 
-def parse(url_file_stream_or_string, etag = None, modified = None, agent = None, referrer = None, handlers = None, request_headers = None, response_headers = None):
+def parse(url_file_stream_or_string, etag=None, modified=None, agent=None, referrer=None, handlers=None, request_headers=None, response_headers=None):
     """Parse a feed from a URL, file, stream, or string.
-
+    
     request_headers, if given, is a dict from http header name to value to add
     to the request; this overrides internally generated values.
     """
@@ -4273,110 +4275,111 @@ def parse(url_file_stream_or_string, etag = None, modified = None, agent = None,
             result['bozo_exception'] = NonXMLContentType(bozo_message)
         contentloc = http_headers.get('content-location', u'')
         href = result.get('href', u'')
-        if not _makeSafeAbsoluteURI(href, contentloc):
-            if not _makeSafeAbsoluteURI(contentloc):
-                baseuri = href
-                baselang = http_headers.get('content-language', None)
-                if not isinstance(baselang, unicode) and baselang is not None:
-                    baselang = baselang.decode('utf-8', 'ignore')
-                if getattr(f, 'code', 0) == 304:
-                    result['version'] = u''
-                    result['debug_message'] = 'The feed has not changed since you last checked, ' + 'so the server sent no data.  This is a feature, not a bug!'
-                    return result
-                if data is None:
-                    return result
-                use_strict_parser = 0
-                known_encoding = 0
-                tried_encodings = []
-                for proposed_encoding in (result['encoding'], xml_encoding, sniffed_xml_encoding):
-                    if not proposed_encoding:
-                        continue
-                    if proposed_encoding in tried_encodings:
-                        continue
-                    tried_encodings.append(proposed_encoding)
-                    try:
-                        data = _toUTF8(data, proposed_encoding)
-                    except (UnicodeDecodeError, LookupError):
-                        pass
-                    else:
-                        known_encoding = use_strict_parser = 1
-                        break
+        baseuri = _makeSafeAbsoluteURI(href, contentloc) or _makeSafeAbsoluteURI(contentloc) or href
+        baselang = http_headers.get('content-language', None)
+        if not isinstance(baselang, unicode) and baselang is not None:
+            baselang = baselang.decode('utf-8', 'ignore')
+        if getattr(f, 'code', 0) == 304:
+            result['version'] = u''
+            result['debug_message'] = 'The feed has not changed since you last checked, ' + 'so the server sent no data.  This is a feature, not a bug!'
+            return result
+        if data is None:
+            return result
+        use_strict_parser = 0
+        known_encoding = 0
+        tried_encodings = []
+        for proposed_encoding in (result['encoding'], xml_encoding, sniffed_xml_encoding):
+            if not proposed_encoding:
+                continue
+            if proposed_encoding in tried_encodings:
+                continue
+            tried_encodings.append(proposed_encoding)
+            try:
+                data = _toUTF8(data, proposed_encoding)
+            except (UnicodeDecodeError, LookupError):
+                pass
+            else:
+                known_encoding = use_strict_parser = 1
+                break
 
-                if not known_encoding and chardet:
-                    proposed_encoding = unicode(chardet.detect(data)['encoding'], 'ascii', 'ignore')
-                    if proposed_encoding and proposed_encoding not in tried_encodings:
-                        tried_encodings.append(proposed_encoding)
-                        try:
-                            data = _toUTF8(data, proposed_encoding)
-                        except (UnicodeDecodeError, LookupError):
-                            pass
-                        else:
-                            known_encoding = use_strict_parser = 1
-
-                if not known_encoding and u'utf-8' not in tried_encodings:
-                    proposed_encoding = u'utf-8'
-                    tried_encodings.append(proposed_encoding)
-                    try:
-                        data = _toUTF8(data, proposed_encoding)
-                    except UnicodeDecodeError:
-                        pass
-                    else:
-                        known_encoding = use_strict_parser = 1
-
-                if not known_encoding and u'windows-1252' not in tried_encodings:
-                    proposed_encoding = u'windows-1252'
-                    tried_encodings.append(proposed_encoding)
-                    try:
-                        data = _toUTF8(data, proposed_encoding)
-                    except UnicodeDecodeError:
-                        pass
-                    else:
-                        known_encoding = use_strict_parser = 1
-
-                if not known_encoding and u'iso-8859-2' not in tried_encodings:
-                    proposed_encoding = u'iso-8859-2'
-                    tried_encodings.append(proposed_encoding)
-                    try:
-                        data = _toUTF8(data, proposed_encoding)
-                    except UnicodeDecodeError:
-                        pass
-                    else:
-                        known_encoding = use_strict_parser = 1
-
-                if not known_encoding:
-                    result['bozo'] = 1
-                    result['bozo_exception'] = CharacterEncodingUnknown('document encoding unknown, I tried ' + '%s, %s, utf-8, windows-1252, and iso-8859-2 but nothing worked' % (result['encoding'], xml_encoding))
-                    result['encoding'] = u''
-                elif proposed_encoding != result['encoding']:
-                    result['bozo'] = 1
-                    result['bozo_exception'] = CharacterEncodingOverride('document declared as %s, but parsed as %s' % (result['encoding'], proposed_encoding))
-                    result['encoding'] = proposed_encoding
-                result['version'], data, entities = _stripDoctype(data)
-                if not _XML_AVAILABLE:
-                    use_strict_parser = 0
-                feedparser = use_strict_parser and _StrictFeedParser(baseuri, baselang, 'utf-8')
-                saxparser = xml.sax.make_parser(PREFERRED_XML_PARSERS)
-                saxparser.setFeature(xml.sax.handler.feature_namespaces, 1)
+        if not known_encoding and chardet:
+            proposed_encoding = unicode(chardet.detect(data)['encoding'], 'ascii', 'ignore')
+            if proposed_encoding and proposed_encoding not in tried_encodings:
+                tried_encodings.append(proposed_encoding)
                 try:
-                    saxparser.setFeature(xml.sax.handler.feature_external_ges, 0)
-                except xml.sax.SAXNotSupportedException:
+                    data = _toUTF8(data, proposed_encoding)
+                except (UnicodeDecodeError, LookupError):
                     pass
+                else:
+                    known_encoding = use_strict_parser = 1
 
-                saxparser.setContentHandler(feedparser)
-                saxparser.setErrorHandler(feedparser)
-                source = xml.sax.xmlreader.InputSource()
-                source.setByteStream(_StringIO(data))
-                try:
-                    saxparser.parse(source)
-                except xml.sax.SAXParseException as e:
-                    result['bozo'] = 1
-                    result['bozo_exception'] = feedparser.exc or e
-                    use_strict_parser = 0
+        if not known_encoding and u'utf-8' not in tried_encodings:
+            proposed_encoding = u'utf-8'
+            tried_encodings.append(proposed_encoding)
+            try:
+                data = _toUTF8(data, proposed_encoding)
+            except UnicodeDecodeError:
+                pass
+            else:
+                known_encoding = use_strict_parser = 1
 
-            feedparser = not use_strict_parser and _SGML_AVAILABLE and _LooseFeedParser(baseuri, baselang, 'utf-8', entities)
+        if not known_encoding and u'windows-1252' not in tried_encodings:
+            proposed_encoding = u'windows-1252'
+            tried_encodings.append(proposed_encoding)
+            try:
+                data = _toUTF8(data, proposed_encoding)
+            except UnicodeDecodeError:
+                pass
+            else:
+                known_encoding = use_strict_parser = 1
+
+        if not known_encoding and u'iso-8859-2' not in tried_encodings:
+            proposed_encoding = u'iso-8859-2'
+            tried_encodings.append(proposed_encoding)
+            try:
+                data = _toUTF8(data, proposed_encoding)
+            except UnicodeDecodeError:
+                pass
+            else:
+                known_encoding = use_strict_parser = 1
+
+        if not known_encoding:
+            result['bozo'] = 1
+            result['bozo_exception'] = CharacterEncodingUnknown('document encoding unknown, I tried ' + '%s, %s, utf-8, windows-1252, and iso-8859-2 but nothing worked' % (result['encoding'], xml_encoding))
+            result['encoding'] = u''
+        elif proposed_encoding != result['encoding']:
+            result['bozo'] = 1
+            result['bozo_exception'] = CharacterEncodingOverride('document declared as %s, but parsed as %s' % (result['encoding'], proposed_encoding))
+            result['encoding'] = proposed_encoding
+        result['version'], data, entities = _stripDoctype(data)
+        if not _XML_AVAILABLE:
+            use_strict_parser = 0
+        if use_strict_parser:
+            feedparser = _StrictFeedParser(baseuri, baselang, 'utf-8')
+            saxparser = xml.sax.make_parser(PREFERRED_XML_PARSERS)
+            saxparser.setFeature(xml.sax.handler.feature_namespaces, 1)
+            try:
+                saxparser.setFeature(xml.sax.handler.feature_external_ges, 0)
+            except xml.sax.SAXNotSupportedException:
+                pass
+
+            saxparser.setContentHandler(feedparser)
+            saxparser.setErrorHandler(feedparser)
+            source = xml.sax.xmlreader.InputSource()
+            source.setByteStream(_StringIO(data))
+            try:
+                saxparser.parse(source)
+            except xml.sax.SAXParseException as e:
+                result['bozo'] = 1
+                result['bozo_exception'] = feedparser.exc or e
+                use_strict_parser = 0
+
+        if not use_strict_parser and _SGML_AVAILABLE:
+            feedparser = _LooseFeedParser(baseuri, baselang, 'utf-8', entities)
             feedparser.feed(data.decode('utf-8', 'replace'))
         result['feed'] = feedparser.feeddata
         result['entries'] = feedparser.entries
         result['version'] = result['version'] or feedparser.version
         result['namespaces'] = feedparser.namespacesInUse
         return result
+# okay decompiling ./res/scripts/client/helpers/feedparser.pyc

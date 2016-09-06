@@ -1,7 +1,21 @@
-from gui.Scaleform.framework.entities.DAAPIModule import DAAPIModule
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/daapi/view/meta/IconDialogMeta.py
+from gui.Scaleform.daapi.view.dialogs.SimpleDialog import SimpleDialog
 
-class IconDialogMeta(DAAPIModule):
+class IconDialogMeta(SimpleDialog):
+    """
+    DO NOT MODIFY!
+    Generated with yaml.
+    __author__ = 'yaml_processor'
+    @extends SimpleDialog
+    null
+    """
 
     def as_setIconS(self, path):
+        """
+        :param path:
+        :return :
+        """
         if self._isDAAPIInited():
             return self.flashObject.as_setIcon(path)
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/meta/icondialogmeta.pyc

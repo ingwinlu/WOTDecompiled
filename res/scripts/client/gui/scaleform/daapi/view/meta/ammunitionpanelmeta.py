@@ -1,30 +1,48 @@
-from gui.Scaleform.framework.entities.DAAPIModule import DAAPIModule
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/daapi/view/meta/AmmunitionPanelMeta.py
+from gui.Scaleform.daapi.view.meta.ModulesPanelMeta import ModulesPanelMeta
 
-class AmmunitionPanelMeta(DAAPIModule):
-
-    def setVehicleModule(self, newId, slotIdx, oldId, isRemove):
-        self._printOverrideError('setVehicleModule')
-
-    def showModuleInfo(self, moduleId):
-        self._printOverrideError('showModuleInfo')
+class AmmunitionPanelMeta(ModulesPanelMeta):
+    """
+    DO NOT MODIFY!
+    Generated with yaml.
+    __author__ = 'yaml_processor'
+    @extends ModulesPanelMeta
+    null
+    """
 
     def showTechnicalMaintenance(self):
+        """
+        :return :
+        """
         self._printOverrideError('showTechnicalMaintenance')
 
     def showCustomization(self):
+        """
+        :return :
+        """
         self._printOverrideError('showCustomization')
 
-    def highlightParams(self, type):
-        self._printOverrideError('highlightParams')
+    def toRentContinue(self):
+        """
+        :return :
+        """
+        self._printOverrideError('toRentContinue')
 
-    def as_setDataS(self, data, type):
+    def as_setAmmoS(self, shells, stateWarning):
+        """
+        :param shells:
+        :param stateWarning:
+        :return :
+        """
         if self._isDAAPIInited():
-            return self.flashObject.as_setData(data, type)
+            return self.flashObject.as_setAmmo(shells, stateWarning)
 
-    def as_setAmmoS(self, data):
+    def as_updateVehicleStatusS(self, data):
+        """
+        :param data:
+        :return :
+        """
         if self._isDAAPIInited():
-            return self.flashObject.as_setAmmo(data)
-
-    def as_setVehicleHasTurretS(self, hasTurret):
-        if self._isDAAPIInited():
-            return self.flashObject.as_setVehicleHasTurret(hasTurret)
+            return self.flashObject.as_updateVehicleStatus(data)
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/meta/ammunitionpanelmeta.pyc

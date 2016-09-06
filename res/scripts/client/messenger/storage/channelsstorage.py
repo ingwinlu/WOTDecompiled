@@ -1,7 +1,12 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/messenger/storage/ChannelsStorage.py
+import types
 from debug_utils import LOG_ERROR
 from messenger.ext.channel_num_gen import genClientID4Channel
+from messenger.storage.local_cache import SimpleCachedStorage
+_CHANNELS_MAX_COUNT = 20
 
-class ChannelsStorage(object):
+class ChannelsStorage(SimpleCachedStorage):
     __slots__ = ('__channels',)
 
     def __init__(self):
@@ -14,6 +19,8 @@ class ChannelsStorage(object):
     def clear(self):
         while len(self.__channels):
             self.__channels.pop().clear()
+
+        super(ChannelsStorage, self).clear()
 
     def all(self):
         return self.__channels[:]
@@ -45,12 +52,42 @@ class ChannelsStorage(object):
             result = False
         return result
 
-    def removeChannel(self, channel):
+    def removeChannel(self, channel, clear=True):
         result = True
         if channel in self.__channels:
             index = self.__channels.index(channel)
-            self.__channels.pop(index).clear()
+            stored = self.__channels.pop(index)
+            if clear:
+                stored.clear()
         else:
             LOG_ERROR('Channel is not in storage', channel)
             result = False
         return result
+
+    def _getCachedData(self):
+        data = []
+        for channel in self.__channels:
+            state = channel.getPersistentState()
+            if state:
+                data.append((channel.getProtoType(), str(channel.getID()), state))
+
+        return data[-_CHANNELS_MAX_COUNT:]
+
+    def _setCachedData(self, data):
+        if not data:
+            return None
+        else:
+
+            def stateGenerator(requiredType):
+                for item in data:
+                    if not isinstance(item, types.TupleType):
+                        continue
+                    if len(item) != 3:
+                        continue
+                    protoType, channelID, state = item
+                    if requiredType != protoType:
+                        continue
+                    yield (channelID, state)
+
+            return stateGenerator
+# okay decompiling ./res/scripts/client/messenger/storage/channelsstorage.pyc

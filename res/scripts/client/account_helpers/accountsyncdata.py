@@ -1,5 +1,16 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/account_helpers/AccountSyncData.py
+import cPickle
+import BigWorld
+import os
+import base64
+import constants
 import AccountCommands
 from SyncController import SyncController
+from persistent_caches import SimpleCache
+from live_crc_accountdata import accountDataPersistentHash, accountDataExtractPersistent, accountDataGetDiffForPersistent, accountDataMergePersistent
+from copy import copy, deepcopy
+from diff_utils import synchronizeDicts
 from debug_utils import *
 
 class AccountSyncData(object):
@@ -13,6 +24,9 @@ class AccountSyncData(object):
         self.__syncID = 0
         self.__subscribers = []
         self.__isFirstSync = True
+        self.__persistentCache = SimpleCache('account_caches', 'data')
+        self.__persistentCache.data = None
+        self.__persistentCache.isDirty = False
         return
 
     def onAccountBecomePlayer(self):
@@ -29,7 +43,11 @@ class AccountSyncData(object):
         if self.__syncController is not None:
             self.__syncController.destroy()
             self.__syncController = None
+        self.__savePersistentCache()
         if account is not None:
+            oldName = self.__persistentCache.getAccountName()
+            assert oldName is None or oldName == account.name
+            self.__persistentCache.setAccountName(account.name)
             self.__syncController = SyncController(account, self.__sendSyncRequest, self.__onSyncResponse, self.__onSyncComplete)
         return
 
@@ -46,6 +64,32 @@ class AccountSyncData(object):
                 self.__subscribers.append(callback)
             return
 
+    def updatePersistentCache(self, ext, isFullSync):
+        if ext.pop('__cache', None) is not None:
+            if not self.__persistentCache.data:
+                desc, cacheData = self.__persistentCache.data = self.__persistentCache.get()
+                if accountDataPersistentHash(cacheData) != desc:
+                    LOG_ERROR('Local account data cache is corrupted: resync')
+                    self._resynchronize()
+                    return False
+                self.__persistentCache.data = cacheData
+                self.__persistentCache.isDirty = False
+            else:
+                cacheData = self.__persistentCache.data
+            if cacheData is None:
+                LOG_ERROR("Incorrect cache state while syncing data: server said to use cache but I don't have any")
+                self._resynchronize()
+                return False
+            accountDataMergePersistent(ext, cacheData)
+            if synchronizeDicts(accountDataGetDiffForPersistent(ext), self.__persistentCache.data)[1]:
+                self.__persistentCache.isDirty = True
+        else:
+            if self.__persistentCache.data is None:
+                self.__persistentCache.data = {}
+            synchronizeDicts(accountDataGetDiffForPersistent(ext), self.__persistentCache.data)
+            self.__persistentCache.isDirty = True
+        return True
+
     def _synchronize(self):
         if self.__ignore:
             return
@@ -56,16 +100,17 @@ class AccountSyncData(object):
             return
 
     def _resynchronize(self):
-        LOG_MX('resynchronize')
+        LOG_DEBUG('resynchronize')
         if self.__ignore:
             return
         else:
             self.__isSynchronized = False
             self.revision = 0
+            self.__clearPersistentCache()
             self.__syncController.request(self.__getNextSyncID(), None)
             return
 
-    def __onSyncResponse(self, syncID, resultID, ext = {}):
+    def __onSyncResponse(self, syncID, resultID, ext={}):
         if resultID == AccountCommands.RES_NON_PLAYER:
             return
         if syncID != self.__syncID:
@@ -80,7 +125,8 @@ class AccountSyncData(object):
             return
         self.revision = ext.get('rev', self.revision)
         self.__isSynchronized = True
-        self.__account._update(not self.__isFirstSync, ext)
+        if not self.__account._update(not self.__isFirstSync, ext):
+            return
         self.__isFirstSync = False
         subscribers = self.__subscribers
         self.__subscribers = []
@@ -94,7 +140,8 @@ class AccountSyncData(object):
             return
         else:
             self.revision = data['rev']
-            self.__account._update(False, data)
+            if not self.__account._update(False, data):
+                return
             self._synchronize()
             return
 
@@ -107,24 +154,18 @@ class AccountSyncData(object):
     def __sendSyncRequest(self, id, proxy):
         if self.__ignore:
             return
-        self.__account._doCmdInt3(AccountCommands.CMD_SYNC_DATA, self.revision, 0, 0, proxy)
+        crc = self.__persistentCache.getDescr()
+        self.__account._doCmdInt3(AccountCommands.CMD_SYNC_DATA, self.revision, 0 if not crc else crc, 0, proxy)
 
+    def __clearPersistentCache(self):
+        self.__persistentCache.data = None
+        self.__persistentCache.isDirty = False
+        self.__persistentCache.clear()
+        return
 
-def synchronizeDicts(diff, cache):
-    keys_r, keys = [], []
-    for k in diff.iterkeys():
-        (keys_r if isinstance(k, tuple) and k[1] == '_r' else keys).append(k)
-
-    for key_r in keys_r:
-        cache[key_r[0]] = diff[key_r]
-
-    for key in keys:
-        value = diff[key]
-        if value is None:
-            cache.pop(key, None)
-        elif isinstance(value, dict):
-            synchronizeDicts(value, cache.setdefault(key, {}))
-        else:
-            cache[key] = value
-
-    return
+    def __savePersistentCache(self):
+        if self.__persistentCache.isDirty and self.__persistentCache.data:
+            self.__persistentCache.data = accountDataExtractPersistent(self.__persistentCache.data)
+            self.__persistentCache.save(accountDataPersistentHash(self.__persistentCache.data), self.__persistentCache.data)
+            self.__persistentCache.isDirty = False
+# okay decompiling ./res/scripts/client/account_helpers/accountsyncdata.pyc

@@ -1,10 +1,11 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/messengerBar/ChannelCarousel.py
 from debug_utils import LOG_DEBUG
 from gui.Scaleform.daapi.view.meta.ChannelCarouselMeta import ChannelCarouselMeta
-from gui.Scaleform.framework import AppRef
 from gui.shared import EVENT_BUS_SCOPE
 from gui.shared.events import ChannelCarouselEvent
 
-class ChannelCarousel(ChannelCarouselMeta, AppRef):
+class ChannelCarousel(ChannelCarouselMeta):
 
     def __init__(self):
         super(ChannelCarousel, self).__init__()
@@ -21,9 +22,16 @@ class ChannelCarousel(ChannelCarouselMeta, AppRef):
         super(ChannelCarousel, self)._dispose()
 
     def channelOpenClick(self, itemID):
-        LOG_DEBUG('open click: ', itemID)
         self.fireEvent(ChannelCarouselEvent(self, ChannelCarouselEvent.OPEN_BUTTON_CLICK, itemID), scope=EVENT_BUS_SCOPE.LOBBY)
 
     def channelCloseClick(self, itemID):
-        LOG_DEBUG('close click: ', itemID)
         self.fireEvent(ChannelCarouselEvent(self, ChannelCarouselEvent.CLOSE_BUTTON_CLICK, itemID), scope=EVENT_BUS_SCOPE.LOBBY)
+
+    def updateItemDataFocus(self, itemID, wndType, isFocusIn):
+        self.fireEvent(ChannelCarouselEvent(self, ChannelCarouselEvent.ON_WINDOW_CHANGE_FOCUS, itemID, wndType, isFocusIn), scope=EVENT_BUS_SCOPE.LOBBY)
+
+    def updateItemDataOpened(self, itemID, wndType, isWindowOpened):
+        if isWindowOpened is False:
+            self.updateItemDataFocus(itemID, wndType, False)
+        self.fireEvent(ChannelCarouselEvent(self, ChannelCarouselEvent.ON_WINDOW_CHANGE_OPEN_STATE, itemID, wndType, isWindowOpened), scope=EVENT_BUS_SCOPE.LOBBY)
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/messengerbar/channelcarousel.pyc

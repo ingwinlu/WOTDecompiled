@@ -1,43 +1,109 @@
-# 2013.11.15 11:26:28 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/framework/managers/containers.py
-import weakref, types
+import weakref
 from Event import Event
-from debug_utils import LOG_DEBUG, LOG_WARNING, LOG_ERROR
-from gui.Scaleform.framework import VIEW_TYPE, VIEW_SCOPE
+from debug_utils import LOG_DEBUG, LOG_WARNING, LOG_ERROR, LOG_CURRENT_EXCEPTION
+from gui.Scaleform.framework import ScopeTemplates
+from gui.Scaleform.framework.ScopeControllers import GlobalScopeController
+from gui.Scaleform.daapi.view.meta.WindowViewMeta import WindowViewMeta
+from gui.Scaleform.framework import ViewTypes
 from gui.Scaleform.framework.entities.abstract.ContainerManagerMeta import ContainerManagerMeta
+from shared_utils import findFirst
+_POPUPS_CONTAINERS = (ViewTypes.TOP_WINDOW, ViewTypes.BROWSER, ViewTypes.WINDOW)
+_CONTAINERS_DESTROY_ORDER = (ViewTypes.DEFAULT,
+ ViewTypes.LOBBY_SUB,
+ ViewTypes.WINDOW,
+ ViewTypes.BROWSER,
+ ViewTypes.TOP_WINDOW,
+ ViewTypes.WAITING,
+ ViewTypes.CURSOR,
+ ViewTypes.SERVICE_LAYOUT)
 
-class IViewContainer(object):
+class AbstractViewContainer(object):
+    """
+    Super-type of containers.
+    """
+    __slots__ = ('_type', '_manager')
+
+    def __init__(self, viewType, manager=None):
+        self._type = viewType
+        self._manager = manager
+
+    def __call__(self, manager):
+        self._manager = manager
+        return self
+
+    def getViewType(self):
+        return self._type
 
     def add(self, pyView):
-        raise NotImplementedError, 'IViewContainer.add must be implemented'
+        """
+        Adds view to container.
+        :param pyView: view to be added to this container.
+        :return: True if view added to container, otherwise - False.
+        """
+        raise NotImplementedError('IViewContainer.add must be implemented')
 
     def remove(self, pyView):
-        raise NotImplementedError, 'IViewContainer.remove must be implemented'
+        """
+        Removes view from container.
+        :param pyView: view to be removed from this container.
+        """
+        raise NotImplementedError('IViewContainer.remove must be implemented')
 
     def clear(self):
-        raise NotImplementedError, 'IViewContainer.clear must be implemented'
+        """
+        Removes all views from container.
+        """
+        raise NotImplementedError('IViewContainer.clear must be implemented')
 
     def destroy(self):
-        raise NotImplementedError, 'IViewContainer.destroy must be implemented'
+        """
+        Destroys container.
+        """
+        self.clear()
+        self._manager = None
+        return
 
-    def getView(self, criteria = None):
-        raise NotImplementedError, 'IViewContainer.getView must be implemented'
+    def getView(self, criteria=None):
+        """
+        Gets view from container.
+        :param criteria: criteria to find view in container.
+        :return: object of view if view found in container, otherwise - None.
+        """
+        raise NotImplementedError('IViewContainer.getView must be implemented')
 
-    def getViewCount(self):
-        raise NotImplementedError, 'IViewContainer.getViewCount must be implemented'
+    def getViewCount(self, **kwargs):
+        """
+        Gets number of views in container.
+        :param kwargs: optional arguments.
+        :return:
+        """
+        raise NotImplementedError('IViewContainer.getViewCount must be implemented')
+
+    def canCancelPreviousLoading(self):
+        """
+        Is container allow cancelling a previous loading.
+        :return: True, if container allows cancelling a previous loading.
+        """
+        raise NotImplementedError('IViewContainer.canCancelPreviousLoading must be implemented')
 
 
-class _DefaultContainer(IViewContainer):
+class DefaultContainer(AbstractViewContainer):
+    """
+    Class of default container. Container has one object of view.
+    If new view adds to container, then invokes destroy method for previous view.
+    """
+    __slots__ = ('__view',)
 
-    def __init__(self, manager):
-        super(_DefaultContainer, self).__init__()
-        self.__manager = manager
+    def __init__(self, viewType, manager=None):
+        assert viewType not in _POPUPS_CONTAINERS, 'Type of view can not be {}'.format(viewType)
+        super(DefaultContainer, self).__init__(viewType, manager=manager)
         self.__view = None
         return
 
     def add(self, pyView):
         if self.__view is not None:
-            self.__manager.cleanUpDirtyViewsByScope(self.__view.settings.type, self.__view.alias)
             self.__view.destroy()
         pyView.onModuleDispose += self.__handleModuleDispose
         self.__view = pyView
@@ -46,41 +112,46 @@ class _DefaultContainer(IViewContainer):
     def remove(self, pyView):
         if self.__view == pyView:
             self.__view.onModuleDispose -= self.__handleModuleDispose
-            self.__manager.as_hideS(self.__view.token)
+            self._manager.as_hideS(self.__view.uniqueName)
             self.__view = None
         return
 
     def clear(self):
-        global isHangarLoaded
         if self.__view is not None:
             subContainerType = self.__view.getSubContainerType()
             if subContainerType is not None:
-                self.__manager.removeContainer(subContainerType)
+                self._manager.removeContainer(subContainerType)
             self.__view.onModuleDispose -= self.__handleModuleDispose
-            self.__manager.as_hideS(self.__view.token)
+            self._manager.as_hideS(self.__view.uniqueName)
+            self._manager.removeLoadingView(self.__view.alias, self.__view.uniqueName)
             self.__view.destroy()
-            if self.__view.alias == 'hangar':
-                isHangarLoaded = False
             self.__view = None
         return
 
-    def destroy(self):
-        self.clear()
-        self.__manager = None
-        return
+    def canCancelPreviousLoading(self):
+        return True
 
     def __handleModuleDispose(self, pyView):
-        global isHangarLoaded
         subContainerType = pyView.getSubContainerType()
         if subContainerType is not None:
-            self.__manager.removeContainer(subContainerType)
-        if pyView.settings.alias == 'hangar':
-            isHangarLoaded = False
+            self._manager.removeContainer(subContainerType)
+        self._manager.removeLoadingView(pyView.alias, pyView.uniqueName)
         self.remove(pyView)
         return
 
-    def getView(self, criteria = None):
-        return self.__view
+    def getView(self, criteria=None):
+        result = None
+        if criteria is None or self.__view is None:
+            result = self.__view
+        elif POP_UP_CRITERIA.UNIQUE_NAME in criteria:
+            uniqueName = criteria[POP_UP_CRITERIA.UNIQUE_NAME]
+            if self.__view.uniqueName == uniqueName:
+                result = self.__view
+        elif POP_UP_CRITERIA.VIEW_ALIAS in criteria:
+            viewAlias = criteria[POP_UP_CRITERIA.VIEW_ALIAS]
+            if self.__view.settings.alias == viewAlias:
+                result = self.__view
+        return result
 
     def getViewCount(self):
         if self.__view is not None:
@@ -96,25 +167,29 @@ class POP_UP_CRITERIA(object):
 
 class ExternalCriteria(object):
 
-    def __init__(self, criteria = None):
+    def __init__(self, criteria=None):
         super(ExternalCriteria, self).__init__()
         self._criteria = criteria
 
     def find(self, name, obj):
-        raise NotImplemented, 'ExternalCriteria.find must be implemented'
+        raise NotImplemented('ExternalCriteria.find must be implemented')
 
 
-class _PopUpContainer(IViewContainer):
+class PopUpContainer(AbstractViewContainer):
+    """
+    Class of pupUp container for windows, dialogs, ...
+    NOTE: view invokes destroy method internally, container listens
+        onModuleDispose.
+    """
+    __slots__ = ('__popUps',)
 
-    def __init__(self, manager):
-        super(_PopUpContainer, self).__init__()
-        self.__manager = manager
+    def __init__(self, viewType, manager=None):
+        super(PopUpContainer, self).__init__(viewType, manager=manager)
         self.__popUps = {}
 
     def add(self, pyView):
         uniqueName = pyView.uniqueName
         if uniqueName in self.__popUps:
-            LOG_WARNING('PopUp already exists', pyView, uniqueName)
             return False
         self.__popUps[uniqueName] = pyView
         pyView.onModuleDispose += self.__handleModuleDispose
@@ -125,32 +200,30 @@ class _PopUpContainer(IViewContainer):
         if uniqueName in self.__popUps:
             popUp = self.__popUps.pop(uniqueName)
             popUp.onModuleDispose -= self.__handleModuleDispose
-            self.__manager.as_hideS(popUp.token)
+            self._manager.as_hideS(popUp.uniqueName)
             LOG_DEBUG('PopUp has been successfully removed', pyView, uniqueName)
         else:
             LOG_WARNING('PopUp not found', pyView, uniqueName)
+
+    def canCancelPreviousLoading(self):
+        return False
 
     def clear(self):
         while len(self.__popUps):
             _, popUp = self.__popUps.popitem()
             subContainerType = popUp.getSubContainerType()
             if subContainerType is not None:
-                self.__manager.removeContainer(subContainerType)
+                self._manager.removeContainer(subContainerType)
             popUp.onModuleDispose -= self.__handleModuleDispose
-            self.__manager.as_hideS(popUp.token)
+            self._manager.as_hideS(popUp.uniqueName)
             popUp.destroy()
 
         return
 
-    def destroy(self):
-        self.clear()
-        self.__manager = None
-        return
-
-    def getView(self, criteria = None):
+    def getView(self, criteria=None):
         popUp = None
         if criteria is not None:
-            if type(criteria) is types.DictionaryType:
+            if isinstance(criteria, dict):
                 popUp = self.__findByDictCriteria(criteria)
             elif isinstance(criteria, ExternalCriteria):
                 popUp = self.__findByExCriteria(criteria)
@@ -158,8 +231,20 @@ class _PopUpContainer(IViewContainer):
                 LOG_ERROR('Criteria is invalid', criteria)
         return popUp
 
-    def getViewCount(self):
-        return len(self.__popUps)
+    def getViewCount(self, isModal=None):
+        if isModal is None:
+            result = len(self.__popUps)
+        else:
+            result = 0
+            for popUp in self.__popUps.itervalues():
+                try:
+                    if isinstance(popUp, WindowViewMeta):
+                        if popUp.as_isModalS() == isModal:
+                            result += 1
+                except AttributeError:
+                    LOG_CURRENT_EXCEPTION()
+
+        return result
 
     def __findByDictCriteria(self, criteria):
         popUp = None
@@ -169,110 +254,106 @@ class _PopUpContainer(IViewContainer):
                 popUp = self.__popUps[uniqueName]
         elif POP_UP_CRITERIA.VIEW_ALIAS in criteria:
             viewAlias = criteria[POP_UP_CRITERIA.VIEW_ALIAS]
-            popUps = filter(lambda popUp: popUp.settings.alias == viewAlias, self.__popUps.values())
-            if len(popUps):
+            popUps = filter(lambda item: item.settings.alias == viewAlias, self.__popUps.values())
+            if popUps:
                 popUp = popUps[0]
         return popUp
 
     def __findByExCriteria(self, criteria):
-        popUp = None
-        popUps = filter(lambda item: criteria.find(*item), self.__popUps.iteritems())
-        if len(popUps):
-            popUp = popUps[0][1]
-        return popUp
+
+        def find(item):
+            return criteria.find(*item)
+
+        return findFirst(find, self.__popUps.iteritems(), ('', None))[1]
 
     def __handleModuleDispose(self, pyView):
         subContainerType = pyView.getSubContainerType()
         if subContainerType is not None:
-            self.__manager.removeContainer(subContainerType)
+            self._manager.removeContainer(subContainerType)
         self.remove(pyView)
         return
 
 
 class ContainerManager(ContainerManagerMeta):
-    onViewAddedToContainer = Event()
-    __DESTROY_ORDER = (VIEW_TYPE.DEFAULT,
-     VIEW_TYPE.LOBBY_SUB,
-     VIEW_TYPE.WINDOW,
-     VIEW_TYPE.DIALOG,
-     VIEW_TYPE.WAITING,
-     VIEW_TYPE.CURSOR,
-     VIEW_TYPE.SERVICE_LAYOUT)
+    """
+    Class of container manager.
+    """
 
-    def __init__(self, loader):
+    def __init__(self, loader, *containers):
         super(ContainerManager, self).__init__()
+        self.onViewAddedToContainer = Event()
         proxy = weakref.proxy(self)
-        self.__containers = {VIEW_TYPE.DEFAULT: _DefaultContainer(proxy),
-         VIEW_TYPE.CURSOR: _DefaultContainer(proxy),
-         VIEW_TYPE.WAITING: _DefaultContainer(proxy),
-         VIEW_TYPE.WINDOW: _PopUpContainer(proxy),
-         VIEW_TYPE.DIALOG: _PopUpContainer(proxy),
-         VIEW_TYPE.SERVICE_LAYOUT: _DefaultContainer(proxy)}
-        self.__loadingTokens = {}
-        self.__loadedTokens = {}
+        self.__containers = {}
+        for container in containers:
+            assert isinstance(container, AbstractViewContainer)
+            self.__containers[container.getViewType()] = container(proxy)
+
+        self._loadingViews = dict()
         self.__loader = loader
         self.__loader.onViewLoaded += self.__loader_onViewLoaded
-        self.__currentRootScopeTarget = VIEW_SCOPE.VIEW + '/' + '**'
-        self.__currentSubScopeTarget = VIEW_SCOPE.LOBBY_SUB + '/' + '**'
+        self.__scopeController = GlobalScopeController()
+        self.__scopeController.create()
 
-    def load(self, alias, name = None, *args, **kwargs):
-        global isHangarLoaded
+    def load(self, alias, name=None, *args, **kwargs):
+        """
+        Loads view to container.
+        :param alias:
+        :param name:
+        :param args:
+        :param kwargs:
+        :return:
+        """
         if name is None:
             name = alias
         isViewExists = self.as_getViewS(name)
-        if not isViewExists:
-            if name == 'hangar':
-                if isHangarLoaded:
-                    return
-                isHangarLoaded = True
-            token = self.__loader.loadView(alias, name, *args, **kwargs)
-            scope = self.as_getViewTypeByTokenS(token)
-            self.__addLoadingToken(VIEW_SCOPE.VIEW, token)
-            self.__addLoadingToken(VIEW_SCOPE.LOBBY_SUB, token)
+        if not isViewExists and (alias, name) not in self._loadingViews:
+            pyEntity = self.__loader.loadView(alias, name, *args, **kwargs)
+            self.__scopeController.addLoadingView(pyEntity, False)
+            curType = pyEntity.settings.type
+            if self.canCancelPreviousLoading(curType):
+                result = []
+                for kev, val in self._loadingViews.iteritems():
+                    if val.settings.type == pyEntity.settings.type:
+                        result.append(val)
+
+                if result:
+                    self.__cancelLoadingForPyEntities(result)
+            self._loadingViews[alias, name] = pyEntity
         return
 
-    def addContainer(self, containerType, token, container = None):
+    def canCancelPreviousLoading(self, containerType):
+        container = self.getContainer(containerType)
+        if container is not None:
+            return container.canCancelPreviousLoading()
+        else:
+            return False
+            return
+
+    def addContainer(self, viewType, name, container=None):
         result = True
-        if containerType not in self.__containers:
+        if viewType not in self.__containers:
             if container is None:
-                self.__containers[containerType] = _DefaultContainer(weakref.proxy(self))
-                self.as_registerContainerS(containerType, token)
-            elif isinstance(container, IViewContainer):
-                self.__containers[containerType] = container
-                self.as_registerContainerS(containerType, token)
+                self.__containers[viewType] = DefaultContainer(viewType, weakref.proxy(self))
+                self.as_registerContainerS(viewType, name)
+            elif isinstance(container, AbstractViewContainer):
+                self.__containers[viewType] = container
+                self.as_registerContainerS(viewType, name)
             else:
                 LOG_ERROR('Container must be implemented IViewContainer', container)
                 result = False
         else:
-            LOG_ERROR('Container already registered', containerType)
+            LOG_ERROR('Container already registered', viewType)
             result = False
         return result
 
-    def cleanUpDirtyViewsByScope(self, scope, viewAlias):
-        scopeTarget = '%s/%s' % (scope, viewAlias)
-        if scopeTarget in self.__loadedTokens:
-            for token in self.__loadedTokens[scopeTarget]:
-                incorrectViewName = self.as_getNameByTokenS(token)
-                if incorrectViewName:
-                    incorrectViewType = self.as_getViewTypeByTokenS(token)
-                    if incorrectViewType not in (VIEW_TYPE.VIEW, VIEW_TYPE.LOBBY_SUB):
-                        criteria = {POP_UP_CRITERIA.UNIQUE_NAME: incorrectViewName}
-                        pyView = self.getView(incorrectViewType, criteria)
-                        if pyView:
-                            LOG_DEBUG('%s was automatically closed, because its scope has been destroyed.' % pyView.settings.alias)
-                            pyView.destroy()
-                        else:
-                            LOG_WARNING('pyView is not found', scopeTarget)
-
-            self.__loadedTokens.pop(scopeTarget, None)
-        return
-
     def removeContainer(self, viewType):
+        self.__scopeController.removeSubScopeController(ScopeTemplates.VIEW_TYPES_TO_SCOPES[viewType].getScopeType())
         result = True
         if viewType in self.__containers:
-            container = self.__containers.pop(viewType)
+            container = self.__containers[viewType]
             container.destroy()
             self.as_unregisterContainerS(viewType)
+            del self.__containers[viewType]
         else:
             result = False
         return result
@@ -283,17 +364,23 @@ class ContainerManager(ContainerManagerMeta):
         else:
             return None
 
-    def getView(self, viewType, criteria = None):
-        view = None
+    def isModalViewsIsExists(self):
+        for viewType in _POPUPS_CONTAINERS:
+            container = self.getContainer(viewType)
+            if container is not None and container.getViewCount(isModal=True):
+                return True
+
+        return False
+
+    def getView(self, viewType, criteria=None):
         container = self.getContainer(viewType)
         if container is not None:
             view = container.getView(criteria=criteria)
         else:
-            LOG_WARNING('Container for %s view is None!' % viewType)
-            raise Exception('sdf')
+            raise Exception('Container for %s view is None!' % viewType)
         return view
 
-    def isViewAvailable(self, viewType, criteria = None):
+    def isViewAvailable(self, viewType, criteria=None):
         container = self.getContainer(viewType)
         if container is not None:
             return container.getView(criteria=criteria) is not None
@@ -301,121 +388,83 @@ class ContainerManager(ContainerManagerMeta):
             return False
             return
 
+    def showContainers(self, *viewTypes):
+        self.as_showContainersS(viewTypes)
+
+    def hideContainers(self, *viewTypes):
+        self.as_hideContainersS(viewTypes)
+
+    def isContainerShown(self, viewType):
+        return self.as_isContainerShownS(viewType)
+
     def closePopUps(self):
-        for viewType in [VIEW_TYPE.DIALOG, VIEW_TYPE.WINDOW]:
+        self.as_closePopUpsS()
+
+    def clear(self):
+        for viewType in _POPUPS_CONTAINERS:
             container = self.getContainer(viewType)
             if container is not None:
                 container.clear()
 
-        self.as_closePopUpsS()
+        return
+
+    def removeLoadingView(self, alias, uniqueName):
+        self._loadingViews.pop((alias, uniqueName), None)
         return
 
     def _dispose(self):
         if self.__loader is not None:
             self.__loader.onViewLoaded -= self.__loader_onViewLoaded
             self.__loader = None
-        for viewType in self.__DESTROY_ORDER:
+        for viewType in _CONTAINERS_DESTROY_ORDER:
             if viewType in self.__containers:
                 container = self.__containers.pop(viewType)
+                LOG_DEBUG('CONTAINER: {}/{}'.format(container, viewType))
                 container.destroy()
 
         if len(self.__containers):
             LOG_ERROR('No all containers are destructed.')
         self.__containers.clear()
         self.onViewAddedToContainer.clear()
+        self.__scopeController.destroy()
+        self.__scopeController = None
+        self._loadingViews.clear()
+        self._loadingViews = None
         super(ContainerManager, self)._dispose()
         return
 
-    def __addTokenTo(self, tokenDict, scope, token):
-        if self.isViewAvailable(scope):
-            rootView = self.getView(scope)
-            if rootView is not None:
-                rootViewName = rootView.alias
-                scopeTarget = '%s/%s' % (scope, rootViewName)
-                if scopeTarget not in tokenDict:
-                    tokenDict[scopeTarget] = []
-                tokenDict[scopeTarget].append(token)
-        return
-
-    def __removeTokenFrom(self, tokenDict, scope, scopeViewName, token):
-        scopeTarget = '%s/%s' % (scope, scopeViewName)
-        tokenDict[scopeTarget].remove(token)
-        if len(tokenDict[scopeTarget]) == 0:
-            tokenDict.pop(scopeTarget, None)
-        return
-
-    def __addLoadingToken(self, scope, token):
-        self.__addTokenTo(self.__loadingTokens, scope, token)
-
-    def __removeLoadingToken(self, scope, scopeViewName, token):
-        self.__removeTokenFrom(self.__loadingTokens, scope, scopeViewName, token)
-
-    def __addLoadedToken(self, scope, token):
-        self.__addTokenTo(self.__loadedTokens, scope, token)
-
-    def __removeLoadedToken(self, scope, scopeViewName, token):
-        self.__removeTokenFrom(self.__loadedTokens, scope, scopeViewName, token)
-
-    def __onScopeSwitched(self, oldScopeTarget, newScopeTarget):
-        LOG_DEBUG('Scope switched: %s -> %s' % (oldScopeTarget, newScopeTarget))
+    def __cancelLoadingForPyEntities(self, pyEntities):
+        for curEntity in pyEntities:
+            self._loadingViews.pop((curEntity.settings.alias, curEntity.uniqueName))
+            self.__loader.cancelLoadingByName(curEntity.uniqueName)
+            curEntity.destroy()
 
     def __loader_onViewLoaded(self, pyView):
         viewType = pyView.settings.type
-        viewScope = pyView.settings.scope
-        scopeIsGlobal = False
-        if viewScope == VIEW_SCOPE.DYNAMIC:
-            viewScope = pyView.getCurrentScope()
-        if viewScope == VIEW_SCOPE.GLOBAL:
-            viewScope = VIEW_SCOPE.VIEW
-            scopeIsGlobal = True
         if viewType is None:
             LOG_ERROR('Type of view is not defined', pyView.settings)
+        viewKey = (pyView.alias, pyView.uniqueName)
+        if viewKey in self._loadingViews:
+            self._loadingViews.pop(viewKey)
         if viewType in self.__containers:
-            currentViewIsRoot = VIEW_TYPE.DEFAULT == viewType
-            rootScopeView = self.getView(viewScope)
-            if rootScopeView is not None and not scopeIsGlobal:
-                rootScopeViewName = rootScopeView.alias
-                scopeTarget = '%s/%s' % (viewScope, rootScopeViewName)
-                if not scopeTarget in self.__loadingTokens:
-                    if not currentViewIsRoot:
-                        LOG_WARNING('View %s skipped, because current parent view %s has not loading threads.' % (pyView, rootScopeViewName))
-                        return
-                    loadingIsActual = pyView.token in self.__loadingTokens[scopeTarget]
-                    loadingIsSkipable = pyView.isCanViewSkip()
-                    if not loadingIsActual:
-                        if not currentViewIsRoot and loadingIsSkipable:
-                            LOG_WARNING('View %s skipped, because parent view has been disposed.' % pyView)
-                            return
-                        if loadingIsActual:
-                            self.__removeLoadingToken(viewScope, rootScopeViewName, pyView.token)
-                            self.__addLoadedToken(viewScope, pyView.token)
-                    container = self.__containers[viewType]
-                    if currentViewIsRoot:
-                        self.closePopUps()
-                    container.add(pyView) and self.as_showS(pyView.token, 0, 0)
+            if ViewTypes.DEFAULT == viewType:
+                self.closePopUps()
+            if self.__scopeController.isViewLoading(pyView):
+                container = self.__containers[viewType]
+                if container.add(pyView):
+                    self.__scopeController.addView(pyView, False)
+                    self.as_showS(pyView.uniqueName, 0, 0)
                     pyView.create()
                     subContainerType = pyView.getSubContainerType()
-                    subContainerType is not None and self.addContainer(subContainerType, pyView.token)
-                LOG_DEBUG('View added to container', pyView)
-                self.__detectScopeSwitching(pyView.settings.type, pyView.settings.alias)
-                self.onViewAddedToContainer(container, pyView)
+                    if subContainerType is not None:
+                        self.addContainer(subContainerType, pyView.uniqueName)
+                    LOG_DEBUG('View added to container', pyView)
+                    self.onViewAddedToContainer(container, pyView)
+            else:
+                LOG_DEBUG('"%s" view cancelled to load, because its scope has been destroyed.' % str(pyView))
+                self.as_hideS(pyView.uniqueName)
+                pyView.destroy()
         else:
             LOG_ERROR('Type "%s" of view "%s" is not supported' % (viewType, pyView))
         return
-
-    def __detectScopeSwitching(self, newViewType, newViewAlias):
-        newScopeTarget = '%s/%s' % (newViewType, newViewAlias)
-        if newViewType == VIEW_TYPE.VIEW:
-            if newScopeTarget != self.__currentRootScopeTarget:
-                self.__onScopeSwitched(self.__currentRootScopeTarget, newScopeTarget)
-                self.__currentRootScopeTarget = newScopeTarget
-        elif newViewType == VIEW_TYPE.LOBBY_SUB:
-            if newScopeTarget != self.__currentSubScopeTarget:
-                self.__onScopeSwitched(self.__currentSubScopeTarget, newScopeTarget)
-                self.__currentSubScopeTarget = newScopeTarget
-
-
-isHangarLoaded = False
-# okay decompyling res/scripts/client/gui/scaleform/framework/managers/containers.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:29 EST
+# okay decompiling ./res/scripts/client/gui/scaleform/framework/managers/containers.pyc

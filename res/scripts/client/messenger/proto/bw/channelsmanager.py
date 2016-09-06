@@ -1,24 +1,21 @@
-# 2013.11.15 11:27:15 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/messenger/proto/bw/ChannelsManager.py
 import BigWorld
 import Event
 from chat_shared import CHAT_ACTIONS, CHAT_RESPONSES
 from constants import USER_ACTIVE_CHANNELS_LIMIT
-from debug_utils import LOG_DEBUG, LOG_WARNING
+from debug_utils import LOG_DEBUG
+from helpers import i18n
+from gui.shared.utils import getPlayerDatabaseID
 from messenger import g_settings
-from messenger.m_constants import LAZY_CHANNEL, MESSENGER_SCOPE
+from messenger.m_constants import LAZY_CHANNEL, MESSENGER_SCOPE, USER_TAG
 from messenger.proto.bw.ChatActionsListener import ChatActionsListener
 from messenger.proto.bw import entities
-from messenger.proto.bw.errors import ChannelNotFound
-from messenger.proto.bw import find_criteria
-from messenger.proto.bw.filters import BWFiltersChain
+from messenger.proto.bw.errors import ChannelNotFound, ChannelLimitReachedError
+from messenger.proto.bw import find_criteria, limits
 from messenger.proto.bw.wrappers import ChatActionWrapper
 from messenger.proto.events import g_messengerEvents
 from messenger.storage import storage_getter
-
-class CREATE_CHANNEL_RESULT(object):
-    doRequest, activeChannelLimitReached = range(2)
-
 
 class ChannelsManager(ChatActionsListener):
 
@@ -27,17 +24,25 @@ class ChannelsManager(ChatActionsListener):
          CHAT_RESPONSES.commandInCooldown: '_ChannelsManager__onCommandInCooldown'})
         self.__eventManager = Event.EventManager()
         self.onRequestChannelsComplete = Event.Event(self.__eventManager)
+        self.onChannelExcludeFromSearch = Event.Event(self.__eventManager)
         self.onFindChannelsFailed = Event.Event(self.__eventManager)
-        self._filtersChain = BWFiltersChain()
+        self.__filtersChain = None
+        self.__limits = limits.LobbyLimits()
         self.__channels = {}
         self.__creationInfo = {}
+        self.__messagesQueue = []
+        self.__isMessageEnabled = False
+        return
 
     @storage_getter('channels')
     def channelsStorage(self):
         return None
 
+    @storage_getter('users')
+    def usersStorage(self):
+        return None
+
     def addListeners(self):
-        self._filtersChain.addListeners()
         self.addListener(self.__onRequestChannels, CHAT_ACTIONS.requestChannels)
         self.addListener(self.__onBroadcast, CHAT_ACTIONS.broadcast)
         self.addListener(self.__onSelfEnterChat, CHAT_ACTIONS.selfEnter)
@@ -50,33 +55,46 @@ class ChannelsManager(ChatActionsListener):
         self.addListener(self.__onMemberStatusUpdate, CHAT_ACTIONS.memberStatusUpdate)
         self.addListener(self.__onChannelInfoUpdated, CHAT_ACTIONS.channelInfoUpdated)
         self.addListener(self.__onChatChannelCreated, CHAT_ACTIONS.createChannel)
+        g_messengerEvents.users.onUsersListReceived += self.__me_onUsersListReceived
         g_settings.onUserPreferencesUpdated += self.__ms_onUserPreferencesUpdated
 
     def removeAllListeners(self):
-        self._filtersChain.removeListeners()
         super(ChannelsManager, self).removeAllListeners()
+        g_messengerEvents.users.onUsersListReceived -= self.__me_onUsersListReceived
         g_settings.onUserPreferencesUpdated -= self.__ms_onUserPreferencesUpdated
 
     def switch(self, scope):
         if scope is MESSENGER_SCOPE.BATTLE:
+            self.__limits = limits.BattleLimits()
             self.exitFromLazyChannels()
-        self._filtersChain.switch(scope)
+        else:
+            self.__limits = limits.LobbyLimits()
+            self.__removeBattleChannels()
+
+    def setFiltersChain(self, msgFilterChain):
+        self.__filtersChain = msgFilterChain
 
     def clear(self):
+        self.__isMessageEnabled = False
+        self.__messagesQueue = []
         self.__creationInfo.clear()
         self.__eventManager.clear()
         self.__channels.clear()
 
     def sendMessage(self, channelID, message):
-        message = self._filtersChain.chainOut(message)
-        if not len(message):
+        message = self.__filtersChain.chainOut(message, self.__limits)
+        if not message:
             return
         BigWorld.player().broadcast(channelID, message)
+
+    def sendCommand(self, channelID, command, **kwargs):
+        if channelID:
+            BigWorld.player().sendChannelChatCommand(channelID, command, **kwargs)
 
     def requestChannelMembers(self, channelID):
         BigWorld.player().requestChatChannelMembers(channelID)
 
-    def joinToChannel(self, channelID, password = None):
+    def joinToChannel(self, channelID, password=None):
         channel = self.channelsStorage.getChannel(entities.BWChannelLightEntity(channelID))
         if not channel and channelID in self.__channels:
             channel = self.__channels[channelID]
@@ -91,36 +109,42 @@ class ChannelsManager(ChatActionsListener):
         BigWorld.player().enterChat(channelID, password)
 
     def exitFromChannel(self, channelID):
-        BigWorld.player().leaveChat(channelID)
+        player = BigWorld.player()
+        if player:
+            player.leaveChat(channelID)
 
-    def createChannel(self, name, password = None):
+    def createChannel(self, name, password=None):
         channels = self.channelsStorage.getChannelsByCriteria(find_criteria.BWActiveChannelFindCriteria())
         if USER_ACTIVE_CHANNELS_LIMIT <= len(channels):
-            return CREATE_CHANNEL_RESULT.activeChannelLimitReached
-        if name.startswith('#'):
-            name = name[1:]
-        if password:
+            return ChannelLimitReachedError()
+        else:
+            if name.startswith('#'):
+                name = name[1:]
             self.__creationInfo[name] = password
-        BigWorld.player().createChatChannel(name, password)
-        return CREATE_CHANNEL_RESULT.doRequest
+            BigWorld.player().createChatChannel(name, password)
+            return None
 
-    def findChannels(self, token, requestID = None):
+    def findChannels(self, token, requestID=None):
         BigWorld.player().findChatChannels(token, requestID=requestID)
 
     def exitFromLazyChannels(self):
         channels = self.channelsStorage.getChannelsByCriteria(find_criteria.BWLazyChannelFindCriteria(LAZY_CHANNEL.ALL))
         for channel in channels:
             if channel.isJoined():
-                LOG_DEBUG('Send request to exit from lazy channel', channel.getName().encode('utf-8'))
+                LOG_DEBUG('Send request to exit from lazy channel', i18n.encodeUtf8(channel.getName()))
                 self.exitFromChannel(channel.getID())
 
     def removeChannelFromClient(self, channel):
         if channel.isJoined():
             LOG_DEBUG('Client is removing channel to which player is joined', channel)
-        if self.channelsStorage.removeChannel(channel):
+        if self.channelsStorage.removeChannel(channel, clear=False):
             g_messengerEvents.channels.onChannelDestroyed(channel)
+            if channel.getID() in self.__channels:
+                channel.setJoined(False)
+            else:
+                channel.clear()
 
-    def __onRequestChannels(self, chatAction, join = False):
+    def __onRequestChannels(self, chatAction, join=False):
         chatActionDict = dict(chatAction)
         data = chatActionDict.get('data', [])
         requestID = chatActionDict.get('requestID', -1)
@@ -147,10 +171,18 @@ class ChannelsManager(ChatActionsListener):
         self.onRequestChannelsComplete(requestID, channels)
 
     def __onBroadcast(self, chatAction):
-        wrapper = ChatActionWrapper(**dict(chatAction))
-        self._filtersChain.chainIn(wrapper)
-        if len(wrapper.data) == 0:
+        if not self.__isMessageEnabled:
+            self.__messagesQueue.append(dict(chatAction))
             return
+        wrapper = ChatActionWrapper(**dict(chatAction))
+        senderDBID = wrapper.originator
+        user = self.usersStorage.getUser(senderDBID)
+        if user and user.isIgnored():
+            return
+        text = self.__filtersChain.chainIn(senderDBID, wrapper.data)
+        if not text:
+            return
+        wrapper.data = text
         channel = self.channelsStorage.getChannel(entities.BWChannelLightEntity(wrapper.channel))
         g_messengerEvents.channels.onMessageReceived(wrapper, channel)
 
@@ -158,13 +190,19 @@ class ChannelsManager(ChatActionsListener):
         wrapper = ChatActionWrapper(**dict(chatAction))
         channelID = wrapper.channel
         channel = self.channelsStorage.getChannel(entities.BWChannelLightEntity(channelID))
+        isJoinAction = False
         if not channel and channelID in self.__channels:
             channel = self.__channels[channelID]
             if self.channelsStorage.addChannel(channel):
                 g_messengerEvents.channels.onChannelInited(channel)
                 g_messengerEvents.channels.onPlayerEnterChannelByAction(channel)
+                isJoinAction = True
         if not channel:
             raise ChannelNotFound(channelID)
+        name = channel.getName()
+        if not isJoinAction and name in self.__creationInfo and channel.getProtoData().owner == getPlayerDatabaseID():
+            self.__creationInfo.pop(name)
+            g_messengerEvents.channels.onPlayerEnterChannelByAction(channel)
         if not channel.isJoined():
             channel.setJoined(True)
             g_messengerEvents.channels.onConnectStateChanged(channel)
@@ -200,8 +238,12 @@ class ChannelsManager(ChatActionsListener):
         LOG_DEBUG('onChannelDestroyed : %s' % (dict(chatAction),))
         wrapper = ChatActionWrapper(**dict(chatAction))
         channel = self.channelsStorage.getChannel(entities.BWChannelLightEntity(wrapper.channel))
-        if channel and self.channelsStorage.removeChannel(channel):
+        if channel and self.channelsStorage.removeChannel(channel, clear=False):
             g_messengerEvents.channels.onChannelDestroyed(channel)
+            if channel.getID() in self.__channels:
+                self.__channels.pop(channel.getID())
+                self.onChannelExcludeFromSearch(channel)
+            channel.clear()
 
     def __onRequestChannelMembers(self, chatAction):
         wrapper = ChatActionWrapper(**dict(chatAction))
@@ -253,8 +295,9 @@ class ChannelsManager(ChatActionsListener):
         if channel is None:
             self.__channels[created.getID()] = created
             password = None
-            if created.getName() in self.__creationInfo:
-                password = self.__creationInfo.pop(created.getName())
+            name = created.getName()
+            if name in self.__creationInfo:
+                password = self.__creationInfo.pop(name)
             self.joinToChannel(created.getID(), password=password)
         return
 
@@ -279,6 +322,13 @@ class ChannelsManager(ChatActionsListener):
             if channel.invalidateName():
                 g_messengerEvents.channels.onChannelInfoUpdated(channel)
 
+    def __me_onUsersListReceived(self, tags):
+        if USER_TAG.IGNORED not in tags:
+            return
+        self.__isMessageEnabled = True
+        while self.__messagesQueue:
+            self.__onBroadcast(self.__messagesQueue.pop(0))
+
     def __makeMemberFromDict(self, memberData):
         member = None
         if 'id' in memberData:
@@ -289,6 +339,9 @@ class ChannelsManager(ChatActionsListener):
                 kwargs['status'] = memberData['status']
             member = entities.BWMemberEntity(memberData['id'], **kwargs)
         return member
-# okay decompyling res/scripts/client/messenger/proto/bw/channelsmanager.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:15 EST
+
+    def __removeBattleChannels(self):
+        channels = self.channelsStorage.getChannelsByCriteria(find_criteria.BWBattleChannelFindCriteria())
+        for channel in channels:
+            self.channelsStorage.removeChannel(channel)
+# okay decompiling ./res/scripts/client/messenger/proto/bw/channelsmanager.pyc

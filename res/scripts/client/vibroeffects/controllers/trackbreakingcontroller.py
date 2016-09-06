@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/Vibroeffects/Controllers/TrackBreakingController.py
 import BigWorld
 import Math
 from Math import Matrix
@@ -22,11 +24,7 @@ class TrackBreakingController:
             OnceController('move_track_veff')
 
     def __breakWithDirection(self, vehicle, isLeftTrackBroken):
-        directionMatrix = Math.Matrix(BigWorld.camera().source)
-        directionMatrix.setElement(3, 0, 0)
-        directionMatrix.setElement(3, 1, 0)
-        directionMatrix.setElement(3, 2, 0)
-        cameraDirection = directionMatrix.applyToAxis(0)
+        cameraDirection = Math.Vector3(BigWorld.camera().direction)
         cameraDirection.y = 0
         vehicleMatrix = Math.Matrix(vehicle.matrix)
         vehicleMatrix.setElement(3, 0, 0)
@@ -57,9 +55,10 @@ class TrackBreakingController:
         OnceController(vibrationToPlay)
 
     def update(self, vehicle, isLeftTrackBroken, isRightTrackBroken):
-        if self.__wasLeftTrackBroken == False and isLeftTrackBroken:
+        if self.__wasLeftTrackBroken is False and isLeftTrackBroken:
             self.__breakWithDirection(vehicle, True)
-        elif self.__wasRightTrackBroken == False and isRightTrackBroken:
+        elif self.__wasRightTrackBroken is False and isRightTrackBroken:
             self.__breakWithDirection(vehicle, False)
         self.__wasLeftTrackBroken = isLeftTrackBroken
         self.__wasRightTrackBroken = isRightTrackBroken
+# okay decompiling ./res/scripts/client/vibroeffects/controllers/trackbreakingcontroller.pyc

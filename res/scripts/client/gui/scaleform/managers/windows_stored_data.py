@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/managers/windows_stored_data.py
 from collections import namedtuple, defaultdict
 import functools
 import types
@@ -22,7 +24,7 @@ class TARGET_ID(object):
 
 DEF_TARGET_MASK = TARGET_ID.CHANNEL_CAROUSEL | TARGET_ID.CHAT_MANAGEMENT
 STORED_DATA_MAX_LENGTH = 64
-STORED_DATA_REV = 0
+STORED_DATA_REV = 1
 
 def _populateStoredData(targetID, window):
     storedData = g_windowsStoredData.getData(targetID, window)
@@ -54,16 +56,16 @@ class stored_window(object):
 
     def __call__(self, clazz):
         if not hasattr(clazz, '__mro__'):
-            raise Exception, 'First argument is not class'
+            raise Exception('First argument is not class')
         if WindowViewMeta not in clazz.__mro__:
-            raise Exception, 'Class must be extends WindowViewMeta'
+            raise Exception('Class must be extends WindowViewMeta')
 
         def wrapPopulate(func):
 
             @functools.wraps(func)
             def wrapper(window, *args, **kwargs):
-                _populateStoredData(self.__targetID, window)
                 func(window, *args, **kwargs)
+                _populateStoredData(self.__targetID, window)
 
             return wrapper
 
@@ -133,7 +135,9 @@ class UniqueWindowStoredData(WindowStoredData):
     def __init__(self, name, *args):
         super(UniqueWindowStoredData, self).__init__(*args)
         if type(name) not in types.StringTypes:
-            raise TypeError, 'Unique name must be string.'
+            LOG_WARNING('Unique name must be string. It is ignored', name)
+            name = ''
+            self._trusted = False
         self._uniqueName = name
 
     def __repr__(self):
@@ -280,6 +284,8 @@ class _WindowsStoredDataManager(object):
         self.__isStarted = True
         self.__loader = WindowsStoredDataLoader(STORED_DATA_REV, STORED_DATA_MAX_LENGTH, DEF_TARGET_MASK)
         mask, records = self.__loader.load()
+        mask |= TARGET_ID.CHAT_MANAGEMENT
+        mask |= TARGET_ID.CHANNEL_CAROUSEL
         self.__targetMask = mask & TARGET_ID.ALL
         for record in records:
             if len(record) < 2:
@@ -310,7 +316,7 @@ class _WindowsStoredDataManager(object):
             self.__isStarted = False
             records = []
             for targetID, windowsData in self.__storedData.iteritems():
-                if not self.__targetMask & targetID:
+                if not self.__targetMask & targetID and len(windowsData):
                     LOG_WARNING('Target is not enabled. Records are ignored to flush', targetID, self.__targetMask)
                     continue
                 for data in windowsData:
@@ -382,3 +388,4 @@ class _WindowsStoredDataManager(object):
 
 
 g_windowsStoredData = _WindowsStoredDataManager((UniqueWindowStoredData, CarouselWindowStoredData, ChannelWindowStoredData))
+# okay decompiling ./res/scripts/client/gui/scaleform/managers/windows_stored_data.pyc

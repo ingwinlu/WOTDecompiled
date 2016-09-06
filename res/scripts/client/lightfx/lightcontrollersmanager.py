@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/LightFx/LightControllersManager.py
 from Controllers.HealthController import HealthController
 import LightManager
 
@@ -17,3 +19,4 @@ class LightControllersManager:
 
     def update(self, vehicle):
         self.__healthController.updateHealth(vehicle.health)
+# okay decompiling ./res/scripts/client/lightfx/lightcontrollersmanager.pyc

@@ -1,10 +1,18 @@
-# 2013.11.15 11:26:37 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/locale/WAITING.py
 
 
 class WAITING(object):
+    """
+    DO NOT MODIFY!
+    Generated with yaml.
+    __author__ = 'yaml_processor'
+    null
+    """
     FLASH = '#waiting:Flash'
+    DISCONNECT = '#waiting:disconnect'
     LOADPAGE = '#waiting:loadPage'
+    LOADCONTENT = '#waiting:loadContent'
     LOGIN = '#waiting:login'
     ENTER = '#waiting:enter'
     LOADHANGARSPACE = '#waiting:loadHangarSpace'
@@ -21,17 +29,16 @@ class WAITING(object):
     UPDATEINVENTORY = '#waiting:updateInventory'
     SELLITEM = '#waiting:sellItem'
     BUYITEM = '#waiting:buyItem'
+    BUYANDINSTALL = '#waiting:buyAndInstall'
     UPDATESHOP = '#waiting:updateShop'
     LOADSTATS = '#waiting:loadStats'
     TRANSFERMONEY = '#waiting:transferMoney'
-    EBANKBUYGOLD = '#waiting:ebankBuyGold'
     EXCHANGEVEHICLESXP = '#waiting:exchangeVehiclesXP'
-    REQUESTCAPTCHA = '#waiting:requestCaptcha'
-    RELOADCAPTCHA = '#waiting:reloadCaptcha'
-    VERIFYCAPTCHA = '#waiting:verifyCaptcha'
     RECRUTING = '#waiting:recruting'
     EQUIPPING = '#waiting:equipping'
     UNLOADING = '#waiting:unloading'
+    CREWRETURNING = '#waiting:crewReturning'
+    CREWRETRAINING = '#waiting:crewRetraining'
     UPDATING = '#waiting:updating'
     STUDYING = '#waiting:studying'
     RETRAINING = '#waiting:retraining'
@@ -59,6 +66,9 @@ class WAITING(object):
     TRAININGLEAVE = '#waiting:trainingLeave'
     APPLYMODULE = '#waiting:applyModule'
     SINHRONIZE = '#waiting:sinhronize'
+    CHANGINGROLE = '#waiting:changingRole'
+    GETCLUBINFO = '#waiting:getClubInfo'
+    LOADINGDATA = '#waiting:loadingData'
     TUTORIAL_REQUEST_BONUS = '#waiting:tutorial-request-bonus'
     TUTORIAL_REQUEST_BATTLE_COUNT = '#waiting:tutorial-request-battle-count'
     TUTORIAL_REQUEST_UNLOCKS = '#waiting:tutorial-request-unlocks'
@@ -77,8 +87,9 @@ class WAITING(object):
     TUTORIAL_REQUEST_SHOP = '#waiting:tutorial-request-shop'
     TUTORIAL_REQUEST_SLOTS = '#waiting:tutorial-request-slots'
     TUTORIAL_QUEUE = '#waiting:tutorial-queue'
-    WAITING_EBANK_RESPONSE = '#waiting:waiting_ebank_response'
     BUTTONS_EXITQUEUE = '#waiting:buttons/exitQueue'
+    BUTTONS_AUTOSEARCH = '#waiting:buttons/autoSearch'
+    BUTTONS_CANCEL = '#waiting:buttons/cancel'
     BUTTONS_CEASE = '#waiting:buttons/cease'
     BUTTONS_EXIT = '#waiting:buttons/exit'
     TITLES_QUEUE = '#waiting:titles/queue'
@@ -87,6 +98,7 @@ class WAITING(object):
     TITLES_CHECKOUT_ERROR = '#waiting:titles/checkout_error'
     TITLES_AUTO_LOGIN_QUERY_FAILED = '#waiting:titles/auto_login_query_failed'
     MESSAGE_QUEUE = '#waiting:message/queue'
+    MESSAGE_USEAUTOSEARCH = '#waiting:message/useAutoSearch'
     MESSAGE_AUTOLOGIN = '#waiting:message/autoLogin'
     MESSAGE_ANOTHER_PERIPHERY = '#waiting:message/another_periphery'
     MESSAGE_CHECKOUT_ERROR = '#waiting:message/checkout_error'
@@ -95,6 +107,7 @@ class WAITING(object):
     DOWNLOAD_INVENTORY = '#waiting:download/inventory'
     DOWNLOAD_SHOP = '#waiting:download/shop'
     DOWNLOAD_DOSSIER = '#waiting:download/dossier'
+    DOWNLOAD_DISCOUNTS = '#waiting:download/discounts'
     UPDATINGSKILLWINDOW = '#waiting:updatingSkillWindow'
     PREBATTLE_CREATE = '#waiting:prebattle/create'
     PREBATTLE_TEAM_READY = '#waiting:prebattle/team_ready'
@@ -105,12 +118,64 @@ class WAITING(object):
     PREBATTLE_JOIN = '#waiting:prebattle/join'
     PREBATTLE_SWAP = '#waiting:prebattle/swap'
     PREBATTLE_CHANGE_ARENA_VOIP = '#waiting:prebattle/change_arena_voip'
+    PREBATTLE_CHANGE_USER_STATUS = '#waiting:prebattle/change_user_status'
     PREBATTLE_CHANGE_SETTINGS = '#waiting:prebattle/change_settings'
     PREBATTLE_LEAVE = '#waiting:prebattle/leave'
     PREBATTLE_KICK = '#waiting:prebattle/kick'
     PREBATTLE_AUTO_SEARCH = '#waiting:prebattle/auto_search'
     PREBATTLE_BATTLE_QUEUE = '#waiting:prebattle/battle_queue'
+    PREBATTLE_GIVELEADERSHIP = '#waiting:prebattle/giveLeadership'
+    PREBATTLE_TAKELEADERSHIP = '#waiting:prebattle/takeLeadership'
+    PREBATTLE_CHANGEDIVISION = '#waiting:prebattle/changeDivision'
+    FORT_SUBSCRIBE = '#waiting:fort/subscribe'
+    FORT_UNSUBSCRIBE = '#waiting:fort/unsubscribe'
+    FORT_CREATE = '#waiting:fort/create'
+    FORT_DELETE = '#waiting:fort/delete'
+    FORT_DIRECTION_OPEN = '#waiting:fort/direction/open'
+    FORT_DIRECTION_CLOSE = '#waiting:fort/direction/close'
+    FORT_BUILDING_ADD = '#waiting:fort/building/add'
+    FORT_BUILDING_DELETE = '#waiting:fort/building/delete'
+    FORT_BUILDING_ATTACH = '#waiting:fort/building/attach'
+    FORT_BUILDING_UPGRADE = '#waiting:fort/building/upgrade'
+    FORT_TRANSPORT = '#waiting:fort/transport'
+    FORT_ORDER_ADD = '#waiting:fort/order/add'
+    FORT_ORDER_ACTIVATE = '#waiting:fort/order/activate'
+    FORT_SORTIE_CREATE = '#waiting:fort/sortie/create'
+    FORT_SORTIE_GET = '#waiting:fort/sortie/get'
+    FORT_CARD_GET = '#waiting:fort/card/get'
+    FORT_SETTINGS = '#waiting:fort/settings'
+    FORT_FORTBATTLE_CREATEORJOIN = '#waiting:fort/fortBattle/createOrJoin'
+    FORT_ATTACK = '#waiting:fort/attack'
+    FORT_FAVORITE_ADD = '#waiting:fort/favorite/add'
+    FORT_FAVORITE_REMOVE = '#waiting:fort/favorite/remove'
+    FORT_SERVERCONNECTION = '#waiting:fort/serverConnection'
+    FORT_ACTIVATECONSUMABLE = '#waiting:fort/activateConsumable'
+    FORT_RETURNCONSUMABLE = '#waiting:fort/returnConsumable'
+    MESSENGER_SUBSCRIBE = '#waiting:messenger/subscribe'
+    CLUBS_CLUB_CREATE = '#waiting:clubs/club/create'
+    CLUBS_CLUB_GET = '#waiting:clubs/club/get'
+    CLUBS_CLUB_LIST = '#waiting:clubs/club/list'
+    CLUBS_APP_SEND = '#waiting:clubs/app/send'
+    CLUBS_APP_REVOKE = '#waiting:clubs/app/revoke'
+    CLUBS_INVITE_ACCEPT = '#waiting:clubs/invite/accept'
+    CLUBS_INVITE_DECLINE = '#waiting:clubs/invite/decline'
+    CLUBS_INVITE_SEND = '#waiting:clubs/invite/send'
+    CLUBS_INVITE_REVOKE = '#waiting:clubs/invite/revoke'
+    CLUBS_TRANSFEROWNERSHIP = '#waiting:clubs/transferOwnership'
+    CLUBS_ASSIGNOFFICER = '#waiting:clubs/assignOfficer'
+    CLUBS_ASSIGNPRIVATE = '#waiting:clubs/assignPrivate'
+    CLUBS_OPENCLUB = '#waiting:clubs/openClub'
+    CLUBS_CLOSECLUB = '#waiting:clubs/closeClub'
+    CLUBS_DESTROYCLUB = '#waiting:clubs/destroyClub'
+    CLUBS_LEAVECLUB = '#waiting:clubs/leaveClub'
+    CLUBS_CLUBKICKMEMBER = '#waiting:clubs/clubKickMember'
+    CLUBS_JOINCLUBUNIT = '#waiting:clubs/joinClubUnit'
+    CLUBS_INVITATIONS_REQUIREMENTS_CHANGE = '#waiting:clubs/invitations/requirements/change'
+    CLUBS_INVITATIONS_LIST_CHANGE = '#waiting:clubs/invitations/list/change'
+    CLUBS_INVITES_SEND = '#waiting:clubs/invites/send'
+    CLANS_INVITES_SEND = '#waiting:clans/invites/send'
     MESSAGE_ENUM = (MESSAGE_QUEUE,
+     MESSAGE_USEAUTOSEARCH,
      MESSAGE_AUTOLOGIN,
      MESSAGE_ANOTHER_PERIPHERY,
      MESSAGE_CHECKOUT_ERROR,
@@ -124,17 +189,23 @@ class WAITING(object):
 
     @staticmethod
     def message(key):
+        """
+        :param key:
+        :return String:
+        """
         outcome = '#waiting:message/%s' % key
         if outcome not in WAITING.MESSAGE_ENUM:
-            raise Exception, 'locale key "' + outcome + '" was not found'
+            raise Exception('locale key "' + outcome + '" was not found')
         return outcome
 
     @staticmethod
     def titles(key):
+        """
+        :param key:
+        :return String:
+        """
         outcome = '#waiting:titles/%s' % key
         if outcome not in WAITING.TITLES_ENUM:
-            raise Exception, 'locale key "' + outcome + '" was not found'
+            raise Exception('locale key "' + outcome + '" was not found')
         return outcome
-# okay decompyling res/scripts/client/gui/scaleform/locale/waiting.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:38 EST
+# okay decompiling ./res/scripts/client/gui/scaleform/locale/waiting.pyc

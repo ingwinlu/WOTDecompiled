@@ -1,8 +1,8 @@
-# 2013.11.15 11:27:30 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/common/arena_achievements.py
 from dossiers2.custom.records import RECORD_DB_IDS
-ACHIEVEMENTS = ('warrior', 'invader', 'sniper', 'defender', 'steelwall', 'supporter', 'scout', 'evileye', 'medalWittmann', 'medalOrlik', 'medalOskin', 'medalHalonen', 'medalBurda', 'medalBillotte', 'medalKolobanov', 'medalFadin', 'medalRadleyWalters', 'medalLafayettePool', 'medalLehvaslaiho', 'medalNikolas', 'medalPascucci', 'medalDumitru', 'medalBrunoPietro', 'medalTarczay', 'heroesOfRassenay', 'medalDeLanglade', 'medalTamadaYoshio', 'raider', 'kamikaze', 'huntsman', 'bombardier', 'luckyDevil', 'ironMan', 'sturdy', 'alaric', 'lumberjack', 'medalBrothersInArms', 'medalCrucialContribution')
-ACHIEVEMENTS_WITH_REWARD = set([ RECORD_DB_IDS['achievements', name] for name in ('warrior', 'invader', 'sniper', 'defender', 'steelwall', 'supporter', 'scout', 'evileye', 'heroesOfRassenay', 'medalFadin', 'medalNikolas', 'medalPascucci', 'medalLehvaslaiho', 'medalRadleyWalters', 'medalHalonen', 'medalDumitru', 'medalDeLanglade', 'medalOrlik', 'medalOskin', 'medalLafayettePool', 'medalBurda', 'medalTamadaYoshio', 'medalBrothersInArms', 'medalCrucialContribution') ])
+ACHIEVEMENTS = ('warrior', 'invader', 'sniper', 'sniper2', 'mainGun', 'defender', 'steelwall', 'supporter', 'scout', 'evileye', 'medalWittmann', 'medalOrlik', 'medalOskin', 'medalHalonen', 'medalBurda', 'medalBillotte', 'medalKolobanov', 'medalFadin', 'medalRadleyWalters', 'medalLafayettePool', 'medalLehvaslaiho', 'medalNikolas', 'medalPascucci', 'medalDumitru', 'medalBrunoPietro', 'medalTarczay', 'heroesOfRassenay', 'medalDeLanglade', 'medalTamadaYoshio', 'raider', 'kamikaze', 'huntsman', 'bombardier', 'luckyDevil', 'ironMan', 'sturdy', 'alaric', 'lumberjack', 'medalBrothersInArms', 'medalCrucialContribution', 'armoredFist', 'kingOfTheHill', 'willToWinSpirit', 'shoulderToShoulder', 'aloneInTheField', 'fallenFlags', 'effectiveSupport', 'falloutDieHard', 'stormLord', 'winnerLaurels', 'predator', 'unreachable', 'champion', 'bannerman', 'sauronEye')
+ACHIEVEMENTS_WITH_REWARD = set([ RECORD_DB_IDS['achievements', name] for name in ('warrior', 'invader', 'sniper', 'sniper2', 'mainGun', 'defender', 'steelwall', 'supporter', 'scout', 'evileye', 'heroesOfRassenay', 'medalFadin', 'medalNikolas', 'medalPascucci', 'medalLehvaslaiho', 'medalRadleyWalters', 'medalHalonen', 'medalDumitru', 'medalDeLanglade', 'medalOrlik', 'medalOskin', 'medalLafayettePool', 'medalBurda', 'medalTamadaYoshio', 'medalBrothersInArms', 'medalCrucialContribution', 'huntsman', 'medalStark', 'medalGore') ] + [ RECORD_DB_IDS['falloutAchievements', name] for name in ('shoulderToShoulder', 'falloutDieHard', 'champion', 'bannerman') ])
 INBATTLE_SERIES = ('sniper', 'killing', 'piercing')
 INBATTLE_SERIES_INDICES = dict(((x[1], x[0]) for x in enumerate(INBATTLE_SERIES)))
 _BILLOTTE_CMN_CNDS = {'hpPercentage': 20,
@@ -12,6 +12,13 @@ ACHIEVEMENT_CONDITIONS = {'warrior': {'minFrags': 6},
  'sniper': {'minAccuracy': 0.85,
             'minShots': 10,
             'minDamage': 1000},
+ 'sniper2': {'minAccuracy': 0.85,
+             'minDamage': 1000,
+             'minHitsWithDamagePercent': 0.8,
+             'sniperDistance': 300.0,
+             'minShots': 8},
+ 'mainGun': {'minDamage': 1000,
+             'minDamageToTotalHealthRatio': 0.2},
  'defender': {'minPoints': 70},
  'steelwall': {'minDamage': 1000,
                'minHits': 11},
@@ -70,7 +77,38 @@ ACHIEVEMENT_CONDITIONS = {'warrior': {'minFrags': 6},
  'alaric': {'minKills': 2,
             'minMonuments': 1},
  'lumberjack': {'minKills': 3,
-                'minTrees': 30}}
-# okay decompyling res/scripts/common/arena_achievements.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:30 EST
+                'minTrees': 30},
+ 'wolfAmongSheep': {'minDamage': 1},
+ 'geniusForWar': {'minXP': 1},
+ 'willToWinSpirit': {'enemyCount': 3},
+ 'fightingReconnaissance': {'maxPosInTopDamager': 3,
+                            'minSpottedCount': 2},
+ 'monolith': {'maxSpeed_ms': 11 / 3.6},
+ 'medalAntiSpgFire': {'minKills': 3},
+ 'medalStark': {'minKills': 2,
+                'hits': 2},
+ 'medalGore': {'minDamageRate': 10},
+ 'medalCoolBlood': {'maxDistance': 100,
+                    'minKills': 2},
+ 'promisingFighter': {'maxPosInTopXPGainer': 3},
+ 'heavyFire': {'maxPosInTopDamager': 3},
+ 'fighter': {'minKills': 4,
+             'maxKills': 5},
+ 'duelist': {'minKills': 2},
+ 'bonecrusher': {'minCrits': 5},
+ 'charmed': {'minVehs': 4},
+ 'tacticalAdvantage': {'maxLevel': 7},
+ 'secretOperations': {'minGroupLen': 2},
+ 'shoulderToShoulder': {'minKills': 12,
+                        'minDamageDealt': 30000},
+ 'aloneInTheField': {'minDamageDealt': 10000},
+ 'fallenFlags': {'minFlags': 4},
+ 'effectiveSupport': {'minDamageDealt': 2000},
+ 'falloutDieHard': {'minKills': 5,
+                    'minDamageDealt': 10000},
+ 'predator': {'minKills': 5},
+ 'champion': {'minKills': 5,
+              'minDamageDealt': 10000,
+              'minFlagsCapture': 3},
+ 'bannerman': {'minFlagsCapture': 4}}
+# okay decompiling ./res/scripts/common/arena_achievements.pyc

@@ -1,27 +1,33 @@
-# 2013.11.15 11:27:27 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/VehicleGunRotator.py
-import BigWorld, Math
+import BigWorld
+import Math
 import weakref
 import math
-from AvatarInputHandler.CallbackDelayer import CallbackDelayer, TimeDeltaMeter
-from account_helpers.SettingsCore import g_settingsCore
+from AvatarInputHandler import AimingSystems, mathUtils
+from helpers.CallbackDelayer import CallbackDelayer
 from constants import SERVER_TICK_LENGTH, SHELL_TRAJECTORY_EPSILON_CLIENT, AIMING_MODE
+import ProjectileMover
 from projectile_trajectory import getShotAngles
-from ProjectileMover import collideDynamicAndStatic, collideVehiclesAndStaticScene
 from debug_utils import *
 from math import pi, sin, cos, atan, atan2, sqrt, fmod
 from projectile_trajectory import computeProjectileTrajectory
-from ModelHitTester import segmentMayHitVehicle
 import BattleReplay
 from gun_rotation_shared import calcPitchLimitsFromDesc
-from account_helpers.AccountSettings import AccountSettings
+import SoundGroups
+from vehicle_systems.tankStructure import TankPartNames
+from helpers import gEffectsDisabled
 _ENABLE_TURRET_ROTATOR_SOUND = True
+_ENABLE_RELATIVE_SHOT_POINT = True
+g__attachToCam = False
 
 class VehicleGunRotator(object):
     __INSUFFICIENT_TIME_DIFF = 0.02
     __MAX_TIME_DIFF = 0.2
+    __ANGLE_EPS = 0.001
     __ROTATION_TICK_LENGTH = SERVER_TICK_LENGTH
     USE_LOCK_PREDICTION = True
+    soundEffect = property(lambda self: self.__turretRotationSoundEffect)
 
     def __init__(self, avatar):
         self.__avatar = weakref.proxy(avatar)
@@ -35,7 +41,7 @@ class VehicleGunRotator(object):
         self.__turretYaw = 0.0
         self.__gunPitch = 0.0
         self.__turretRotationSpeed = 0.0
-        self.__dispersionAngle = 0.0
+        self.__dispersionAngles = [0.0, 0.0]
         self.__markerInfo = (Math.Vector3(0.0, 0.0, 0.0), Math.Vector3(0.0, 1.0, 0.0), 1.0)
         self.__clientMode = True
         self.__showServerMarker = False
@@ -45,8 +51,11 @@ class VehicleGunRotator(object):
         self.__gunMatrixAnimator = _MatrixAnimator(self.__avatar)
         self.__isLocked = False
         self.estimatedTurretRotationTime = 0
-        self.__turretRotationSoundEffect = _PlayerTurretRotationSoundEffect()
-        BigWorld.player().inputHandler.onCameraChanged += self.__onCameraChanged
+        if not gEffectsDisabled():
+            self.__turretRotationSoundEffect = _PlayerTurretRotationSoundEffectWWISE()
+        else:
+            self.__turretRotationSoundEffect = None
+        g__attachToCam = False
         return
 
     def destroy(self):
@@ -55,8 +64,9 @@ class VehicleGunRotator(object):
         self.__gunMatrixAnimator.destroy(self.__avatar)
         self.__avatar = None
         self.__shotPointSourceFunctor = None
-        self.__turretRotationSoundEffect.destroy()
-        BigWorld.player().inputHandler.onCameraChanged -= self.__onCameraChanged
+        if self.__turretRotationSoundEffect is not None:
+            self.__turretRotationSoundEffect.destroy()
+            self.__turretRotationSoundEffect = None
         return
 
     def start(self):
@@ -67,8 +77,9 @@ class VehicleGunRotator(object):
         elif not self.__avatar.isOnArena or not self.__avatar.isVehicleAlive:
             return
         else:
-            self.showServerMarker = g_settingsCore.getSetting('useServerAim')
+            from account_helpers.settings_core.SettingsCore import g_settingsCore
             g_settingsCore.onSettingsChanged += self.applySettings
+            self.showServerMarker = g_settingsCore.getSetting('useServerAim')
             self.__isStarted = True
             self.__updateGunMarker()
             self.__timerID = BigWorld.callback(self.__ROTATION_TICK_LENGTH, self.__onTick)
@@ -76,29 +87,43 @@ class VehicleGunRotator(object):
                 self.__time = BigWorld.time()
                 if self.__showServerMarker:
                     self.__avatar.inputHandler.showGunMarker2(True)
+            if self.__turretRotationSoundEffect is None and not gEffectsDisabled:
+                self.__turretRotationSoundEffect = _PlayerTurretRotationSoundEffectWWISE()
+            BigWorld.player().inputHandler.onCameraChanged += self.__onCameraChanged
+            return
+
+    def stop(self):
+        BigWorld.player().inputHandler.onCameraChanged -= self.__onCameraChanged
+        if self.__timerID is not None:
+            BigWorld.cancelCallback(self.__timerID)
+            self.__timerID = None
+        if self.__turretRotationSoundEffect is not None:
+            self.__turretRotationSoundEffect.destroy()
+            self.__turretRotationSoundEffect = None
+        if not self.__isStarted:
+            return
+        else:
+            from account_helpers.settings_core.SettingsCore import g_settingsCore
+            g_settingsCore.onSettingsChanged -= self.applySettings
+            if self.__avatar.inputHandler is None:
+                return
+            if self.__clientMode and self.__showServerMarker:
+                self.__avatar.inputHandler.showGunMarker2(False)
+            self.__isStarted = False
             return
 
     def applySettings(self, diff):
         if 'useServerAim' in diff:
             self.showServerMarker = diff['useServerAim']
 
-    def stop(self):
-        if not self.__isStarted:
-            return
-        else:
-            if self.__timerID is not None:
-                BigWorld.cancelCallback(self.__timerID)
-                self.__timerID = None
-            if self.__avatar.inputHandler is None:
-                return
-            if self.__clientMode and self.__showServerMarker:
-                self.__avatar.inputHandler.showGunMarker2(False)
-            g_settingsCore.onSettingsChanged -= self.applySettings
-            self.__isStarted = False
-            return
-
     def lock(self, isLocked):
         self.__isLocked = isLocked
+
+    def reset(self):
+        self.__turretYaw = self.__gunPitch = 0.0
+        self.__updateTurretMatrix(0.0, 0.0)
+        self.__updateGunMatrix(0.0, 0.0)
+        self.__isLocked = False
 
     def update(self, turretYaw, gunPitch, maxTurretRotationSpeed, maxGunRotationSpeed):
         if self.__timerID is None or maxTurretRotationSpeed < self.__maxTurretRotationSpeed:
@@ -109,47 +134,65 @@ class VehicleGunRotator(object):
         self.__maxTurretRotationSpeed = maxTurretRotationSpeed
         self.__maxGunRotationSpeed = maxGunRotationSpeed
         self.__turretRotationSpeed = 0.0
-        self.__dispersionAngle = self.__avatar.getOwnVehicleShotDispersionAngle(0.0)
+        self.__dispersionAngles = self.__avatar.getOwnVehicleShotDispersionAngle(0.0)
         self.start()
         return
 
     def setShotPosition(self, shotPos, shotVec, dispersionAngle):
         if self.__clientMode and not self.__showServerMarker:
             return
-        self.__dispersionAngle = dispersionAngle
-        if not self.__clientMode and VehicleGunRotator.USE_LOCK_PREDICTION:
-            lockEnabled = BigWorld.player().inputHandler.getAimingMode(AIMING_MODE.TARGET_LOCK)
-            if lockEnabled:
-                predictedTargetPos = self.__predictLockedTargetShotPoint()
-                dirToTarget = predictedTargetPos - shotPos
-                dirToTarget.normalise()
-                shotDir = Math.Vector3(shotVec)
-                shotDir.normalise()
-                if shotDir.dot(dirToTarget) > 0.0:
-                    return
-        markerPos, markerDir, markerSize, collData = self.__getGunMarkerPosition(shotPos, shotVec, dispersionAngle)
-        if self.__clientMode and self.__showServerMarker:
-            self.__avatar.inputHandler.updateGunMarker2(markerPos, markerDir, markerSize, SERVER_TICK_LENGTH, collData)
-        if not self.__clientMode:
-            self.__lastShotPoint = markerPos
-            self.__avatar.inputHandler.updateGunMarker(markerPos, markerDir, markerSize, SERVER_TICK_LENGTH, collData)
-            self.__turretYaw, self.__gunPitch = getShotAngles(self.__avatar.vehicleTypeDescriptor, self.__avatar.getOwnVehicleMatrix(), (self.__turretYaw, self.__gunPitch), markerPos, True)
-            self.__updateTurretMatrix(self.__turretYaw, SERVER_TICK_LENGTH)
-            self.__updateGunMatrix(self.__gunPitch, SERVER_TICK_LENGTH)
-            self.__markerInfo = (markerPos, markerDir, markerSize)
+        else:
+            self.__dispersionAngles[0] = dispersionAngle
+            if not self.__clientMode and VehicleGunRotator.USE_LOCK_PREDICTION:
+                lockEnabled = BigWorld.player().inputHandler.getAimingMode(AIMING_MODE.TARGET_LOCK)
+                if lockEnabled:
+                    predictedTargetPos = self.predictLockedTargetShotPoint()
+                    if predictedTargetPos is None:
+                        return
+                    dirToTarget = predictedTargetPos - shotPos
+                    dirToTarget.normalise()
+                    shotDir = Math.Vector3(shotVec)
+                    shotDir.normalise()
+                    if shotDir.dot(dirToTarget) > 0.0:
+                        return
+            markerPos, markerDir, markerSize, idealMarkerSize, collData = self.__getGunMarkerPosition(shotPos, shotVec, self.__dispersionAngles)
+            replayCtrl = BattleReplay.g_replayCtrl
+            if replayCtrl.isRecording:
+                replayCtrl.setGunMarkerParams(markerSize, markerPos, markerDir)
+            if self.__clientMode and self.__showServerMarker:
+                self.__avatar.inputHandler.updateGunMarker2(markerPos, markerDir, (markerSize, idealMarkerSize), SERVER_TICK_LENGTH, collData)
+            if not self.__clientMode:
+                self.__lastShotPoint = markerPos
+                self.__avatar.inputHandler.updateGunMarker(markerPos, markerDir, (markerSize, idealMarkerSize), SERVER_TICK_LENGTH, collData)
+                self.__turretYaw, self.__gunPitch = getShotAngles(self.__avatar.vehicleTypeDescriptor, self.__avatar.getOwnVehicleStabilisedMatrix(), (self.__turretYaw, self.__gunPitch), markerPos, True)
+                descr = self.__avatar.vehicleTypeDescriptor
+                turretYawLimits = descr.gun['turretYawLimits']
+                closestLimit = self.__isOutOfLimits(self.__turretYaw, turretYawLimits)
+                if closestLimit is not None:
+                    self.__turretYaw = closestLimit
+                self.__updateTurretMatrix(self.__turretYaw, SERVER_TICK_LENGTH)
+                self.__updateGunMatrix(self.__gunPitch, SERVER_TICK_LENGTH)
+                self.__markerInfo = (markerPos, markerDir, markerSize)
+            return
 
-    def __predictLockedTargetShotPoint(self):
+    def predictLockedTargetShotPoint(self):
         autoAimVehicle = BigWorld.player().autoAimVehicle
         if autoAimVehicle is not None:
             autoAimPosition = Math.Vector3(autoAimVehicle.position)
-            autoAimPosition.y += autoAimVehicle.typeDescriptor.chassis['hullPosition'].y + autoAimVehicle.typeDescriptor.hull['turretPositions'][0].y
+            td = autoAimVehicle.typeDescriptor
+            hullBox = td.hull['hitTester'].bbox
+            middleX = (hullBox[0][0] + hullBox[1][0]) / 2.0
+            middleZ = (hullBox[0][2] + hullBox[1][2]) / 2.0
+            hullPosition = Math.Vector3(middleX, td.chassis['hullPosition'][1], middleZ)
+            offset = td.hull['turretPositions'][0] / 2.0 + hullPosition
+            autoAimPosition += Math.Matrix(autoAimVehicle.matrix).applyVector(offset)
             return autoAimPosition
         else:
             return
 
-    def getShotParams(self, targetPoint, ignoreYawLimits = False):
+    def getShotParams(self, targetPoint, ignoreYawLimits=False):
         descr = self.__avatar.vehicleTypeDescriptor
-        shotTurretYaw, shotGunPitch = getShotAngles(descr, self.__avatar.getOwnVehicleMatrix(), (self.__turretYaw, self.__gunPitch), targetPoint)
+        shotTurretYaw, shotGunPitch = getShotAngles(descr, self.__avatar.getOwnVehicleStabilisedMatrix(), (self.__turretYaw, self.__gunPitch), targetPoint)
         gunPitchLimits = calcPitchLimitsFromDesc(shotTurretYaw, descr.gun['pitchLimits'])
         closestLimit = self.__isOutOfLimits(shotGunPitch, gunPitchLimits)
         if closestLimit is not None:
@@ -177,6 +220,9 @@ class VehicleGunRotator(object):
     clientMode = property(lambda self: self.__clientMode, __set_clientMode)
 
     def __set_showServerMarker(self, value):
+        replayCtrl = BattleReplay.g_replayCtrl
+        if replayCtrl.isPlaying:
+            return
         if self.__showServerMarker == value:
             return
         self.__showServerMarker = value
@@ -203,22 +249,16 @@ class VehicleGunRotator(object):
     shotPointSourceFunctor = property(lambda self: self.__shotPointSourceFunctor, __set_shotPointSourceFunctor)
 
     def __shotPointSourceFunctor_Default(self):
-        pt = None
-        replayCtrl = BattleReplay.g_replayCtrl
-        if replayCtrl.isPlaying:
-            pt = replayCtrl.getGunRotatorTargetPoint()
-        else:
-            pt = self.__avatar.inputHandler.getDesiredShotPoint()
-            if replayCtrl.isRecording:
-                if pt is not None:
-                    replayCtrl.setGunRotatorTargetPoint(pt)
-        return pt
+        return self.__avatar.inputHandler.getDesiredShotPoint()
 
     turretMatrix = property(lambda self: self.__turretMatrixAnimator.matrix)
     gunMatrix = property(lambda self: self.__gunMatrixAnimator.matrix)
     turretRotationSpeed = property(lambda self: self.__turretRotationSpeed)
-    dispersionAngle = property(lambda self: self.__dispersionAngle)
+    maxturretRotationSpeed = property(lambda self: self.__maxTurretRotationSpeed)
+    dispersionAngle = property(lambda self: self.__dispersionAngles[0])
     markerInfo = property(lambda self: self.__markerInfo)
+    turretYaw = property(lambda self: self.__turretYaw)
+    gunPitch = property(lambda self: self.__gunPitch)
 
     def __onTick(self):
         self.__timerID = BigWorld.callback(self.__ROTATION_TICK_LENGTH, self.__onTick)
@@ -228,10 +268,17 @@ class VehicleGunRotator(object):
         if not self.__clientMode and not replayCtrl.isPlaying and not usePredictedLockShotPoint:
             return
         else:
-            predictedLockShotPoint = self.__predictLockedTargetShotPoint() if usePredictedLockShotPoint else None
-            shotPoint = self.__shotPointSourceFunctor() if predictedLockShotPoint is None else predictedLockShotPoint
+            replayCtrl = BattleReplay.g_replayCtrl
+            if replayCtrl.isPlaying:
+                shotPoint = replayCtrl.getGunRotatorTargetPoint()
+            else:
+                predictedLockShotPoint = self.predictLockedTargetShotPoint() if usePredictedLockShotPoint else None
+                shotPoint = self.__shotPointSourceFunctor() if predictedLockShotPoint is None else predictedLockShotPoint
             if shotPoint is None and self.__targetLastShotPoint:
                 shotPoint = self.__lastShotPoint
+            if replayCtrl.isRecording:
+                if shotPoint is not None:
+                    replayCtrl.setGunRotatorTargetPoint(shotPoint)
             self.__updateShotPointOnServer(shotPoint)
             timeDiff = self.__getTimeDiff()
             if timeDiff is None:
@@ -239,6 +286,8 @@ class VehicleGunRotator(object):
             self.__time = BigWorld.time()
             self.__rotate(shotPoint, timeDiff)
             self.__updateGunMarker()
+            if replayCtrl.isPlaying:
+                replayCtrl.resetUpdateGunOnTimeWarp()
             return
 
     def __getTimeDiff(self):
@@ -255,20 +304,25 @@ class VehicleGunRotator(object):
             return
         else:
             self.__prevSentShotPoint = shotPoint
+            avatar = self.__avatar
             if shotPoint is None:
-                self.__avatar.base.vehicle_stopTrackingWithGun(self.__turretYaw, self.__gunPitch)
+                avatar.base.vehicle_stopTrackingWithGun(self.__turretYaw, self.__gunPitch)
             else:
-                vehicle = BigWorld.entity(self.__avatar.playerVehicleID)
-                if vehicle is not None:
-                    vehicle.cell.trackPointWithGun(shotPoint)
+                vehicle = BigWorld.entity(avatar.playerVehicleID)
+                if vehicle is not None and vehicle is avatar.vehicle:
+                    if _ENABLE_RELATIVE_SHOT_POINT:
+                        shotPoint = shotPoint - Math.Matrix(avatar.getOwnVehicleStabilisedMatrix()).translation
+                        vehicle.cell.trackRelativePointWithGun(shotPoint)
+                    else:
+                        vehicle.cell.trackWorldPointWithGun(shotPoint)
                 else:
-                    self.__avatar.base.vehicle_trackPointWithGun(shotPoint)
+                    avatar.base.vehicle_trackWorldPointWithGun(shotPoint)
             return
 
     def __rotate(self, shotPoint, timeDiff):
         self.__turretRotationSpeed = 0.0
         if shotPoint is None or self.__isLocked:
-            self.__dispersionAngle = self.__avatar.getOwnVehicleShotDispersionAngle(0.0)
+            self.__dispersionAngles = self.__avatar.getOwnVehicleShotDispersionAngle(0.0)
             return
         else:
             avatar = self.__avatar
@@ -276,29 +330,41 @@ class VehicleGunRotator(object):
             turretYawLimits = descr.gun['turretYawLimits']
             maxTurretRotationSpeed = self.__maxTurretRotationSpeed
             prevTurretYaw = self.__turretYaw
-            shotTurretYaw, shotGunPitch = getShotAngles(descr, avatar.getOwnVehicleMatrix(), (prevTurretYaw, self.__gunPitch), shotPoint)
+            shotTurretYaw, shotGunPitch = getShotAngles(descr, avatar.getOwnVehicleStabilisedMatrix(), (prevTurretYaw, self.__gunPitch), shotPoint)
             self.__turretYaw = turretYaw = self.__getNextTurretYaw(prevTurretYaw, shotTurretYaw, maxTurretRotationSpeed * timeDiff, turretYawLimits)
             if maxTurretRotationSpeed != 0:
                 self.estimatedTurretRotationTime = abs(turretYaw - shotTurretYaw) / maxTurretRotationSpeed
             else:
                 self.estimatedTurretRotationTime = 0
             gunPitchLimits = calcPitchLimitsFromDesc(turretYaw, descr.gun['pitchLimits'])
-            self.__gunPitch = self.__getNextGunPitch(self.__gunPitch, shotGunPitch, self.__maxGunRotationSpeed * timeDiff, gunPitchLimits)
-            self.__updateTurretMatrix(turretYaw, self.__ROTATION_TICK_LENGTH)
-            self.__updateGunMatrix(self.__gunPitch, self.__ROTATION_TICK_LENGTH)
+            self.__gunPitch = self.__getNextGunPitch(self.__gunPitch, shotGunPitch, timeDiff, gunPitchLimits)
+            replayCtrl = BattleReplay.g_replayCtrl
+            if replayCtrl.isPlaying and replayCtrl.isUpdateGunOnTimeWarp:
+                self.__updateTurretMatrix(turretYaw, 0.001)
+                self.__updateGunMatrix(self.__gunPitch, 0.001)
+            else:
+                self.__updateTurretMatrix(turretYaw, self.__ROTATION_TICK_LENGTH)
+                self.__updateGunMatrix(self.__gunPitch, self.__ROTATION_TICK_LENGTH)
             diff = abs(turretYaw - prevTurretYaw)
             if diff > pi:
                 diff = 2 * pi - diff
             self.__turretRotationSpeed = diff / timeDiff
-            self.__dispersionAngle = avatar.getOwnVehicleShotDispersionAngle(self.__turretRotationSpeed)
+            self.__dispersionAngles = avatar.getOwnVehicleShotDispersionAngle(self.__turretRotationSpeed)
             return
 
     def __updateGunMarker(self):
         shotPos, shotVec = self.__getCurShotPosition()
-        markerPos, markerDir, markerSize, collData = self.__getGunMarkerPosition(shotPos, shotVec, self.__dispersionAngle)
+        markerPos, markerDir, markerSize, idealMarkerSize, collData = self.__getGunMarkerPosition(shotPos, shotVec, self.__dispersionAngles)
+        replayCtrl = BattleReplay.g_replayCtrl
+        if replayCtrl.isRecording and not replayCtrl.isServerAim:
+            replayCtrl.setGunMarkerParams(markerSize, markerPos, markerDir)
         if not self.__targetLastShotPoint:
             self.__lastShotPoint = markerPos
-        self.__avatar.inputHandler.updateGunMarker(markerPos, markerDir, markerSize, self.__ROTATION_TICK_LENGTH, collData)
+        replayCtrl = BattleReplay.g_replayCtrl
+        if replayCtrl.isPlaying and replayCtrl.isUpdateGunOnTimeWarp:
+            self.__avatar.inputHandler.updateGunMarker(markerPos, markerDir, (markerSize, idealMarkerSize), 0.001, collData)
+        else:
+            self.__avatar.inputHandler.updateGunMarker(markerPos, markerDir, (markerSize, idealMarkerSize), self.__ROTATION_TICK_LENGTH, collData)
         self.__markerInfo = (markerPos, markerDir, markerSize)
 
     def __getNextTurretYaw(self, curAngle, shotAngle, speedLimit, angleLimits):
@@ -307,8 +373,8 @@ class VehicleGunRotator(object):
             turretYaw = replayCtrl.getTurretYaw()
             if turretYaw > -100000:
                 return turretYaw
-        if curAngle == shotAngle:
-            return curAngle
+        if math.fabs(curAngle - shotAngle) < VehicleGunRotator.__ANGLE_EPS:
+            return shotAngle
         shortWayDiff, longWayDiff = self.__getRotationWays(curAngle, shotAngle)
         if speedLimit < 1e-05:
             return curAngle
@@ -326,10 +392,10 @@ class VehicleGunRotator(object):
 
     def __getRotationWays(self, curAngle, shotAngle):
         shotDiff1 = shotAngle - curAngle
-        if shotDiff1 < 0:
-            shotDiff2 = 2 * pi + shotDiff1
+        if shotDiff1 < 0.0:
+            shotDiff2 = 2.0 * pi + shotDiff1
         else:
-            shotDiff2 = -2 * pi + shotDiff1
+            shotDiff2 = -2.0 * pi + shotDiff1
         if abs(shotDiff1) <= pi:
             return (shotDiff1, shotDiff2)
         else:
@@ -374,23 +440,33 @@ class VehicleGunRotator(object):
         else:
             return fmod(-pi + angle + max(diff, -limit), dpi) + pi
 
-    def __getNextGunPitch(self, curAngle, shotAngle, speedLimit, angleLimits):
+    def __getNextGunPitch(self, curAngle, shotAngle, timeDiff, angleLimits):
         replayCtrl = BattleReplay.g_replayCtrl
         if replayCtrl.isPlaying:
             gunPitch = replayCtrl.getGunPitch()
             if gunPitch > -100000:
                 return gunPitch
-        if curAngle == shotAngle:
-            return curAngle
+        if self.__maxGunRotationSpeed == 0.0:
+            shotAngle = curAngle
+            shotDiff = 0.0
+            descr = self.__avatar.vehicleTypeDescriptor
+            speedLimit = descr.gun['rotationSpeed'] * timeDiff
         else:
+            if math.fabs(curAngle - shotAngle) < VehicleGunRotator.__ANGLE_EPS:
+                if angleLimits is not None:
+                    return mathUtils.clamp(angleLimits[0], angleLimits[1], shotAngle)
+                else:
+                    return shotAngle
             shotDiff = shotAngle - curAngle
-            if angleLimits is not None:
-                if shotAngle < angleLimits[0]:
-                    shotDiff = angleLimits[0] - curAngle
-                elif shotAngle > angleLimits[1]:
-                    shotDiff = angleLimits[1] - curAngle
-            if shotDiff > 0:
-                return curAngle + min(shotDiff, speedLimit)
+            speedLimit = self.__maxGunRotationSpeed * timeDiff
+        if angleLimits is not None:
+            if shotAngle < angleLimits[0]:
+                shotDiff = angleLimits[0] - curAngle
+            elif shotAngle > angleLimits[1]:
+                shotDiff = angleLimits[1] - curAngle
+        if shotDiff > 0.0:
+            return curAngle + min(shotDiff, speedLimit)
+        else:
             return curAngle + max(shotDiff, -speedLimit)
             return
 
@@ -402,7 +478,7 @@ class VehicleGunRotator(object):
         turretWorldMatrix = Math.Matrix()
         turretWorldMatrix.setRotateY(turretYaw)
         turretWorldMatrix.translation = turretOffs
-        turretWorldMatrix.postMultiply(Math.Matrix(self.__avatar.getOwnVehicleMatrix()))
+        turretWorldMatrix.postMultiply(Math.Matrix(self.__avatar.getOwnVehicleStabilisedMatrix()))
         position = turretWorldMatrix.applyPoint(gunOffs)
         gunWorldMatrix = Math.Matrix()
         gunWorldMatrix.setRotateX(gunPitch)
@@ -413,22 +489,15 @@ class VehicleGunRotator(object):
     def __getCurShotPosition(self):
         return self.__getShotPosition(self.__turretYaw, self.__gunPitch)
 
-    def __getGunMarkerPosition(self, shotPos, shotVec, dispersionAngle):
+    def __getGunMarkerPosition(self, shotPos, shotVec, dispersionAngles):
         shotDescr = self.__avatar.vehicleTypeDescriptor.shot
         gravity = Math.Vector3(0.0, -shotDescr['gravity'], 0.0)
         maxDist = shotDescr['maxDistance']
-        vehicles = []
         testStartPoint = shotPos
         testEndPoint = shotPos + shotVec * 10000.0
-        for vehicleID in BigWorld.player().arena.vehicles.iterkeys():
-            if vehicleID == self.__avatar.playerVehicleID:
-                continue
-            vehicle = BigWorld.entity(vehicleID)
-            if vehicle is None or not vehicle.isStarted:
-                continue
-            if segmentMayHitVehicle(vehicle.typeDescriptor, testStartPoint, testEndPoint, vehicle.position):
-                vehicles.append(vehicle)
-
+        testEntities = ProjectileMover.getCollidableEntities((self.__avatar.playerVehicleID,), testStartPoint, testEndPoint)
+        collideVehiclesAndStaticScene = ProjectileMover.collideVehiclesAndStaticScene
+        collideWithSpaceBB = self.__avatar.arena.collideWithSpaceBB
         prevPos = shotPos
         prevVelocity = shotVec
         dt = 0.0
@@ -439,14 +508,16 @@ class VehicleGunRotator(object):
             prevCheckPoint = prevPos
             bBreak = False
             for curCheckPoint in checkPoints:
-                testRes = collideVehiclesAndStaticScene(prevCheckPoint, curCheckPoint, vehicles)
+                testRes = collideVehiclesAndStaticScene(prevCheckPoint, curCheckPoint, testEntities)
                 if testRes is not None:
                     collData = testRes[1]
+                    if collData is not None and not collData.isVehicle():
+                        collData = None
                     dir = testRes[0] - prevCheckPoint
                     endPos = testRes[0]
                     bBreak = True
                     break
-                pos = self.__avatar.arena.collideWithSpaceBB(prevCheckPoint, curCheckPoint)
+                pos = collideWithSpaceBB(prevCheckPoint, curCheckPoint)
                 if pos is not None:
                     collData = None
                     maxDistCheckFlag = True
@@ -463,22 +534,23 @@ class VehicleGunRotator(object):
 
         dir.normalise()
         distance = (endPos - shotPos).length
-        markerDiameter = 2.0 * distance * dispersionAngle
+        markerDiameter = 2.0 * distance * dispersionAngles[0]
+        idealMarkerDiameter = 2.0 * distance * dispersionAngles[1]
         if maxDistCheckFlag:
             if endPos.distTo(shotPos) >= maxDist:
                 dir = endPos - shotPos
                 dir.normalise()
                 endPos = shotPos + dir.scale(maxDist)
                 distance = maxDist
-                markerDiameter = 2.0 * distance * dispersionAngle
+                markerDiameter = 2.0 * distance * dispersionAngles[0]
+                idealMarkerDiameter = 2.0 * distance * dispersionAngles[1]
         replayCtrl = BattleReplay.g_replayCtrl
         if replayCtrl.isPlaying and replayCtrl.isClientReady:
             markerDiameter, endPos, dir = replayCtrl.getGunMarkerParams(endPos, dir)
-        elif replayCtrl.isRecording:
-            replayCtrl.setGunMarkerParams(markerDiameter, endPos, dir)
         return (endPos,
          dir,
          markerDiameter,
+         idealMarkerDiameter,
          collData)
 
     def __updateTurretMatrix(self, yaw, time):
@@ -497,8 +569,11 @@ class VehicleGunRotator(object):
         if replayCtrl.isRecording:
             replayCtrl.setGunPitch(pitch)
 
-    def __onCameraChanged(self, cameraName, currentVehicleId = None):
-        self.__turretRotationSoundEffect.enable(cameraName == 'sniper' and _ENABLE_TURRET_ROTATOR_SOUND)
+    def __onCameraChanged(self, cameraName, currentVehicleId=None):
+        if self.__turretRotationSoundEffect is not None:
+            self.__turretRotationSoundEffect.enable(_ENABLE_TURRET_ROTATOR_SOUND)
+        g__attachToCam = cameraName == 'sniper'
+        return
 
 
 class _MatrixAnimator(object):
@@ -520,91 +595,282 @@ class _MatrixAnimator(object):
         self.__animMat.time = 0.0
 
 
-class _PlayerTurretRotationSoundEffect(CallbackDelayer, TimeDeltaMeter):
-    __TURRET_MIN_YAW_SPEED = 0.001
-    __SOUND_PARAM_DAMAGED = 'manual_traverse'
+class _PlayerTurretRotationSoundEffect(CallbackDelayer):
+    __MIN_ANGLE_TO_ENABLE_MANUAL = math.radians(0.1)
+    __MIN_ANGLE_TO_ENABLE_GEAR = math.radians(10.0)
+    __GEAR_KEYOFF_PARAM = 'on_off'
+    __MANUAL_WAIT_TIME = 0.4
+    __GEAR_DELAY_TIME = 0.2
+    __GEAR_STOP_DELAY_TIME = 0.2
+    __SPEED_IDLE = 0
+    __SPEED_SLOW = 1
+    __SPEED_PRE_FAST = 2
+    __SPEED_FAST = 3
 
-    def __init__(self, updatePeriod = 0.0):
+    def __init__(self, updatePeriod=0.0):
         CallbackDelayer.__init__(self)
-        TimeDeltaMeter.__init__(self)
         self.__updatePeriod = updatePeriod
-        self.__turretSound = None
-        self.__prevTurretYaw = None
+        self.__currentSpeedState = self.__SPEED_IDLE
+        self.__keyOffCalled = False
+        self.__manualSound = None
+        self.__gearSound = None
+        self.__gearDamagedParam = None
+        self.__manGearDamagedParam = None
+        self.__gearKeyOffParam = None
+        self.__stateTable = ((None,
+          self.__startManualSound,
+          self.__initHighSpeed,
+          None),
+         (self.__stopManualSound,
+          None,
+          self.__initHighSpeed,
+          None),
+         (self.__stopManualSound,
+          self.__startManualSoundFromFast,
+          None,
+          None),
+         (self.__stopGearSoundPlaying,
+          self.__startManualSoundFromFast,
+          None,
+          self.__checkGearSound))
+        self.__init_sound()
+        return
+
+    def __init_sound(self):
+        if _ENABLE_TURRET_ROTATOR_SOUND:
+            self.__manualSound = self.__getTurretSound(BigWorld.player().vehicleTypeDescriptor, 'turretRotatorSoundManual')
+            if self.__manualSound is not None:
+                self.__manGearDamagedParam = self.__manualSound.param('turret_damaged')
+            self.__gearSound = self.__getTurretSound(BigWorld.player().vehicleTypeDescriptor, 'turretRotatorSoundGear')
+            if self.__gearSound is not None:
+                self.__gearDamagedParam = self.__gearSound.param('turret_damaged')
+                self.__gearKeyOffParam = self.__gearSound.param(_PlayerTurretRotationSoundEffect.__GEAR_KEYOFF_PARAM)
         return
 
     def destroy(self):
         CallbackDelayer.destroy(self)
-        if self.__turretSound is not None:
-            self.__turretSound.stop()
+        if self.__manualSound is not None:
+            self.__manualSound.stop()
+        if self.__gearSound is not None:
+            self.__gearSound.stop()
+        self.__stateTable = None
         return
 
     def enable(self, enableSound):
         if enableSound:
-            self.measureDeltaTime()
             self.delayCallback(self.__updatePeriod, self.__update)
-            if self.__turretSound is None:
-                self.__turretSound = self.__getSound()
-            if self.__turretSound is not None:
-                self.__turretSound.play()
         else:
-            if self.__turretSound is not None:
-                self.__turretSound.stop()
-            self.__prevTurretYaw = None
-            self.stopCallback(self.__update)
+            CallbackDelayer.destroy(self)
+            if self.__manualSound is not None:
+                self.__manualSound.stop()
+            if self.__gearSound is not None:
+                self.__gearSound.stop()
         return
 
-    def __getSound(self):
-        turretDesc = BigWorld.player().vehicleTypeDescriptor.turret
-        eventName = turretDesc['turretRotatorSound']['event']
-        if eventName != '':
-            return BigWorld.getSound(eventName)
+    def __getTurretSound(self, vehicleTypDescriptor, soundName):
+        event = vehicleTypDescriptor.turret[soundName]
+        if event is not None and event != '':
+            return SoundGroups.g_instance.getSound2D(event)
         else:
-            return None
+            return
+            return
 
     def __update(self):
-        deltaTime = self.measureDeltaTime()
         player = BigWorld.player()
+        vehicleTypeDescriptor = player.vehicleTypeDescriptor
         gunRotator = player.gunRotator
-        currYaw = Math.Matrix(gunRotator.turretMatrix).yaw
-        if self.__prevTurretYaw is None or self.__turretSound is None:
-            self.__prevTurretYaw = currYaw
-            return self.__updatePeriod
+        turretYaw = gunRotator.turretYaw
+        desiredShotPoint = gunRotator.predictLockedTargetShotPoint()
+        if desiredShotPoint is None:
+            desiredShotPoint = player.inputHandler.getDesiredShotPoint()
+        if desiredShotPoint is None:
+            desiredShotPoint = gunRotator.markerInfo[0]
+        cameraTurretYaw, _ = AimingSystems.getTurretYawGunPitch(vehicleTypeDescriptor, player.getOwnVehicleStabilisedMatrix(), desiredShotPoint, True)
+        angleDiff = abs(turretYaw - cameraTurretYaw)
+        if angleDiff > math.pi:
+            angleDiff = 2 * math.pi - angleDiff
+        rotationSpeed = gunRotator.turretRotationSpeed
+        if rotationSpeed < 0.0001:
+            angleDiff = 0.0
+        self.__updateSound(angleDiff)
+        return self.__updatePeriod
+
+    def __updateSound(self, angleDiff):
+        if self.__manualSound is None:
+            return
         else:
-            turretDesc = BigWorld.player().vehicleTypeDescriptor.turret
-            gearTypes = turretDesc['turretRotatorSound']['params']
-            yawSpeed = abs(currYaw - self.__prevTurretYaw) / deltaTime
-            self.__prevTurretYaw = currYaw
-            if yawSpeed >= _PlayerTurretRotationSoundEffect.__TURRET_MIN_YAW_SPEED:
-                param = self.__turretSound.param('speed')
-                if param is not None:
-                    param.value = yawSpeed
-                isTurretDamaged = BigWorld.player().deviceStates.get('turretRotator', None) is not None
-                audibleParams = []
-                ceaseParams = []
-                if not isTurretDamaged:
-                    audibleParams = gearTypes
-                    ceaseParams = [_PlayerTurretRotationSoundEffect.__SOUND_PARAM_DAMAGED] if _PlayerTurretRotationSoundEffect.__SOUND_PARAM_DAMAGED not in gearTypes else []
+            if self.__gearSound is not None and angleDiff >= _PlayerTurretRotationSoundEffect.__MIN_ANGLE_TO_ENABLE_GEAR:
+                if self.__currentSpeedState != self.__SPEED_FAST and self.__currentSpeedState != self.__SPEED_PRE_FAST:
+                    nextSpeedState = self.__SPEED_PRE_FAST
                 else:
-                    audibleParams = [_PlayerTurretRotationSoundEffect.__SOUND_PARAM_DAMAGED]
-                    ceaseParams = [ x for x in gearTypes if x != _PlayerTurretRotationSoundEffect.__SOUND_PARAM_DAMAGED ]
-                traverseValue = 1.0 / len(gearTypes)
-                self.__setTurretSoundParams(self.__turretSound, audibleParams, traverseValue)
-                self.__setTurretSoundParams(self.__turretSound, ceaseParams, 0.0)
+                    nextSpeedState = self.__currentSpeedState
+            elif angleDiff >= _PlayerTurretRotationSoundEffect.__MIN_ANGLE_TO_ENABLE_MANUAL:
+                nextSpeedState = self.__SPEED_SLOW
             else:
-                param = self.__turretSound.param('speed')
-                if param is not None:
-                    param.value = 0.0
-                eventParams = gearTypes + [_PlayerTurretRotationSoundEffect.__SOUND_PARAM_DAMAGED]
-                self.__setTurretSoundParams(self.__turretSound, eventParams, 0.0)
+                nextSpeedState = self.__SPEED_IDLE
+            stateFn = self.__stateTable[self.__currentSpeedState][nextSpeedState]
+            if stateFn is not None:
+                stateFn()
+            self.__currentSpeedState = nextSpeedState
+            if g__attachToCam:
+                __p = BigWorld.camera().position
+            else:
+                __p = BigWorld.player().position
+            isTurretAlive = BigWorld.player().deviceStates.get('turretRotator', None) is None
+            if self.__gearDamagedParam is not None:
+                self.__gearDamagedParam.value = 0.0 if isTurretAlive else 1.0
+            if self.__manGearDamagedParam is not None:
+                self.__manGearDamagedParam.value = 0.0 if isTurretAlive else 1.0
+            if self.__manualSound is not None:
+                self.__manualSound.position = __p
+            if self.__gearSound is not None:
+                self.__gearSound.position = __p
+            return
+
+    def __stopGearByKeyOff(self):
+        if self.__gearSound is not None and self.__gearSound.isPlaying:
+            if self.__gearKeyOffParam is not None:
+                self.__keyOffCalled = True
+                self.__gearKeyOffParam.keyOff()
+            else:
+                self.__gearSound.stop()
+        return
+
+    def __startManualSound(self):
+        self.stopCallback(self.__stopManualSoundCallback)
+        self.__manualSound.play()
+
+    def __stopManualSound(self):
+        if not self.hasDelayedCallback(self.__stopManualSoundCallback) and self.__manualSound.isPlaying:
+            self.delayCallback(_PlayerTurretRotationSoundEffect.__MANUAL_WAIT_TIME, self.__stopManualSoundCallback)
+        self.__stopGearSoundPlaying()
+
+    def __initHighSpeed(self):
+        self.stopCallback(self.__stopGearByKeyOff)
+        self.delayCallback(_PlayerTurretRotationSoundEffect.__GEAR_DELAY_TIME, self.__startGearSoundCallback)
+
+    def __startManualSoundFromFast(self):
+        self.__manualSound.play()
+        self.__stopGearSoundPlaying()
+
+    def __checkGearSound(self):
+        if self.__gearSound.isPlaying is False:
+            self.__gearSound.play()
+
+    def __stopGearSoundPlaying(self):
+        if self.__gearSound is not None:
+            self.stopCallback(self.__startGearSoundCallback)
+            if self.__gearSound.isPlaying and not self.hasDelayedCallback(self.__stopGearByKeyOff):
+                self.delayCallback(_PlayerTurretRotationSoundEffect.__GEAR_STOP_DELAY_TIME, self.__stopGearByKeyOff)
+        return
+
+    def __startGearSoundCallback(self):
+        self.__currentSpeed = self.__SPEED_FAST
+        if self.__manualSound.isPlaying:
+            self.__manualSound.stop()
+        if self.__keyOffCalled:
+            self.__gearSound.stop()
+            self.__keyOffCalled = False
+        self.__gearSound.play()
+
+    def __stopManualSoundCallback(self):
+        self.__manualSound.stop()
+
+
+class _PlayerTurretRotationSoundEffectWWISE(CallbackDelayer):
+    __MIN_ANGLE_TO_ENABLE_MANUAL = math.radians(0.1)
+    __MIN_ANGLE_TO_ENABLE_GEAR = math.radians(10.0)
+    __GEAR_KEYOFF_PARAM = 'on_off'
+    __MANUAL_WAIT_TIME = 0.4
+    __GEAR_DELAY_TIME = 0.2
+    __GEAR_STOP_DELAY_TIME = 0.2
+    __SPEED_IDLE = 0
+    __SPEED_SLOW = 1
+    __SPEED_PRE_FAST = 2
+    __SPEED_FAST = 3
+
+    def __init__(self, updatePeriod=0.1):
+        CallbackDelayer.__init__(self)
+        self.__updatePeriod = updatePeriod
+        self.__currentSpeedState = self.__SPEED_IDLE
+        self.__manualSound = None
+        self.__gearDamagedParam = None
+        self.__oldPitch = 0
+        self.__oldTime = 0
+        self.__init_sound()
+        return
+
+    def __init_sound(self):
+        if BigWorld.player() is not None and BigWorld.player().getVehicleAttached() is not None:
+            compoundModel = BigWorld.player().getVehicleAttached().appearance.compoundModel
+            self.connectSoundToMatrix(compoundModel.node(TankPartNames.TURRET))
+        else:
+            self.connectSoundToMatrix(mathUtils.createIdentityMatrix())
+        self.delayCallback(self.__updatePeriod, self.__update)
+        return
+
+    def connectSoundToMatrix(self, matrixProvider):
+        if self.__manualSound is not None:
+            self.__manualSound.stopAll()
+            self.__manualSound = None
+        event = BigWorld.player().vehicleTypeDescriptor.turret['turretRotatorSoundManual']
+        self.__manualSound = SoundGroups.g_instance.WWgetSoundObject('player_turret', matrixProvider)
+        if self.__manualSound is None:
+            return
+        else:
+            self.__manualSound.setRTPC('RTPC_ext_turret_speed', 0)
+            self.__manualSound.setRTPC('RTPC_ext_turret_angle', 0)
+            self.__manualSound.setRTPC('RTPC_ext_turret_weight', BigWorld.player().vehicleTypeDescriptor.turret['weight'] / 1000.0)
+            self.__manualSound.play(event)
+            return
+
+    def lockSoundMatrix(self):
+        if self.__manualSound is not None:
+            provider = self.__manualSound.matrixProvider
+            self.__manualSound.matrixProvider = Math.Matrix(provider)
+        return
+
+    def destroy(self):
+        CallbackDelayer.destroy(self)
+        if self.__manualSound is not None:
+            self.__manualSound.stopAll()
+            self.__manualSound = None
+        self.__stateTable = None
+        return
+
+    def __update(self):
+        if self.__manualSound is None:
+            return
+        elif not hasattr(BigWorld.player(), 'gunRotator'):
+            return
+        else:
+            p = BigWorld.player().gunRotator
+            if p.maxturretRotationSpeed is not None and p.maxturretRotationSpeed > 0:
+                self.__manualSound.setRTPC('RTPC_ext_turret_speed', p.turretRotationSpeed / p.maxturretRotationSpeed)
+            else:
+                self.__manualSound.setRTPC('RTPC_ext_turret_speed', 0)
+            player = BigWorld.player()
+            vehicleTypeDescriptor = player.vehicleTypeDescriptor
+            gunRotator = player.gunRotator
+            turretYaw = gunRotator.turretYaw
+            desiredShotPoint = gunRotator.predictLockedTargetShotPoint()
+            if desiredShotPoint is None:
+                desiredShotPoint = player.inputHandler.getDesiredShotPoint()
+            if desiredShotPoint is None:
+                desiredShotPoint = gunRotator.markerInfo[0]
+            cameraTurretYaw, _ = AimingSystems.getTurretYawGunPitch(vehicleTypeDescriptor, player.getOwnVehicleStabilisedMatrix(), desiredShotPoint, True)
+            angleDiff = abs(turretYaw - cameraTurretYaw)
+            if angleDiff > math.pi:
+                angleDiff = 2 * math.pi - angleDiff
+            self.__manualSound.setRTPC('RTPC_ext_turret_angle', angleDiff)
+            turretPitch = BigWorld.player().gunRotator.gunPitch
+            self.__manualSound.setRTPC('RTPC_ext_turret_pitch', turretPitch)
+            self.__manualSound.setRTPC('RTPC_ext_turret_pitch_speed', abs(self.__oldPitch - turretPitch) / (BigWorld.time() - self.__oldTime))
+            self.__oldPitch = turretPitch
+            self.__oldTime = BigWorld.time()
+            self.__manualSound.setRTPC('RTPC_ext_turret_damaged', 0 if BigWorld.player().deviceStates.get('turretRotator', None) is None else 1)
             return self.__updatePeriod
 
-    def __setTurretSoundParams(self, turretSound, paramNames, value):
-        for traverse in paramNames:
-            param = turretSound.param(traverse)
-            if param is not None:
-                param.value = value
-
-        return
-# okay decompyling res/scripts/client/vehiclegunrotator.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:28 EST
+    def enable(self, enableSound):
+        pass
+# okay decompiling ./res/scripts/client/vehiclegunrotator.pyc

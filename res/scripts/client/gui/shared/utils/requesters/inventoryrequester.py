@@ -1,21 +1,21 @@
-# 2013.11.15 11:27:05 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/shared/utils/requesters/InventoryRequester.py
 import time
-import types
 from collections import namedtuple, defaultdict
 import BigWorld
 from adisp import async
 from items import vehicles, tankmen, getTypeOfCompactDescr
 from debug_utils import LOG_DEBUG
 from gui.shared.gui_items import GUI_ITEM_TYPE
-from gui.shared.utils.requesters.abstract import RequesterAbstract
+from gui.shared.utils.requesters.abstract import AbstractSyncDataRequester
 
-class InventoryRequester(RequesterAbstract):
+class InventoryRequester(AbstractSyncDataRequester):
     VEH_DATA = namedtuple('VEH_DATA', ','.join(['compDescr',
      'descriptor',
      'invID',
      'repair',
-     'customizations',
+     'customizationExpiryTime',
+     'igrCustomizationLayout',
      'crew',
      'lock',
      'settings',
@@ -24,11 +24,15 @@ class InventoryRequester(RequesterAbstract):
      'eqs',
      'eqsLayout']))
     ITEM_DATA = namedtuple('ITEM_DATA', ','.join(['compDescr', 'descriptor', 'count']))
-    TMAN_DATA = namedtuple('ITEM_DATA', ','.join(['compDescr', 'descriptor', 'vehicle']))
+    TMAN_DATA = namedtuple('TMAN_DATA', ','.join(['compDescr',
+     'descriptor',
+     'vehicle',
+     'invID']))
 
     def __init__(self):
         super(InventoryRequester, self).__init__()
         self.__itemsCache = defaultdict(dict)
+        self.__itemsPreviousCache = defaultdict(dict)
         self.__vehsCDsByID = {}
         self.__vehsIDsByCD = {}
         self.__makers = {GUI_ITEM_TYPE.VEHICLE: self.__makeVehicle,
@@ -36,6 +40,7 @@ class InventoryRequester(RequesterAbstract):
 
     def clear(self):
         self.__itemsCache.clear()
+        self.__itemsPreviousCache.clear()
         self.__vehsCDsByID.clear()
         self.__vehsIDsByCD.clear()
         super(InventoryRequester, self).clear()
@@ -43,12 +48,13 @@ class InventoryRequester(RequesterAbstract):
     def invalidateItem(self, itemTypeID, invIdx):
         cache = self.__itemsCache[itemTypeID]
         if invIdx in cache:
+            self.__itemsPreviousCache[itemTypeID][invIdx] = cache[invIdx]
             del cache[invIdx]
             return True
         return False
 
     @async
-    def _requestCache(self, callback = None):
+    def _requestCache(self, callback=None):
         BigWorld.player().inventory.getCache(lambda resID, value: self._response(resID, value, callback))
 
     def __makeItem(self, itemTypeID, invDataIdx):
@@ -65,6 +71,8 @@ class InventoryRequester(RequesterAbstract):
                 self.__makeTankman(invID)
 
         else:
+            if itemTypeID == 'customizations':
+                return invData
             for typeCompDescr in invData.iterkeys():
                 self.__makeSimpleItem(typeCompDescr)
 
@@ -82,6 +90,9 @@ class InventoryRequester(RequesterAbstract):
     def getVehicleData(self, vehInvID):
         return self.__makeVehicle(vehInvID)
 
+    def getPreviousItem(self, itemTypeID, invDataIdx):
+        return self.__itemsPreviousCache[itemTypeID].get(invDataIdx)
+
     def __getMaker(self, itemTypeID):
         return self.__makers.get(itemTypeID, self.__makeSimpleItem)
 
@@ -95,14 +106,14 @@ class InventoryRequester(RequesterAbstract):
                 return cache[typeCompDescr]
             itemsInvData = self.getCacheValue(GUI_ITEM_TYPE.VEHICLE, {})
 
-            def value(key, default = None):
+            def value(key, default=None):
                 return itemsInvData.get(key, {}).get(vehInvID, default)
 
             compactDescr = value('compDescr')
             if compactDescr is None:
                 return
             try:
-                item = cache[typeCompDescr] = self.VEH_DATA(value('compDescr'), vehicles.VehicleDescr(compactDescr=compactDescr), vehInvID, value('repair', 0), value('customizations', time.time()), value('crew', []), value('lock', 0), value('settings', 0), value('shells', []), value('shellsLayout', []), value('eqs', []), value('eqsLayout', []))
+                item = cache[typeCompDescr] = self.VEH_DATA(value('compDescr'), vehicles.VehicleDescr(compactDescr=compactDescr), vehInvID, value('repair', 0), value('customizationExpiryTime', time.time()), value('igrCustomizationLayout', time.time()), value('crew', []), value('lock', 0), value('settings', 0), value('shells', []), value('shellsLayout', []), value('eqs', []), value('eqsLayout', []))
             except Exception:
                 LOG_DEBUG('Error while building vehicle from inventory', vehInvID, typeCompDescr)
                 return
@@ -116,13 +127,13 @@ class InventoryRequester(RequesterAbstract):
         else:
             itemsInvData = self.getCacheValue(GUI_ITEM_TYPE.TANKMAN, {})
 
-            def value(key, default = None):
+            def value(key, default=None):
                 return itemsInvData.get(key, {}).get(tmanInvID, default)
 
             compactDescr = value('compDescr')
             if compactDescr is None:
                 return
-            item = cache[tmanInvID] = self.TMAN_DATA(compactDescr, tankmen.TankmanDescr(compactDescr), value('vehicle', -1))
+            item = cache[tmanInvID] = self.TMAN_DATA(compactDescr, tankmen.TankmanDescr(compactDescr), value('vehicle', -1), tmanInvID)
             return item
 
     def __makeSimpleItem(self, typeCompDescr):
@@ -148,7 +159,7 @@ class InventoryRequester(RequesterAbstract):
         super(InventoryRequester, self)._response(resID, invData, callback)
         return
 
-    def getItems(self, itemTypeIdx, dataIdx = None):
+    def getItems(self, itemTypeIdx, dataIdx=None):
         """
         Returns inventory items data by given item type. If data index is
         not specified - returns dictionary of items data, otherwise -
@@ -187,7 +198,15 @@ class InventoryRequester(RequesterAbstract):
             return False
         return intCompactDescr in itemsData
 
-    def __getItemsData(self, itemTypeIdx, compactDescr = None):
+    def getIgrCustomizationsLayout(self):
+        """
+        Extracting igr customizations layout
+        
+        @return: layout or empty dict
+        """
+        return self.getCacheValue(GUI_ITEM_TYPE.VEHICLE, {}).get('igrCustomizationLayout', {})
+
+    def __getItemsData(self, itemTypeIdx, compactDescr=None):
         """
         Common items request handler. Returns all given type items
         data or only one specific data by @compactDescr.
@@ -202,7 +221,7 @@ class InventoryRequester(RequesterAbstract):
                 return result.get(compactDescr)
         return result
 
-    def __getTankmenData(self, inventoryID = None):
+    def __getTankmenData(self, inventoryID=None):
         """
         Tankmen inventory data request handler. Returns all tankmen
         data or specific tankman data by given inventory id.
@@ -242,7 +261,7 @@ class InventoryRequester(RequesterAbstract):
 
             return result
 
-    def __getVehiclesData(self, inventoryID = None):
+    def __getVehiclesData(self, inventoryID=None):
         """
         Vehicles inventory data request handler. Returns all vehicles
         data or specific vehicle data by given inventory id.
@@ -281,6 +300,4 @@ class InventoryRequester(RequesterAbstract):
                     result[key] = value
 
             return result
-# okay decompyling res/scripts/client/gui/shared/utils/requesters/inventoryrequester.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:05 EST
+# okay decompiling ./res/scripts/client/gui/shared/utils/requesters/inventoryrequester.pyc

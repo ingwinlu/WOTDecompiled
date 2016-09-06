@@ -1,9 +1,11 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/tutorial/control/summary.py
 from tutorial.control.functional import FunctionalVarSet
 from tutorial.logger import LOG_ERROR, LOG_DEBUG
 
 class _Flag(object):
 
-    def __init__(self, name, active, store = True):
+    def __init__(self, name, active, store=True):
         super(_Flag, self).__init__()
         self.name = name
         self.active = active
@@ -24,7 +26,7 @@ class _Flag(object):
 
 class FlagSummary(object):
 
-    def __init__(self, flagNames, initial = None):
+    def __init__(self, flagNames, initial=None):
         super(FlagSummary, self).__init__()
         if flagNames is None:
             flagNames = []
@@ -32,7 +34,8 @@ class FlagSummary(object):
             initial = {}
         self.__flags = {}
         initialGetter = initial.get
-        for name in flagNames:
+        flagNames.extend(initial.keys())
+        for name in set(flagNames):
             self.__flags[name] = _Flag(name, initialGetter(name, False))
 
         return
@@ -71,15 +74,15 @@ class FlagSummary(object):
 
 class VarSummary(object):
 
-    def __init__(self, varSets):
+    def __init__(self, varSets, runtime=None):
         super(VarSummary, self).__init__()
-        if varSets is None:
-            varSets = []
-        self.__varSets = dict(map(lambda varSet: (varSet.getID(), FunctionalVarSet(varSet)), varSets))
-        self.__runtime = {}
-        return
+        if varSets:
+            self.__varSets = dict(map(lambda varSet: (varSet.getID(), FunctionalVarSet(varSet)), varSets))
+        else:
+            self.__varSets = {}
+        self.__runtime = runtime or {}
 
-    def get(self, varID, default = None):
+    def get(self, varID, default=None):
         if varID in self.__varSets:
             result = self.__varSets[varID].getFirstActual()
         else:
@@ -92,3 +95,4 @@ class VarSummary(object):
         else:
             LOG_DEBUG('Set var {0:>s}'.format(varID), value)
             self.__runtime[varID] = value
+# okay decompiling ./res/scripts/client/tutorial/control/summary.pyc

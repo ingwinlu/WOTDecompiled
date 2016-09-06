@@ -1,8 +1,14 @@
-# 2013.11.15 11:26:30 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/locale/ARTEFACTS.py
 
 
 class ARTEFACTS(object):
+    """
+    DO NOT MODIFY!
+    Generated with yaml.
+    __author__ = 'yaml_processor'
+    null
+    """
     TOOLBOX_NAME = '#artefacts:toolbox/name'
     TOOLBOX_DESCR = '#artefacts:toolbox/descr'
     ANTIFRAGMENTATIONLINING_LIGHT_NAME = '#artefacts:antifragmentationLining_light/name'
@@ -165,6 +171,18 @@ class ARTEFACTS(object):
     RATION_JAPAN_ONUSE = '#artefacts:ration_japan/onUse'
     RATION_JAPAN_ALWAYS = '#artefacts:ration_japan/always'
     RATION_JAPAN_RESTRICTION = '#artefacts:ration_japan/restriction'
-# okay decompyling res/scripts/client/gui/scaleform/locale/artefacts.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:30 EST
+    RATION_CZECH_NAME = '#artefacts:ration_czech/name'
+    RATION_CZECH_DESCR = '#artefacts:ration_czech/descr'
+    RATION_CZECH_ONUSE = '#artefacts:ration_czech/onUse'
+    RATION_CZECH_ALWAYS = '#artefacts:ration_czech/always'
+    RATION_CZECH_RESTRICTION = '#artefacts:ration_czech/restriction'
+    RATION_SWEDEN_NAME = '#artefacts:ration_sweden/name'
+    RATION_SWEDEN_DESCR = '#artefacts:ration_sweden/descr'
+    RATION_SWEDEN_ONUSE = '#artefacts:ration_sweden/onUse'
+    RATION_SWEDEN_ALWAYS = '#artefacts:ration_sweden/always'
+    RATION_SWEDEN_RESTRICTION = '#artefacts:ration_sweden/restriction'
+    ARTILLERY_NAME = '#artefacts:artillery/name'
+    ARTILLERY_DESCR = '#artefacts:artillery/descr'
+    BOMBER_NAME = '#artefacts:bomber/name'
+    BOMBER_DESCR = '#artefacts:bomber/descr'
+# okay decompiling ./res/scripts/client/gui/scaleform/locale/artefacts.pyc

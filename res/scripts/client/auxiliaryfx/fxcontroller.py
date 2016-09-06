@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/AuxiliaryFx/FxController.py
 
 
 class IAuxiliaryVehicleFx:
@@ -42,3 +44,4 @@ class AuxiliaryFxController:
     def update(self, vehicle):
         for controller in self.__controllers:
             controller.update(vehicle)
+# okay decompiling ./res/scripts/client/auxiliaryfx/fxcontroller.pyc

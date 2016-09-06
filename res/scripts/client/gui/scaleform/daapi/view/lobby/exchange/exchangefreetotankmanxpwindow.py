@@ -1,33 +1,30 @@
-# 2013.11.15 11:26:01 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/exchange/ExchangeFreeToTankmanXpWindow.py
-import BigWorld
-from adisp import process
-from debug_utils import LOG_DEBUG
 from gui.ClientUpdateManager import g_clientUpdateManager
-from gui.Scaleform.Waiting import Waiting
+from gui.shared.tooltips import ACTION_TOOLTIPS_TYPE, ACTION_TOOLTIPS_STATE
 from gui.Scaleform.daapi.view.meta.ExchangeFreeToTankmanXpWindowMeta import ExchangeFreeToTankmanXpWindowMeta
-from gui.Scaleform.daapi.view.meta.WindowViewMeta import WindowViewMeta
-from gui.Scaleform.framework.entities.View import View
 from gui.shared import g_itemsCache
 from gui.shared.events import SkillDropEvent
-from gui.shared.gui_items import GUI_ITEM_TYPE
 from gui.shared.gui_items.processors.tankman import TankmanFreeToOwnXpConvertor
-from gui.shared.gui_items.serializers import g_itemSerializer
+from gui.shared.gui_items.serializers import packTankmanSkill
 from gui.shared.utils import decorators
-from gui.shared.utils.requesters import ItemsRequester
-from gui import SystemMessages
-from items import vehicles
+from gui.shared.tooltips.formatters import packActionTooltipData
+from gui.shared.money import Money
+from gui import SystemMessages, game_control
 from items.tankmen import MAX_SKILL_LEVEL
 
-class ExchangeFreeToTankmanXpWindow(ExchangeFreeToTankmanXpWindowMeta, WindowViewMeta, View):
+class ExchangeFreeToTankmanXpWindow(ExchangeFreeToTankmanXpWindowMeta):
 
-    def __init__(self, ctx):
+    def __init__(self, ctx=None):
         super(ExchangeFreeToTankmanXpWindow, self).__init__()
         self.__tankManId = ctx.get('tankManId')
         self.__selectedXpForConvert = 0
 
-    @decorators.process('updatingSkillWindow')
     def apply(self):
+        self.doRequest()
+
+    @decorators.process('updatingSkillWindow')
+    def doRequest(self):
         tankman = g_itemsCache.items.getTankman(self.__tankManId)
         xpConverter = TankmanFreeToOwnXpConvertor(tankman, self.__selectedXpForConvert)
         result = yield xpConverter.request()
@@ -37,12 +34,15 @@ class ExchangeFreeToTankmanXpWindow(ExchangeFreeToTankmanXpWindowMeta, WindowVie
 
     def _populate(self):
         super(ExchangeFreeToTankmanXpWindow, self)._populate()
+        self.as_setWalletStatusS(game_control.g_instance.wallet.status)
         g_clientUpdateManager.addCallbacks({'stats.freeXP': self.__onFreeXpChanged,
          'inventory.8.compDescr': self.__onTankmanChanged})
         self.addListener(SkillDropEvent.SKILL_DROPPED_SUCCESSFULLY, self.__skillDropWindowCloseHandler)
+        game_control.g_instance.wallet.onWalletStatusChanged += self.__setWalletCallback
+        g_itemsCache.onSyncCompleted += self.__onFreeXpChanged
         self.__prepareAndSendInitData()
 
-    def __onFreeXpChanged(self, data):
+    def __onFreeXpChanged(self, *args):
         self.__prepareAndSendInitData()
 
     def __onTankmanChanged(self, data):
@@ -54,69 +54,77 @@ class ExchangeFreeToTankmanXpWindow(ExchangeFreeToTankmanXpWindowMeta, WindowVie
         return
 
     def __prepareAndSendInitData(self):
-        Waiting.show('updatingSkillWindow')
         items = g_itemsCache.items
         tankman = items.getTankman(self.__tankManId)
         if len(tankman.skills) == 0:
-            Waiting.hide('updatingSkillWindow')
             return
         rate = items.shop.freeXPToTManXPRate
         toNextPrcLeft = self.__getCurrentTankmanLevelCost(tankman)
         toNextPrcLeft = self.__roundByModulo(toNextPrcLeft, rate)
         needMaxXp = max(1, toNextPrcLeft / rate)
-        nextSkillLevel = tankman.descriptor.lastSkillLevel + 1
+        tDescr = tankman.descriptor
+        nextSkillLevel = tDescr.lastSkillLevel
         freeXp = items.stats.freeXP
-        if freeXp - needMaxXp > 0:
+        if freeXp - needMaxXp >= 0:
+            nextSkillLevel += 1
             while nextSkillLevel < MAX_SKILL_LEVEL:
-                needMaxXp += self.__calcLevelUpCost(tankman, nextSkillLevel, len(tankman.skills)) / rate
-                if freeXp - needMaxXp <= 0:
+                needMaxXp += self.__calcLevelUpCost(tankman, nextSkillLevel, tDescr.lastSkillNumber - tDescr.freeSkillsNumber) / rate
+                if freeXp - needMaxXp < 0:
                     break
                 nextSkillLevel += 1
 
-        else:
-            nextSkillLevel -= 1
         data = {'tankmanID': self.__tankManId,
-         'currentSkill': g_itemSerializer.pack(tankman.skills[len(tankman.skills) - 1]),
-         'lastSkillLevel': tankman.descriptor.lastSkillLevel,
+         'currentSkill': packTankmanSkill(tankman.skills[len(tankman.skills) - 1]),
+         'lastSkillLevel': tDescr.lastSkillLevel,
          'nextSkillLevel': nextSkillLevel}
         self.as_setInitDataS(data)
-        Waiting.hide('updatingSkillWindow')
 
     def __getCurrentTankmanLevelCost(self, tankman):
-        if tankman.roleLevel != MAX_SKILL_LEVEL or not tankman.hasNewSkill:
-            if len(tankman.descriptor.skills) == 0 or tankman.roleLevel != MAX_SKILL_LEVEL:
+        if tankman.roleLevel != MAX_SKILL_LEVEL or len(tankman.skills) and tankman.descriptor.lastSkillLevel != MAX_SKILL_LEVEL:
+            tankmanDescriptor = tankman.descriptor
+            lastSkillNumberValue = tankmanDescriptor.lastSkillNumber - tankmanDescriptor.freeSkillsNumber
+            if lastSkillNumberValue == 0 or tankman.roleLevel != MAX_SKILL_LEVEL:
                 nextSkillLevel = tankman.roleLevel
             else:
-                nextSkillLevel = tankman.descriptor.lastSkillLevel
+                nextSkillLevel = tankmanDescriptor.lastSkillLevel
             skillSeqNum = 0
             if tankman.roleLevel == MAX_SKILL_LEVEL:
-                skillSeqNum = len(tankman.descriptor.skills)
-            return self.__calcLevelUpCost(tankman, nextSkillLevel, skillSeqNum) - tankman.descriptor.freeXP
+                skillSeqNum = lastSkillNumberValue
+            return self.__calcLevelUpCost(tankman, nextSkillLevel, skillSeqNum) - tankmanDescriptor.freeXP
         return 0
 
-    @process
     def calcValueRequest(self, toLevel):
-        Waiting.show('updatingSkillWindow')
         items = g_itemsCache.items
         tankman = items.getTankman(self.__tankManId)
-        if toLevel == tankman.descriptor.lastSkillLevel:
+        tankmanDescriptor = tankman.descriptor
+        if toLevel == tankmanDescriptor.lastSkillLevel:
             self.__selectedXpForConvert = 0
-            self.as_setCalcValueResponseS(0)
-            Waiting.hide('updatingSkillWindow')
+            self.as_setCalcValueResponseS(0, None)
             return
-        toLevel = int(toLevel)
-        if toLevel > MAX_SKILL_LEVEL:
-            toLevel = MAX_SKILL_LEVEL
-        needXp = self.__getCurrentTankmanLevelCost(tankman)
-        for level in range(int(tankman.descriptor.lastSkillLevel + 1), toLevel, 1):
-            needXp += self.__calcLevelUpCost(tankman, level, len(tankman.skills))
+        else:
+            toLevel = int(toLevel)
+            if toLevel > MAX_SKILL_LEVEL:
+                toLevel = MAX_SKILL_LEVEL
+            needXp = self.__getCurrentTankmanLevelCost(tankman)
+            for level in range(int(tankmanDescriptor.lastSkillLevel + 1), toLevel, 1):
+                needXp += self.__calcLevelUpCost(tankman, level, tankmanDescriptor.lastSkillNumber - tankmanDescriptor.freeSkillsNumber)
 
-        rate = items.shop.freeXPToTManXPRate
-        needXp = self.__roundByModulo(needXp, rate)
-        needXp /= rate
-        self.__selectedXpForConvert = max(1, needXp)
-        self.as_setCalcValueResponseS(self.__selectedXpForConvert)
-        Waiting.hide('updatingSkillWindow')
+            rate = items.shop.freeXPToTManXPRate
+            roundedNeedXp = self.__roundByModulo(needXp, rate)
+            xpWithDiscount = roundedNeedXp / rate
+            self.__selectedXpForConvert = max(1, xpWithDiscount)
+            defaultRate = items.shop.defaults.freeXPToTManXPRate
+            if defaultRate and defaultRate != 0:
+                defaultRoundedNeedXp = self.__roundByModulo(needXp, defaultRate)
+                defaultXpWithDiscount = defaultRoundedNeedXp / defaultRate
+                defaultXpForConvert = max(1, defaultXpWithDiscount)
+            else:
+                defaultXpForConvert = self.__selectedXpForConvert
+            actionPriceData = None
+            if self.__selectedXpForConvert != defaultXpForConvert:
+                actionPriceData = packActionTooltipData(ACTION_TOOLTIPS_TYPE.ECONOMICS, 'freeXPToTManXPRate', True, Money(gold=self.__selectedXpForConvert), Money(gold=defaultXpForConvert))
+            self.as_setCalcValueResponseS(self.__selectedXpForConvert, actionPriceData)
+            return
 
     def __calcLevelUpCost(self, tankman, fromLevel, skillSeqNum):
         return tankman.descriptor.levelUpXpCost(fromLevel, skillSeqNum)
@@ -131,12 +139,16 @@ class ExchangeFreeToTankmanXpWindow(ExchangeFreeToTankmanXpWindowMeta, WindowVie
         self.destroy()
 
     def _dispose(self):
+        g_itemsCache.onSyncCompleted -= self.__onFreeXpChanged
         self.removeListener(SkillDropEvent.SKILL_DROPPED_SUCCESSFULLY, self.__skillDropWindowCloseHandler)
+        game_control.g_instance.wallet.onWalletStatusChanged -= self.__setWalletCallback
         g_clientUpdateManager.removeObjectCallbacks(self)
         super(ExchangeFreeToTankmanXpWindow, self)._dispose()
 
     def __skillDropWindowCloseHandler(self, event):
         self.destroy()
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/lobby/exchange/exchangefreetotankmanxpwindow.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:01 EST
+
+    def __setWalletCallback(self, status):
+        self.__prepareAndSendInitData()
+        self.as_setWalletStatusS(status)
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/exchange/exchangefreetotankmanxpwindow.pyc

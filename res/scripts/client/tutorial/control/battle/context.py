@@ -1,21 +1,15 @@
-import BigWorld, FMOD
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/tutorial/control/battle/context.py
 from collections import namedtuple
 import struct
-from constants import ARENA_GUI_TYPE
+import BigWorld
+import SoundGroups
+from gui.battle_control import g_sessionProvider
 from tutorial.control import context
 from tutorial.control.context import ClientCtx, GlobalStorage
 from tutorial.logger import LOG_DEBUG, LOG_ERROR, LOG_WARNING
-BATTLE_RECORDS = ['completed',
- 'failed',
- 'accCompleted',
- 'startedAt',
- 'chapterIdx']
-EXTENDED_BATTLE_RECORDS = ['playerTeam',
- 'winnerTeam',
- 'finishReason',
- 'vTypeCD',
- 'arenaTypeID',
- 'arenaUniqueID']
+BATTLE_RECORDS = ('completed', 'failed', 'accCompleted', 'startedAt', 'chapterIdx')
+EXTENDED_BATTLE_RECORDS = ('playerTeam', 'winnerTeam', 'finishReason', 'vTypeCD', 'arenaTypeID', 'arenaUniqueID')
 ALL_BATTLE_RECORDS = BATTLE_RECORDS + EXTENDED_BATTLE_RECORDS
 BATTLE_RECORDS_FORMAT = '3ifh'
 ALL_BATTLE_RECORDS_FORMAT = '3if4h2iQ'
@@ -72,7 +66,7 @@ class BattleClientCtx(ClientCtx, namedtuple('BattleClientCtx', BATTLE_RECORDS)):
     def makeRecord(self):
         return struct.pack(BATTLE_RECORDS_FORMAT, *self)
 
-    def addMask(self, mask, done = True):
+    def addMask(self, mask, done=True):
         completed = self.completed
         failed = self.failed
         if done:
@@ -146,29 +140,32 @@ class ExtendedBattleClientCtx(ClientCtx, namedtuple('ExtendedBattleClientCtx', A
         return ExtendedBattleClientCtx(**params)
 
     def makeRecord(self):
-        return struct.pack(ALL_BATTLE_RECORDS_FORMAT, *self)
+        try:
+            record = struct.pack(ALL_BATTLE_RECORDS_FORMAT, *self)
+        except struct.error as error:
+            LOG_ERROR('Can not pack client context', error.message, self)
+            record = ''
+
+        return record
 
 
 class BattleStartReqs(context.StartReqs):
 
     def isEnabled(self):
-        arena = getattr(BigWorld.player(), 'arena', None)
-        enabled = False
-        if arena is not None:
-            enabled = arena.guiType == ARENA_GUI_TYPE.TUTORIAL
-        return enabled
+        return g_sessionProvider.arenaVisitor.gui.isTutorialBattle()
 
-    def process(self):
-        loader, ctx = self._flush()
+    def prepare(self, ctx):
         clientCtx = BattleClientCtx.fetch()
         ctx.bonusCompleted = clientCtx.completed
         GlobalStorage.clearVars()
-        loader._doRun(ctx)
+
+    def process(self, descriptor, ctx):
+        return True
 
 
 class BattleBonusesRequester(context.BonusesRequester):
 
-    def request(self, chapterID = None):
+    def request(self, chapterID=None):
         chapter = self.getChapter(chapterID=chapterID)
         if chapter is None:
             LOG_ERROR('Chapter not found', chapterID)
@@ -186,14 +183,14 @@ class BattleBonusesRequester(context.BonusesRequester):
                 return
             LOG_DEBUG('Received bonus', bonusID)
             self._completed |= mask
-            self._gui.setTrainingProgress(self._tutorial._descriptor.getProgress(localCtx.completed))
+            self._gui.setTrainingProgress(self._descriptor.getProgress(localCtx.completed))
             return
 
 
 class BattleSoundPlayer(context.SoundPlayer):
-    __guiSounds = {context.SOUND_EVENT.TASK_FAILED: '/GUI/notifications_FX/task_new',
-     context.SOUND_EVENT.TASK_COMPLETED: '/GUI/notifications_FX/task_complete',
-     context.SOUND_EVENT.NEXT_CHAPTER: '/GUI/notifications_FX/task_part_complete'}
+    __guiSounds = {context.SOUND_EVENT.TASK_FAILED: 'task_new',
+     context.SOUND_EVENT.TASK_COMPLETED: 'task_complete',
+     context.SOUND_EVENT.NEXT_CHAPTER: 'task_part_complete'}
 
     def __init__(self):
         super(BattleSoundPlayer, self).__init__()
@@ -203,7 +200,7 @@ class BattleSoundPlayer(context.SoundPlayer):
         self.__prevSpeaks = set()
         return
 
-    def play(self, event, sndID = None):
+    def play(self, event, sndID=None):
         if self.isMuted():
             return
         if event in self.__guiSounds.keys():
@@ -220,7 +217,7 @@ class BattleSoundPlayer(context.SoundPlayer):
         self.__prevSpeaks.clear()
         return
 
-    def isPlaying(self, event, sndID = None):
+    def isPlaying(self, event, sndID=None):
         result = False
         if event is context.SOUND_EVENT.SPEAKING:
             if self.__speakSnd is not None:
@@ -242,38 +239,33 @@ class BattleSoundPlayer(context.SoundPlayer):
         if event is context.SOUND_EVENT.NEXT_CHAPTER:
             self.__ignoreNext = True
         sndID = self.__guiSounds[event]
-        sound = FMOD.getSound(sndID)
-        if sound:
-            sound.play()
-        else:
-            LOG_ERROR('Sound not found', sndID)
+        SoundGroups.g_instance.playSound2D(sndID)
 
     def _clear(self):
         if self.__speakSnd is not None:
-            self.__speakSnd.setCallback('EVENTFINISHED', None)
             self.__speakSnd.stop()
             self.__speakSnd = None
         return
 
     def _speak(self, sndID):
-        if sndID in self.__prevSpeaks:
-            LOG_DEBUG('Speaking played, ignore', sndID)
-            return
-        elif sndID is None:
+        if sndID is None:
             LOG_WARNING('Sound ID for speaking is not defined')
+            return
+        elif sndID in self.__prevSpeaks:
+            LOG_DEBUG('Speaking played, ignore', sndID)
             return
         elif self.__speakSnd is not None:
             self.__nextSndID = sndID
             return
         else:
-            sound = FMOD.getSound(sndID)
+            sound = SoundGroups.g_instance.getSound2D(sndID)
             if not sound:
                 LOG_ERROR('Sound not found', sndID)
                 return
             self.__nextSndID = None
             self.__speakSnd = sound
             self.__prevSpeaks.add(sndID)
-            sound.setCallback('EVENTFINISHED', self.__onSpeakingStop)
+            sound.setCallback(self.__onSpeakingStop)
             sound.play()
             return
 
@@ -283,3 +275,4 @@ class BattleSoundPlayer(context.SoundPlayer):
         if self.__nextSndID is not None:
             self._speak(self.__nextSndID)
         return
+# okay decompiling ./res/scripts/client/tutorial/control/battle/context.pyc

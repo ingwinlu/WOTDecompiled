@@ -1,8 +1,8 @@
-from collections import namedtuple
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/tutorial/gui/commands.py
 import types
 from tutorial.control import g_tutorialWeaver
 from tutorial.logger import LOG_ERROR, LOG_CURRENT_EXCEPTION
-CommandData = namedtuple('CommandData', ('type', 'name', 'args'))
 
 class GUICommand(object):
 
@@ -51,12 +51,28 @@ class _PyInvokeMethod(GUICommand):
         return
 
 
+class _PyNoGuiInvokeMethod(GUICommand):
+
+    def invoke(self, _, cmdData):
+        pathList = cmdData.name.split('.')
+        methodName = pathList.pop()
+        path = '.'.join(pathList)
+        imported = __import__(path, globals(), locals(), [methodName])
+        method = getattr(imported, methodName, None)
+        if method is not None and callable(method):
+            method(*cmdData.args[:])
+        else:
+            LOG_ERROR('GUI method not found', cmdData)
+        return
+
+
 class GUICommandsFactory(object):
 
-    def __init__(self, typeMap = None):
+    def __init__(self, typeMap=None):
         super(GUICommandsFactory, self).__init__()
         self.__typeMap = {'python-invoke': _PyInvokeMethod,
-         'python-dummy': _PyDummyMethod}
+         'python-dummy': _PyDummyMethod,
+         'invoke-method': _PyNoGuiInvokeMethod}
         if typeMap is not None:
             self.__typeMap.update(typeMap)
         return
@@ -65,7 +81,9 @@ class GUICommandsFactory(object):
         clazz = self.__typeMap.get(cmdType)
         if clazz is None:
             LOG_ERROR('Unknown type for GUI command', cmdType)
-        return clazz()
+            return
+        else:
+            return clazz()
 
     def invoke(self, root, data):
         command = self._factory(data.type)
@@ -74,4 +92,5 @@ class GUICommandsFactory(object):
         return
 
 
-__all__ = ['CommandData', 'GUICommand', 'GUICommandsFactory']
+__all__ = ['GUICommand', 'GUICommandsFactory']
+# okay decompiling ./res/scripts/client/tutorial/gui/commands.pyc

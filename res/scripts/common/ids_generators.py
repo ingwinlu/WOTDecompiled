@@ -1,21 +1,27 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/common/ids_generators.py
 import time
 
 class Int32IDGenerator(object):
 
     def __init__(self):
         self.__nextID = 0
+        self.__currID = 0
 
     def next(self):
         self.__nextID += 1
         if self.__nextID > 65535:
             self.__nextID = 0
         currTime = int(time.time())
-        return ((currTime & 32767) << 16) + self.__nextID
+        self.__currID = ((currTime & 32767) << 16) + self.__nextID
+        return self.__currID
+
+    currSequenceID = property(lambda self: self.__currID)
 
 
 class SequenceIDGenerator(object):
 
-    def __init__(self, lowBound = 0, highBound = 32767):
+    def __init__(self, lowBound=0, highBound=32767):
         self.__lowBound = lowBound
         self.__highBound = highBound
         self.__sequenceID = lowBound
@@ -28,3 +34,4 @@ class SequenceIDGenerator(object):
 
     currSequenceID = property(lambda self: self.__sequenceID)
     nextSequenceID = property(lambda self: self.next())
+# okay decompiling ./res/scripts/common/ids_generators.pyc

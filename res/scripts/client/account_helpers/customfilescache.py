@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/account_helpers/CustomFilesCache.py
 import os
 import time
 import base64
@@ -9,7 +11,7 @@ import threading
 import BigWorld
 from debug_utils import *
 from functools import partial
-from helpers import getClientVersion
+from helpers import getFullClientVersion
 from Queue import Queue
 import shelve as provider
 import random
@@ -17,9 +19,9 @@ _MIN_LIFE_TIME = 15 * 60
 _MAX_LIFE_TIME = 24 * 60 * 60
 _LIFE_TIME_IN_MEMORY = 20 * 60
 _CACHE_VERSION = 2
-_CLIENT_VERSION = getClientVersion()
+_CLIENT_VERSION = getFullClientVersion()
 
-def _LOG_EXECUTING_TIME(startTime, methodName, deltaTime = 0.1):
+def _LOG_EXECUTING_TIME(startTime, methodName, deltaTime=0.1):
     finishTime = time.time()
     if finishTime - startTime > deltaTime:
         LOG_WARNING('Method "%s" takes too much time %s' % (methodName, finishTime - startTime))
@@ -28,10 +30,10 @@ def _LOG_EXECUTING_TIME(startTime, methodName, deltaTime = 0.1):
 def parseHttpTime(t):
     if t is None:
         return
-    elif type(t) == int:
+    elif isinstance(t, int):
         return t
     else:
-        if type(t) == str:
+        if isinstance(t, str):
             try:
                 parts = t.split()
                 weekdays = ['mon',
@@ -193,43 +195,45 @@ class WorkerThread(threading.Thread):
     def __run_download(self, url, modified_time, callback, **params):
         startTime = time.time()
         try:
-            fh = file = None
-            last_modified = expires = None
-            req = urllib2.Request(url)
-            req.add_header('User-Agent', _CLIENT_VERSION)
-            if modified_time and type(modified_time) == str:
-                req.add_header('If-Modified-Since', modified_time)
-                opener = urllib2.build_opener(NotModifiedHandler())
-                fh = opener.open(req, timeout=10)
-                headers = fh.info()
-                if hasattr(fh, 'code'):
-                    code = fh.code
-                    if code in (304, 200):
-                        info = fh.info()
-                        last_modified = info.getheader('Last-Modified')
-                        expires = info.getheader('Expires')
-                    if code == 200:
-                        file = fh.read()
-            else:
-                opener = urllib2.build_opener(urllib2.BaseHandler())
-                fh = opener.open(req, timeout=10)
-                info = fh.info()
-                last_modified = info.getheader('Last-Modified')
-                expires = info.getheader('Expires')
-                file = fh.read()
-            if expires is None:
-                expires = makeHttpTime(time.gmtime())
-            else:
-                ctime = getSafeDstUTCTime()
-                expiresTmp = parseHttpTime(expires)
-                if expiresTmp > ctime + _MAX_LIFE_TIME or expiresTmp < ctime:
-                    expires = makeHttpTime(time.gmtime(time.time() + _MAX_LIFE_TIME))
-        except urllib2.HTTPError as e:
-            LOG_WARNING('Http error. Code: %d, url: %s' % (e.code, url))
-        except urllib2.URLError as e:
-            LOG_WARNING('Url error. Reason: %s, url: %s' % (str(e.reason), url))
-        except Exception as e:
-            LOG_ERROR("Client couldn't download file.", e, url)
+            try:
+                fh = file = None
+                last_modified = expires = None
+                req = urllib2.Request(url)
+                req.add_header('User-Agent', _CLIENT_VERSION)
+                if modified_time and isinstance(modified_time, str):
+                    req.add_header('If-Modified-Since', modified_time)
+                    opener = urllib2.build_opener(NotModifiedHandler())
+                    fh = opener.open(req, timeout=10)
+                    headers = fh.info()
+                    if hasattr(fh, 'code'):
+                        code = fh.code
+                        if code in (304, 200):
+                            info = fh.info()
+                            last_modified = info.getheader('Last-Modified')
+                            expires = info.getheader('Expires')
+                        if code == 200:
+                            file = fh.read()
+                else:
+                    opener = urllib2.build_opener(urllib2.BaseHandler())
+                    fh = opener.open(req, timeout=10)
+                    info = fh.info()
+                    last_modified = info.getheader('Last-Modified')
+                    expires = info.getheader('Expires')
+                    file = fh.read()
+                if expires is None:
+                    expires = makeHttpTime(time.gmtime())
+                else:
+                    ctime = getSafeDstUTCTime()
+                    expiresTmp = parseHttpTime(expires)
+                    if expiresTmp > ctime + _MAX_LIFE_TIME or expiresTmp < ctime:
+                        expires = makeHttpTime(time.gmtime(time.time() + _MAX_LIFE_TIME))
+            except urllib2.HTTPError as e:
+                LOG_WARNING('Http error. Code: %d, url: %s' % (e.code, url))
+            except urllib2.URLError as e:
+                LOG_WARNING('Url error. Reason: %s, url: %s' % (str(e.reason), url))
+            except Exception as e:
+                LOG_ERROR("Client couldn't download file.", e, url)
+
         finally:
             if fh:
                 fh.close()
@@ -246,7 +250,7 @@ class WorkerThread(threading.Thread):
                 file = db[name]
             _LOG_EXECUTING_TIME(startTime, '__run_read')
         except Exception as e:
-            LOG_ERROR("Client couldn't read file.", e, name)
+            LOG_WARNING("Client couldn't read file.", e, name)
 
         callback(file, None, None)
         return
@@ -256,8 +260,6 @@ class WorkerThread(threading.Thread):
             startTime = time.time()
             if db is not None:
                 db[name] = data
-                if len(db.cache) > 20:
-                    db.sync()
             _LOG_EXECUTING_TIME(startTime, '__run_write', 5.0)
         except:
             LOG_CURRENT_EXCEPTION()
@@ -281,7 +283,7 @@ class WorkerThread(threading.Thread):
 
 class ThreadPool():
 
-    def __init__(self, num = 8):
+    def __init__(self, num=8):
         num = max(2, num)
         self.__workers = []
         for i in range(num):
@@ -356,7 +358,7 @@ class CustomFilesCache(object):
     def __startTimer(self):
         self.__timer = BigWorld.callback(60, self.__idle)
 
-    def get(self, url, callback, showImmediately = False):
+    def get(self, url, callback, showImmediately=False):
         if callback is None:
             return
         else:
@@ -438,7 +440,7 @@ class CustomFilesCache(object):
             crc, f, ver = data[2:5]
             if crc != binascii.crc32(f) or _CACHE_VERSION != ver:
                 LOG_DEBUG('Old file was found.', url)
-                raise Exception, 'Invalid data.'
+                raise Exception('Invalid data.')
         except:
             data = None
 
@@ -565,3 +567,4 @@ class CustomFilesCache(object):
             cbs = self.__processedCache.get(url, [])
         for cb in cbs:
             cb(url, file)
+# okay decompiling ./res/scripts/client/account_helpers/customfilescache.pyc

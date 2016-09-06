@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/Vibroeffects/Controllers/DeathController.py
 from OnceController import OnceController
 
 class DeathController:
@@ -7,3 +9,4 @@ class DeathController:
         if self.__wasVehicleAlive and not isVehicleAlive:
             OnceController('crit_death_veff')
         self.__wasVehicleAlive = isVehicleAlive
+# okay decompiling ./res/scripts/client/vibroeffects/controllers/deathcontroller.pyc

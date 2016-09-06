@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/common/DestructiblesCache.py
 import ResMgr
 import BigWorld
 import Math
@@ -7,6 +9,7 @@ import string
 from material_kinds import EFFECT_MATERIALS, EFFECT_MATERIAL_INDEXES_BY_NAMES
 from constants import IS_CLIENT, IS_DEVELOPMENT, DESTRUCTIBLE_MATKIND
 from debug_utils import *
+import items
 if IS_CLIENT:
     from helpers import EffectsList
 SEARCH_AD_RADIUS = 5.0
@@ -34,15 +37,16 @@ class DestructiblesCache():
         if IS_CLIENT:
             sec = ResMgr.openSection(DESTRUCTIBLES_EFFECTS_FILE)
             if not sec:
-                raise Exception, "Fail to read '%s'" % DESTRUCTIBLES_EFFECTS_FILE
+                raise Exception("Fail to read '%s'" % DESTRUCTIBLES_EFFECTS_FILE)
             self.__effects = _readDestructiblesEffects(sec)
             ResMgr.purge(DESTRUCTIBLES_EFFECTS_FILE, True)
         sec = ResMgr.openSection(DESTRUCTIBLES_CONFIG_FILE)
         if not sec:
-            raise Exception, "Fail to read '%s'" % DESTRUCTIBLES_CONFIG_FILE
+            raise Exception("Fail to read '%s'" % DESTRUCTIBLES_CONFIG_FILE)
         self.__defaultLifetimeEffectChance = sec.readFloat('defaultLifetimeEffectChance')
         self.__unitVehicleMass = sec.readFloat('unitVehicleMass')
         if not IS_CLIENT or IS_DEVELOPMENT:
+            self.__maxHpForShootingThrough = sec.readFloat('maxHpForShootingThrough')
             self.__projectilePiercingPowerReduction = _readProjectilePiercingPowerReduction(sec['projectilePiercingPowerReduction'])
         descs = []
         for fragileSec in sec['fragiles'].values():
@@ -68,6 +72,10 @@ class DestructiblesCache():
     @property
     def unitVehicleMass(self):
         return self.__unitVehicleMass
+
+    @property
+    def maxHpForShootingThrough(self):
+        return self.__maxHpForShootingThrough
 
     @property
     def projectilePiercingPowerReduction(self):
@@ -152,6 +160,11 @@ class DestructiblesCache():
             if len(rootDepends) > 0:
                 destroyDepends[root] = rootDepends
 
+        inversedDestroyDepends = {}
+        for keyMat, depends in destroyDepends.iteritems():
+            for mat in depends:
+                inversedDestroyDepends.setdefault(mat, set()).add(keyMat)
+
         statePresets = {DESTR_STATE_NAME_UNDAMAGED: [],
          DESTR_STATE_NAME_DESTROYED: matkindsNormal}
         if structSec.has_key('states'):
@@ -173,9 +186,20 @@ class DestructiblesCache():
          'type': DESTR_TYPE_STRUCTURE,
          'modules': modules,
          'destroyDepends': destroyDepends,
+         'inversedDestroyDepends': inversedDestroyDepends,
          'statePresets': statePresets}
         self.__readAchievementTag(structSec, desc)
         return desc
+
+    def __readExplosive(self, fragileSec, desc):
+        explosiveSec = fragileSec['explosive']
+        if explosiveSec:
+            effName = explosiveSec.readString('effects', 'smallArmorPiercing')
+            desc['explosive'] = {'radius': explosiveSec.readFloat('explosionRadius', 0),
+             'armorDamage': explosiveSec.readFloat('damage/armor', 0),
+             'devicesDamage': explosiveSec.readFloat('damage/devices', 0),
+             'effect': items.vehicles.g_cache.shotEffectsIndexes.get(effName),
+             'fireRadius': explosiveSec.readFloat('fireRadius', 0)}
 
     def __readFragile(self, fragileSec):
         filename = fragileSec.readString('filename')
@@ -185,6 +209,7 @@ class DestructiblesCache():
          'kineticDamageCorrection': kineticDamageCorrection,
          'type': DESTR_TYPE_FRAGILE}
         self.__readAchievementTag(fragileSec, desc)
+        self.__readExplosive(fragileSec, desc)
         matName = fragileSec.readString('matName')
         if matName:
             surface = _parseFragileMaterialName(matName, filename)
@@ -193,6 +218,7 @@ class DestructiblesCache():
                 desc['effectMtrlIdx'] = effectMtrlIdx
         if IS_CLIENT:
             _readAndMapEffect(desc, fragileSec, 'effect', self.__effects['fragiles'], filename)
+            _readAndMapEffect(desc, fragileSec, 'hitEffect', self.__effects['fragiles'], filename, False)
             _readAndMapEffect(desc, fragileSec, 'decayEffect', self.__effects['fragiles'], filename)
             desc['effectHP'] = fragileSec.readString('effectHP')
             desc['effectScale'] = fragileSec.readFloat('effectScale')
@@ -234,9 +260,13 @@ class DestructiblesCache():
         self.__readAchievementTag(fallingSec, desc)
         physParams = _readDestructiblePhysicParams(fallingSec)
         desc.update(physParams)
+        preferredTiltDirections = _readPreferredTiltDirections(fallingSec)
+        if preferredTiltDirections:
+            desc['preferredTiltDirections'] = preferredTiltDirections
         if IS_CLIENT:
             _readAndMapEffect(desc, fallingSec, 'fractureEffect', self.__effects['fallingAtoms'], filename)
             _readAndMapEffect(desc, fallingSec, 'touchdownEffect', self.__effects['fallingAtoms'], filename)
+            _readAndMapEffect(desc, fallingSec, 'touchdownBreakEffect', self.__effects['fallingAtoms'], filename, False)
             _readAndMapEffect(desc, fallingSec, 'lifetimeEffect', self.__effects['fallingAtoms'], filename)
             if fallingSec.has_key('lifetimeEffectChance'):
                 desc['lifetimeEffectChance'] = fallingSec.readFloat('lifetimeEffectChance')
@@ -251,13 +281,29 @@ class DestructiblesCache():
             if tag in CUSTOM_DESTRUCTIBLE_TAGS:
                 desc['achievementTag'] = tag
             else:
-                raise Exception, "Wrong achievement tag '%s' in destructible '%s'" % (tag, section.readString('filename'))
+                raise Exception("Wrong achievement tag '%s' in destructible '%s'" % (tag, section.readString('filename')))
+
+    def _getEffect(self, effectName, effectCategory, needLogErrors=True):
+        if not effectName:
+            if needLogErrors:
+                LOG_WARNING('Failed to read %s name in %s' % (effectName, effectCategory))
+            return
+        elif string.lower(effectName) == 'none':
+            return
+        effects = self.__effects[effectCategory]
+        effect = effects.get(effectName)
+        if effect is None:
+            if needLogErrors:
+                LOG_ERROR('Destructibles effect %s is not found' % effectName)
+            return
+        else:
+            return effect
 
 
 def _parseFragileMaterialName(matName, filename):
     try:
         arr = matName.split('_')
-        res = arr[1]
+        res = filter(str.isalpha, arr[1])
     except:
         LOG_ERROR('Fail to parse material name %s in fragile %s' % (matName, filename))
         res = None
@@ -269,7 +315,7 @@ def _parseMaterialName(matName, filename):
     try:
         arr = matName.split('_')
         type = arr[0]
-        surface = arr[1]
+        surface = filter(str.isalpha, arr[1])
         id = int(arr[2])
         depends = map(int, arr[3:])
         res = (type,
@@ -283,7 +329,7 @@ def _parseMaterialName(matName, filename):
     return res
 
 
-def _readAndMapEffect(cfg, sec, effectKey, effects, destrFilename, needLogErrors = True):
+def _readAndMapEffect(cfg, sec, effectKey, effects, destrFilename, needLogErrors=True):
     effectName = sec.readString(effectKey)
     if not effectName:
         if needLogErrors:
@@ -307,8 +353,13 @@ def _readDestructiblesEffects(sec):
         groupEffects = {}
         for effName, effSec in groupSec.items():
             variants = []
-            for varSec in effSec.values():
-                variants.append(_readStagesAndEffects(varSec))
+            try:
+                for varSec in effSec.values():
+                    variants.append(_readEffectsTimeLine(varSec))
+
+            except Exception:
+                print Exception, groupName, groupSec, effName
+                LOG_CURRENT_EXCEPTION()
 
             groupEffects[effName] = tuple(variants)
 
@@ -317,24 +368,9 @@ def _readDestructiblesEffects(sec):
     return effects
 
 
-def _readStagesAndEffects(section):
-    stagesNames = set()
-    stages = []
-    stagesSec = section['stages']
-    for sname in stagesSec.keys():
-        if sname in stagesNames:
-            raise Exception, 'Duplicated stage %s in %s destructible effect' % (sname, section.name)
-        duration = stagesSec.readFloat(sname)
-        stagesNames.add(sname)
-        stages.append((sname, duration))
-
-    effectsSec = section['effects']
-    try:
-        effects = EffectsList.EffectsList(effectsSec)
-    except:
-        LOG_CURRENT_EXCEPTION()
-
-    return (stages, effects)
+def _readEffectsTimeLine(section):
+    effectsTimeLine = EffectsList.effectsFromSection(section)
+    return effectsTimeLine
 
 
 def _readDestructiblePhysicParams(section):
@@ -349,6 +385,16 @@ def _readDestructiblePhysicParams(section):
     return cfg
 
 
+def _readPreferredTiltDirections(section):
+    angles = _readFloatArray(section['preferredTiltDirections']) if section.has_key('preferredTiltDirections') else tuple()
+    if angles:
+        angles = map(lambda a: (a + 180.0) % 360.0 - 180.0, angles)
+        angles.append(max(angles) - 360)
+        angles.append(min(angles) + 360)
+        angles = map(math.radians, angles)
+    return angles
+
+
 def _readProjectilePiercingPowerReduction(section):
     res = []
     for matName in EFFECT_MATERIALS:
@@ -356,20 +402,20 @@ def _readProjectilePiercingPowerReduction(section):
         try:
             reductionFactor = float(val[0])
             minReduction = float(val[1])
-            raise reductionFactor >= 0.0 and minReduction >= 0.0 or AssertionError
+            assert reductionFactor >= 0.0 and minReduction >= 0.0
         except:
-            raise Exception, 'Wrong of missing value of %s/%s' % (section.name, matName)
+            raise Exception('Wrong of missing value of %s/%s' % (section.name, matName))
 
         res.append((reductionFactor, minReduction))
 
     return tuple(res)
 
 
-def _readFloatArray(sec, count):
+def _readFloatArray(sec, count=None):
     arrayStr = sec.readString('')
     strArr = arrayStr.split()
-    if len(strArr) != count:
-        raise Exception, 'Error reading float array from section %s' % sec.name
+    if count is not None and len(strArr) != count:
+        raise Exception('Error reading float array from section %s' % sec.name)
     return tuple(map(float, strArr))
 
 
@@ -377,7 +423,7 @@ def _readIntArray(sec, count):
     arrayStr = sec.readString('')
     strArr = arrayStr.split()
     if len(strArr) != count:
-        raise Exception, 'Error reading int array from section %s' % sec.name
+        raise Exception('Error reading int array from section %s' % sec.name)
     return tuple(map(int, strArr))
 
 
@@ -385,7 +431,7 @@ def _readStringArray(sec, count):
     arrayStr = sec.readString('')
     strArr = arrayStr.split()
     if len(strArr) != count:
-        raise Exception, 'Error reading int array from section %s' % sec.name
+        raise Exception('Error reading int array from section %s' % sec.name)
     return strArr
 
 
@@ -491,3 +537,4 @@ def encodeFragile(destrID, isShotDamage):
 
 def decodeFragile(data):
     return (data >> 8, bool(data & 1))
+# okay decompiling ./res/scripts/common/destructiblescache.pyc

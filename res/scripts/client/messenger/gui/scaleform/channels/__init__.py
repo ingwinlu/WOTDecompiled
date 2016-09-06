@@ -1,14 +1,17 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/messenger/gui/Scaleform/channels/__init__.py
 from debug_utils import LOG_ERROR, LOG_WARNING, LOG_DEBUG
-from messenger.gui.Scaleform.channels import bw_factories
+from messenger import g_settings
+from messenger.gui.Scaleform.channels import bw, bw_chat2, xmpp
 from messenger.gui.interfaces import IControllersCollection
-from messenger.m_constants import PROTO_TYPE
+from messenger.m_constants import PROTO_TYPE, LAZY_CHANNEL
+from messenger.proto import XMPP_MUC_CHANNEL_TYPE
 from messenger.proto.events import g_messengerEvents
 from messenger.storage import storage_getter
 
 class ControllersCollection(IControllersCollection):
 
     def __init__(self, factories):
-        super(ControllersCollection, self).__init__()
         self._factories = factories
         self._controllers = {}
 
@@ -22,7 +25,10 @@ class ControllersCollection(IControllersCollection):
         for factory in self._factories.itervalues():
             controllers.extend(factory.init())
 
-        self._controllers = dict(((ctrl.getChannel().getClientID(), ctrl) for ctrl in controllers))
+        for ctrl in controllers:
+            self._controllers[ctrl.getChannel().getClientID()] = ctrl
+            self._initController(ctrl)
+
         return controllers
 
     def clear(self):
@@ -38,7 +44,7 @@ class ControllersCollection(IControllersCollection):
         if protoType in self._factories:
             controller = self._factories[protoType].factory(channel)
         else:
-            LOG_ERROR('Controllers factory not found', protoType)
+            LOG_DEBUG('Controllers factory not found', protoType)
         return controller
 
     def getController(self, clientID):
@@ -92,6 +98,9 @@ class ControllersCollection(IControllersCollection):
                 LOG_WARNING('Controller already exists')
             return controller
 
+    def _initController(self, controller):
+        pass
+
     def _removeController(self, clientID):
         result = False
         if not clientID:
@@ -104,7 +113,10 @@ class ControllersCollection(IControllersCollection):
         return result
 
     def __ce_onChannelInited(self, channel):
-        self._addController(channel)
+        controller = self._addController(channel)
+        if controller is not None:
+            self._initController(controller)
+        return
 
     def __ce_onChannelDestroyed(self, channel):
         self._removeController(channel.getClientID())
@@ -113,10 +125,26 @@ class ControllersCollection(IControllersCollection):
 class LobbyControllers(ControllersCollection):
 
     def __init__(self):
-        super(LobbyControllers, self).__init__({PROTO_TYPE.BW: bw_factories.LobbyControllersFactory()})
+        super(LobbyControllers, self).__init__({PROTO_TYPE.BW: bw.LobbyControllersFactory(),
+         PROTO_TYPE.BW_CHAT2: bw_chat2.LobbyControllersFactory(),
+         PROTO_TYPE.XMPP: xmpp.LobbyControllersFactory()})
+
+    def factory(self, channel):
+        if channel.getProtoType() == PROTO_TYPE.BW_CHAT2 and not g_settings.server.BW_CHAT2.isEnabled():
+            return None
+        elif channel.getProtoType() == PROTO_TYPE.XMPP and not g_settings.server.XMPP.isEnabled():
+            return None
+        elif channel.getProtoType() == PROTO_TYPE.BW and channel.getName() == LAZY_CHANNEL.COMMON and g_settings.server.XMPP.isMucServiceAllowed(service=XMPP_MUC_CHANNEL_TYPE.STANDARD):
+            return None
+        else:
+            return super(LobbyControllers, self).factory(channel)
 
 
 class BattleControllers(ControllersCollection):
 
     def __init__(self):
-        super(BattleControllers, self).__init__({PROTO_TYPE.BW: bw_factories.BattleControllersFactory()})
+        super(BattleControllers, self).__init__({PROTO_TYPE.BW_CHAT2: bw_chat2.BattleControllersFactory()})
+
+    def _initController(self, controller):
+        controller.activate()
+# okay decompiling ./res/scripts/client/messenger/gui/scaleform/channels/__init__.pyc

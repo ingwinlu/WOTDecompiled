@@ -1,8 +1,9 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/notification/__init__.py
 from notification import AlertController
 from notification import BaseMessagesController
 from notification import BaseNotificationView
 from notification import LayoutController
-from notification import ListController
 from notification import NotificationLayoutView
 from notification import NotificationListView
 from notification import NotificationMVC
@@ -12,9 +13,9 @@ __all__ = ['AlertController',
  'BaseMessagesController',
  'BaseNotificationView',
  'LayoutController',
- 'ListController',
  'NotificationLayoutView',
  'NotificationListView',
  'NotificationMVC',
  'NotificationPopUpViewer',
  'NotificationsModel']
+# okay decompiling ./res/scripts/client/notification/__init__.pyc

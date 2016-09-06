@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/daapi/view/dialogs/SystemMessageMeta.py
 from gui.Scaleform.daapi.view.dialogs import IDialogMeta
 from gui.Scaleform.locale.AOGAS import AOGAS
 from gui.Scaleform.locale.MESSENGER import MESSENGER
@@ -7,19 +9,25 @@ from web_stubs import i18n
 class SystemMessageMeta(IDialogMeta):
     AOGAS = 'AOGAS'
 
-    def __init__(self, messageObject):
+    def __init__(self, notification):
         super(SystemMessageMeta, self).__init__()
-        self.__messageObject = messageObject
-        auxData = self.__messageObject.get('auxData')
-        if len(auxData) > 0 and auxData[0] == self.AOGAS:
+        self.__notificationVO = notification.getListVO()
+        settings = notification.getSettings()
+        auxData = settings.auxData
+        if len(auxData) > 1 and auxData[0] == self.AOGAS:
+            self.__settingsVO = {'timeout': auxData[1]}
             self.__title = i18n.makeString(AOGAS.NOTIFICATION_TITLE)
             self.__cancelLabel = i18n.makeString(AOGAS.NOTIFICATION_CLOSE)
         else:
+            self.__settingsVO = {}
             self.__title = i18n.makeString(MESSENGER.SERVICECHANNELMESSAGES_PRIORITYMESSAGETITLE)
             self.__cancelLabel = i18n.makeString(MESSENGER.SERVICECHANNELMESSAGES_BUTTONS_CLOSE)
 
+    def getSettings(self):
+        return self.__settingsVO
+
     def getMessageObject(self):
-        return self.__messageObject
+        return self.__notificationVO
 
     def getEventType(self):
         return events.ShowDialogEvent.SHOW_SYSTEM_MESSAGE_DIALOG
@@ -31,5 +39,7 @@ class SystemMessageMeta(IDialogMeta):
         return self.__cancelLabel
 
     def cleanUp(self):
-        self.__messageObject = None
+        self.__notificationVO = None
+        self.__settingsVO = None
         return
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/dialogs/systemmessagemeta.pyc

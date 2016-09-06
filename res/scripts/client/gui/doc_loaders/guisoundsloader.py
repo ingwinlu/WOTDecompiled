@@ -1,8 +1,10 @@
-__author__ = 'i_maliavko'
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/doc_loaders/GuiSoundsLoader.py
 import ResMgr
 from items import _xml
 from gui import doc_loaders
 from debug_utils import *
+import WWISE
 
 class GuiSoundsLoader(object):
     """
@@ -60,7 +62,7 @@ class GuiSoundsLoader(object):
         self.__readEffectsSounds(xmlCtx)
         return
 
-    def getControlSound(self, controlType, state, controlID = None):
+    def getControlSound(self, controlType, state, controlID=None):
         """
         Get sound path for given control and its state
         
@@ -70,6 +72,8 @@ class GuiSoundsLoader(object):
                                                 sounds for schemas
         @return: [str] sound path
         """
+        if WWISE.enabled:
+            state = 'ww' + state
         if controlID is not None and controlID in self.__overrides:
             return self.__overrides[controlID].get(state)
         elif controlType in self.__groups:
@@ -92,3 +96,4 @@ class GuiSoundsLoader(object):
             return self.__effects[effectName]
         else:
             return None
+# okay decompiling ./res/scripts/client/gui/doc_loaders/guisoundsloader.pyc

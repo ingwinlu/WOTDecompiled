@@ -1,10 +1,12 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/daapi/view/dialogs/DemountDeviceDialog.py
 from gui.Scaleform.daapi.view.dialogs import DIALOG_BUTTON_ID
 from gui.Scaleform.daapi.view.dialogs.IconPriceDialog import IconPriceDialog
 
 class DemountDeviceDialog(IconPriceDialog):
 
     def __init__(self, meta, handler):
-        IconPriceDialog.__init__(self, meta, handler)
+        super(IconPriceDialog, self).__init__(meta, handler)
         self._meta.onConfirmationStatusChnaged += self.__confirmationStatusChangeHandler
 
     def _populate(self):
@@ -23,3 +25,4 @@ class DemountDeviceDialog(IconPriceDialog):
         self._meta = None
         super(IconPriceDialog, self)._dispose()
         return
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/dialogs/demountdevicedialog.pyc

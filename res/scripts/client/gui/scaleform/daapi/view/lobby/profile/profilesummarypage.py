@@ -1,4 +1,4 @@
-# 2013.11.15 11:26:11 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/profile/ProfileSummaryPage.py
 from gui.Scaleform.daapi.view.lobby.profile.ProfileSummary import ProfileSummary
 from gui.Scaleform.locale.PROFILE import PROFILE
@@ -16,7 +16,5 @@ class ProfileSummaryPage(ProfileSummary):
         return outcome
 
     def getGlobalRating(self, userName):
-        return g_itemsCache.items.stats.getGlobalRating()
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/lobby/profile/profilesummarypage.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:11 EST
+        return g_itemsCache.items.stats.globalRating
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/profile/profilesummarypage.pyc

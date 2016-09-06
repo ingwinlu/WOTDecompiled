@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/LightFx/LightEffectsCache.py
 import ResMgr
 import LightEffect
 
@@ -49,3 +51,4 @@ class LightEffectsCache:
     @staticmethod
     def getEffect(effectName):
         return LightEffectsCache.__lightEffects[effectName]
+# okay decompiling ./res/scripts/client/lightfx/lighteffectscache.pyc

@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/vehicles_check.py
 import BigWorld
 from items import vehicles
 from debug_utils import *
@@ -24,7 +26,9 @@ def _vehicleCheck(vehType):
         for chassis in vehType.chassis:
             _parameterCheck(chassis['hullPosition'], chassis['models'][state], ('Scene Root', 'Tank', 'V'), 'hullPosition', tank, chassis['name'])
 
-        _parameterCheck(vehType.hull['turretPositions'][0], vehType.hull['models'][state], ('Scene Root', 'HP_turretJoint'), 'turretPosition', tank, 'hull')
+        for hull in vehType.hulls:
+            _parameterCheck(hull['turretPositions'][0], hull['models'][state], ('Scene Root', hull['turretHardPoints'][0]), 'turretPosition', tank, 'hull')
+
         for turret in vehType.turrets[0]:
             _parameterCheck(turret['gunPosition'], turret['models'][state], ('Scene Root', 'HP_gunJoint'), 'gunPosition', tank, turret['name'])
 
@@ -61,3 +65,4 @@ def _findNodeSec(sec, nodeName):
     for nodeSec in sec.values():
         if nodeSec.readString('identifier') == nodeName:
             return nodeSec
+# okay decompiling ./res/scripts/client/vehicles_check.pyc

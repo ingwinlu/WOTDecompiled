@@ -1,253 +1,290 @@
-# 2013.11.15 11:26:47 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/shared/gui_items/dossier/__init__.py
-import BigWorld
 import math
-import itertools
-import constants
-import nations
-from items import tankmen, vehicles
+import cPickle
+import BigWorld
+import dossiers2
+from constants import DOSSIER_TYPE
+from gui.Scaleform.locale.MENU import MENU
+from items import tankmen
 from helpers import i18n
-from debug_utils import LOG_ERROR, LOG_CURRENT_EXCEPTION, LOG_DEBUG
-from gui.shared.gui_items import GUIItem, GUI_ITEM_TYPE
-from gui.shared.utils import dossiers_utils
+from gui.shared.gui_items import GUIItem
 from gui.shared.gui_items.dossier import stats
-from gui.shared.gui_items.dossier.achievements import MARK_OF_MASTERY
-from gui.shared.gui_items.dossier.factories import getAchievementFactory, _SequenceAchieveFactory
-from dossiers2.ui.achievements import ACHIEVEMENT_SECTIONS_INDICES, ACHIEVEMENT_SECTION
-_BATTLE_SECTION = ACHIEVEMENT_SECTIONS_INDICES[ACHIEVEMENT_SECTION.BATTLE]
-_EPIC_SECTION = ACHIEVEMENT_SECTIONS_INDICES[ACHIEVEMENT_SECTION.EPIC]
-_ACTION_SECTION = ACHIEVEMENT_SECTIONS_INDICES[ACHIEVEMENT_SECTION.ACTION]
-_NEAREST_ACHIEVEMENTS = ['tankExpert', 'mechanicEngineer']
-_NEAREST_ACHIEVEMENTS_COUNT = 5
-_TANK_EXPERTS_ACHIEVEMENTS = []
-_MECHANIC_ENGINEER_ACHIEVEMENTS = []
-for nationID, nation in enumerate(nations.NAMES):
-    _TANK_EXPERTS_ACHIEVEMENTS.append('tankExpert%d' % nationID)
-    _MECHANIC_ENGINEER_ACHIEVEMENTS.append('mechanicEngineer%d' % nationID)
+from gui.shared.gui_items.dossier.factories import getAchievementFactory
 
-_NEAREST_ACHIEVEMENTS += _TANK_EXPERTS_ACHIEVEMENTS
-_NEAREST_ACHIEVEMENTS += _MECHANIC_ENGINEER_ACHIEVEMENTS
-_NEAREST_ACHIEVEMENTS += ['mousebane',
- 'beasthunter',
- 'pattonValley',
- 'sinai',
- 'medalKnispel',
- 'medalCarius',
- 'medalAbrams',
- 'medalPoppel',
- 'medalKay',
- 'medalEkins',
- 'medalLeClerc',
- 'medalLavrinenko']
-_NEAREST_ACHIEVEMENTS = tuple(set(_NEAREST_ACHIEVEMENTS) & set(itertools.chain(*dossiers_utils.getAccountAchievementsLayout())))
-_SIGNIFICANT_ACHIEVEMENTS_PER_SECTION = 3
+def loadDossier(dumpData):
+    args = cPickle.loads(dumpData)
+    return args[0].unpack(*args[1:])
+
+
+def dumpDossier(dossierItem):
+    return cPickle.dumps(dossierItem.pack())
+
 
 class _Dossier(GUIItem):
 
-    def __init__(self, dossier, dossierType, isInRoaming = False, proxy = None):
+    def __init__(self, dossier, dossierType, playerDBID=None):
         super(GUIItem, self).__init__()
-        self.dossier = dossier
-        self.dossierType = dossierType
-        self.isInRoaming = isInRoaming
-        self.proxy = proxy
-        self.achievements = dossier['achievements']
+        self._dossier = dossier
+        self._dossierType = dossierType
+        self._playerDBID = playerDBID
+
+    def getBlock(self, blockName):
+        return self._dossier[blockName]
+
+    def getRecordValue(self, blockName, keyName):
+        return self._dossier[blockName][keyName]
 
     def getDossierDescr(self):
-        return self.dossier
+        return self._dossier
 
-    def getAchievementsBlock(self):
-        return self.achievements
+    def getDossierType(self):
+        return self._dossierType
 
-    def getRecord(self, recordName):
-        return self.dossier[recordName]
+    def getPlayerDBID(self):
+        return self._playerDBID
 
-    def getAchievementRecord(self, achieveName):
-        return self.achievements[achieveName]
+    def isInRoaming(self):
+        if not self.isCurrentUser():
+            from gui.LobbyContext import g_lobbyContext
+            serverSettings = g_lobbyContext.getServerSettings()
+            if serverSettings is not None:
+                roaming = serverSettings.roaming
+                return roaming.isInRoaming() or roaming.isPlayerInRoaming(self._playerDBID)
+        return False
 
-    def getAchievements(self, isInDossier = True):
-        result = []
-        for section in dossiers_utils.getAchievementsLayout(self.dossierType):
-            sectionAchieves = []
-            for achieveName in section:
-                if not dossiers_utils.isAchieveValid(achieveName, self):
-                    continue
-                try:
-                    factory = getAchievementFactory(achieveName, self)
-                    if isInDossier is None or factory.isInDossier() and isInDossier or not factory.isInDossier() and not isInDossier:
-                        if isinstance(factory, _SequenceAchieveFactory):
-                            sectionAchieves.extend(factory.create(self.proxy).values())
-                        else:
-                            sectionAchieves.append(factory.create(self.proxy))
-                except Exception:
-                    LOG_ERROR('There is exception while achievement creating', achieveName)
-                    LOG_CURRENT_EXCEPTION()
-                    continue
-
-            result.append(tuple(sorted(sectionAchieves)))
-
-        return tuple(result)
-
-    def getAchievement(self, achieveName):
-        try:
-            factory = getAchievementFactory(achieveName, self)
-            return factory.create(self.proxy)
-        except Exception:
-            LOG_ERROR('There is exception while achievement creating', achieveName)
-            LOG_CURRENT_EXCEPTION()
-
-        return None
-
-    def getNearestAchievements(self):
-        achievements = map(lambda x: self.getAchievement(x), _NEAREST_ACHIEVEMENTS)
-        uncompletedAchievements = itertools.ifilter(lambda x: not x.isDone and dossiers_utils.isAchieveValid(x.name, self) and x.isInNear, achievements)
-
-        def nearestComparator(x, y):
-            if x.lvlUpValue == 1 or y.lvlUpValue == 1:
-                if x.lvlUpValue == y.lvlUpValue:
-                    return cmp(x.progress, y.progress)
-                elif x.lvlUpValue == 1:
-                    return 1
-                else:
-                    return -1
-            else:
-                return cmp(x.progress, y.progress)
-
-        result = sorted(uncompletedAchievements, cmp=nearestComparator, reverse=True)[:_NEAREST_ACHIEVEMENTS_COUNT]
-        return tuple(result)
-
-    def getSignificantAchievements(self):
-        sections = self.getAchievements()
-        battleAchievements = sections[_BATTLE_SECTION]
-        epicAchievements = sections[_EPIC_SECTION]
-        otherAchievements = itertools.chain(*itertools.ifilter(lambda x: sections.index(x) not in (_BATTLE_SECTION, _EPIC_SECTION, _ACTION_SECTION), sections))
-        achievementsQuery = (battleAchievements, epicAchievements, tuple(otherAchievements))
-
-        def mapQueryEntry(entry):
-            return sorted(entry, key=lambda x: x.weight)[:_SIGNIFICANT_ACHIEVEMENTS_PER_SECTION]
-
-        result = itertools.chain(*map(mapQueryEntry, achievementsQuery))
-        return tuple(result)
+    def isCurrentUser(self):
+        return self._playerDBID is None
 
 
 class VehicleDossier(_Dossier, stats.VehicleDossierStats):
 
-    def __init__(self, dossier):
-        super(VehicleDossier, self).__init__(dossier, GUI_ITEM_TYPE.VEHICLE_DOSSIER)
+    def __init__(self, dossier, vehTypeCompDescr, playerDBID=None):
+        super(VehicleDossier, self).__init__(dossier, DOSSIER_TYPE.VEHICLE, playerDBID)
+        self.__vehTypeCompDescr = vehTypeCompDescr
 
-    def _getDossierDescr(self):
-        return self.getDossierDescr()
+    def getCompactDescriptor(self):
+        return self.__vehTypeCompDescr
+
+    def pack(self):
+        return (VehicleDossier,
+         self._dossier.makeCompDescr(),
+         self.__vehTypeCompDescr,
+         self._playerDBID)
+
+    @staticmethod
+    def unpack(dossierCD, vehTypeCD, isCurrentUser):
+        return VehicleDossier(dossiers2.getVehicleDossierDescr(dossierCD), vehTypeCD, isCurrentUser)
+
+    def _getDossierItem(self):
+        return self
+
+    def __repr__(self):
+        return 'VehicleDossier<vehTypeCD=%d; playerDBID=%r; roaming=%r>' % (self.__vehTypeCompDescr, self._playerDBID, self.isInRoaming())
 
 
 class AccountDossier(_Dossier, stats.AccountDossierStats):
 
-    def __init__(self, dossier, isCurrentUser, isInRoaming = False, proxy = None):
-        super(AccountDossier, self).__init__(dossier, GUI_ITEM_TYPE.ACCOUNT_DOSSIER, isInRoaming, proxy)
-        self.isCurrentUser = isCurrentUser
+    def __init__(self, dossier, playerDBID=None, rated7x7Seasons=None):
+        super(AccountDossier, self).__init__(dossier, DOSSIER_TYPE.ACCOUNT, playerDBID)
+        self._rated7x7Seasons = rated7x7Seasons or {}
 
     def getGlobalRating(self):
         from gui.shared import g_itemsCache
-        return g_itemsCache.items.stats.getGlobalRating()
+        return g_itemsCache.items.stats.globalRating
 
-    def _getDossierDescr(self):
-        return self.getDossierDescr()
+    def pack(self):
+        return (AccountDossier,
+         self._dossier.makeCompDescr(),
+         self._playerDBID,
+         self._rated7x7Seasons)
+
+    @staticmethod
+    def unpack(dossierCD, playerDBID, seasons):
+        return AccountDossier(dossiers2.getAccountDossierDescr(dossierCD), playerDBID, seasons)
+
+    def getRated7x7SeasonDossier(self, seasonID):
+        return self._makeSeasonDossier(self._rated7x7Seasons.get(seasonID) or dossiers2.getRated7x7DossierDescr())
+
+    def getRated7x7Seasons(self):
+        result = {}
+        for sID, d in self._rated7x7Seasons.iteritems():
+            result[sID] = self._makeSeasonDossier(d)
+
+        return result
+
+    def _makeSeasonDossier(self, dossierDescr):
+        return ClubMemberDossier(dossierDescr, -1, self._playerDBID)
+
+    def _getDossierItem(self):
+        return self
+
+    def __repr__(self):
+        return 'AccountDossier<playerDBID=%r; roaming=%r>' % (self._playerDBID, self.isInRoaming())
 
 
 class TankmanDossier(_Dossier, stats.TankmanDossierStats):
+    PREMIUM_TANK_DEFAULT_CREW_XP_FACTOR = 1.5
 
-    def __init__(self, tmanDescr, tmanDossier, extDossier):
-        """
-        @param tmanDescr: tankman descriptor
-        @param tmanDossier: tankman dossier descriptor
-        @param extDossier: account or vehicle dossier descriptor. Used for
-                                                some calculations.
-        """
-        super(TankmanDossier, self).__init__(tmanDossier, GUI_ITEM_TYPE.TANKMAN_DOSSIER)
+    def __init__(self, tmanDescr, tankmanDossierDescr, extDossier, playerDBID=None, currentVehicleItem=None):
+        assert extDossier is not None
+        super(TankmanDossier, self).__init__(tankmanDossierDescr, DOSSIER_TYPE.TANKMAN, playerDBID)
+        currentVehicleType = currentVehicleItem.descriptor.type if currentVehicleItem else None
         self.tmanDescr = tmanDescr
-        self.extStats = extDossier.getTotalStats()
-        self.addStats = extDossier.getTeam7x7Stats()
+        self.__totalStats = extDossier.getTotalStats()
+        self.__globalMapStats = extDossier.getGlobalMapStats()
+        self.__clanStats = extDossier.getClanStats()
+        self.__extDossierDump = dumpDossier(extDossier)
+        self.__currentVehicleIsPremium = currentVehicleItem and currentVehicleItem.isPremium
+        self.__currentVehicleCrewXpFactor = currentVehicleType.crewXpFactor if currentVehicleType else 1.0
+        return
 
-    def getNextSkillXPLeft(self):
-        """
-        @return: value of xp need to next skill level
-        """
-        if self.tmanDescr.roleLevel != tankmen.MAX_SKILL_LEVEL or not self.__isNewSkillReady():
-            return self.__getSkillNextLevelCost()
-        return 0
+    def pack(self):
+        return (TankmanDossier,
+         self.tmanDescr.makeCompactDescr(),
+         self._dossier.makeCompDescr(),
+         self.__extDossierDump)
+
+    @staticmethod
+    def unpack(tmanCompDescr, dossierCD, extDossierDump):
+        return TankmanDossier(tankmen.TankmanDescr(tmanCompDescr), dossiers2.getTankmanDossierDescr(dossierCD), loadDossier(extDossierDump))
 
     def getAvgXP(self):
-        return (self.extStats.getAvgXP() + self.addStats.getAvgXP()) / 2
+        totalXP = self.__totalStats.getXP() - self.__clanStats.getXP() + self.__globalMapStats.getXP()
+        totalBattles = self.__totalStats.getBattlesCount() - self.__clanStats.getBattlesCount() + self.__globalMapStats.getBattlesCount()
+        if totalBattles == 0:
+            return 0
+        return totalXP / totalBattles
 
     def getBattlesCount(self):
         return self.getTotalStats().getBattlesCount()
 
-    def getNextSkillBattlesLeft(self):
-        """
-        @return: value of battles need to level up last skill to 1 point.
-                                Return 0 if last skill is max level. Returns None
-                                if tankman and extDossier has no battles
-        """
-        if not self.getBattlesCount() or not self.extStats.getBattlesCount() or not self.extStats.getXP():
-            return None
-        else:
-            avgExp = self.getAvgXP()
-            if self.tmanDescr.roleLevel == tankmen.MAX_SKILL_LEVEL:
-                newSkillReady = len(self.tmanDescr.skills) == 0 or self.tmanDescr.lastSkillLevel == tankmen.MAX_SKILL_LEVEL
-                return avgExp and not newSkillReady and math.ceil(self.__getSkillNextLevelCost() / avgExp)
-            return 0
-
-    def getStats(self):
-        """
-        Collecting stats data for personal case
-        @return: list of stats items
-        """
-        nextSkillsBattlesLeft = self.getNextSkillBattlesLeft()
-        if nextSkillsBattlesLeft is not None:
-            nextSkillsBattlesLeft = BigWorld.wg_getIntegralFormat(nextSkillsBattlesLeft)
-        nextSkillBattlesLeftExtra = ''
-        if not self.getBattlesCount() or not self.extStats.getBattlesCount():
-            nextSkillBattlesLeftExtra = '(%s)' % i18n.makeString('#menu:profile/stats/items/unknown')
-        skillImgType, skillImg = self.__getCurrentSkillIcon()
+    def getStats(self, tankman):
+        imageType, image = self.__getCurrentSkillIcon(tankman)
         return ({'label': 'common',
-          'stats': (self.__packStat('battlesCount', BigWorld.wg_getNiceNumberFormat(self.getBattlesCount())),)}, {'label': 'studying',
-          'stats': (self.__packStat('nextSkillXPLeft', BigWorld.wg_getIntegralFormat(self.getNextSkillXPLeft()), imageType=skillImgType, image=skillImg), self.__packStat('avgExperience', BigWorld.wg_getIntegralFormat(self.getAvgXP())), self.__packStat('nextSkillBattlesLeft', nextSkillsBattlesLeft, nextSkillBattlesLeftExtra))})
+          'stats': (self.__packStat('battlesCount', self.getBattlesCount()), self.__packStat('avgExperience', self.getAvgXP()))}, {'label': 'studying',
+          'secondLabel': i18n.makeString(MENU.CONTEXTMENU_PERSONALCASE_STATSBLOCKTITLE),
+          'isPremium': self.__currentVehicleIsPremium,
+          'stats': (self.__packStat('nextSkillXPLeft', tankman.getNextLevelXpCost(), imageType=imageType, image=image), self.__packStat('nextSkillBattlesLeft', self.__getNextSkillBattlesLeft(tankman), usePremiumXpFactor=True))})
 
-    def _getDossierDescr(self):
-        return self.getDossierDescr()
+    def _getDossierItem(self):
+        return self
 
-    def __isNewSkillReady(self):
-        """
-        @return: role level is max and no skills or last skill is max
-        """
-        return self.tmanDescr.roleLevel == tankmen.MAX_SKILL_LEVEL and (not len(self.tmanDescr.skills) or self.tmanDescr.lastSkillLevel == tankmen.MAX_SKILL_LEVEL)
+    def __isNewSkillReady(self, tankman):
+        return self.tmanDescr.roleLevel == tankmen.MAX_SKILL_LEVEL and (not len(self.tmanDescr.skills) or self.tmanDescr.lastSkillLevel == tankmen.MAX_SKILL_LEVEL) and tankman.hasNewSkill(useCombinedRoles=True)
 
-    def __getSkillNextLevelCost(self):
-        """
-        @return: value of xp need to next skill level
-        """
-        skillsCount = len(self.tmanDescr.skills)
-        lastSkillLevel = self.tmanDescr.lastSkillLevel
-        if not skillsCount or self.tmanDescr.roleLevel != tankmen.MAX_SKILL_LEVEL:
-            lastSkillLevel = self.tmanDescr.roleLevel
-        return self.tmanDescr.levelUpXpCost(lastSkillLevel, skillsCount if self.tmanDescr.roleLevel == tankmen.MAX_SKILL_LEVEL else 0) - self.tmanDescr.freeXP
-
-    def __getCurrentSkillIcon(self):
-        """
-        Returns current studying skill type and icon filename
-        (icon type, icon filename)
-        """
-        if self.__isNewSkillReady():
+    def __getCurrentSkillIcon(self, tankman):
+        if self.__isNewSkillReady(tankman):
             return ('new_skill', 'new_skill.png')
         if self.tmanDescr.roleLevel != tankmen.MAX_SKILL_LEVEL or not len(self.tmanDescr.skills):
             return ('role', '%s.png' % self.tmanDescr.role)
         return ('skill', tankmen.getSkillsConfig()[self.tmanDescr.skills[-1]]['icon'])
 
-    @classmethod
-    def __packStat(cls, name, value, extra = '', imageType = None, image = None):
+    def __getNextSkillBattlesLeft(self, tankman):
+        if not self.getBattlesCount():
+            result = None
+        else:
+            avgExp = self.getAvgXP()
+            newSkillReady = self.tmanDescr.roleLevel == tankmen.MAX_SKILL_LEVEL and (len(self.tmanDescr.skills) == 0 or self.tmanDescr.lastSkillLevel == tankmen.MAX_SKILL_LEVEL)
+            if avgExp and not newSkillReady:
+                result = max(1, math.ceil(tankman.getNextLevelXpCost() / avgExp))
+            else:
+                result = 0
+        return result
+
+    def __formatValueForUI(self, value):
+        if value is None:
+            return '%s' % i18n.makeString('#menu:profile/stats/items/empty')
+        else:
+            return BigWorld.wg_getIntegralFormat(value)
+            return
+
+    def __getBattlesLeftOnPremiumVehicle(self, value):
+        xpFactorToUse = self.PREMIUM_TANK_DEFAULT_CREW_XP_FACTOR
+        if self.__currentVehicleIsPremium:
+            xpFactorToUse = self.__currentVehicleCrewXpFactor
+        if value is not None:
+            if value != 0:
+                return max(1, value / xpFactorToUse)
+            return 0
+        else:
+            return
+
+    def __packStat(self, name, value, imageType=None, image=None, usePremiumXpFactor=False):
+        if usePremiumXpFactor:
+            premiumValue = self.__getBattlesLeftOnPremiumVehicle(value)
+        else:
+            premiumValue = value
+        value = self.__formatValueForUI(value)
+        premiumValue = self.__formatValueForUI(premiumValue)
         return {'name': name,
          'value': value,
-         'extra': extra,
+         'premiumValue': premiumValue,
          'imageType': imageType,
          'image': image}
-# okay decompyling res/scripts/client/gui/shared/gui_items/dossier/__init__.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:48 EST
+
+    def __repr__(self):
+        return 'TankmanDossier<stats.__totalStats=%r>' % self.__totalStats
+
+
+class FortDossier(_Dossier, stats.FortDossierStats):
+
+    def __init__(self, dossier, playerDBID=False):
+        super(FortDossier, self).__init__(dossier, DOSSIER_TYPE.FORTIFIED_REGIONS, playerDBID)
+
+    def pack(self):
+        return (FortDossier, self._dossier.makeCompDescr(), self._playerDBID)
+
+    @staticmethod
+    def unpack(dossierCD, playerDBID):
+        return FortDossier(dossiers2.getFortifiedRegionsDossierDescr(dossierCD), playerDBID)
+
+    def _getDossierItem(self):
+        return self
+
+    def __repr__(self):
+        return 'FortDossier<playerDBID=%r; roaming=%r>' % (self._playerDBID, self.isInRoaming())
+
+
+class ClubDossier(_Dossier, stats.ClubDossierStats):
+
+    def __init__(self, dossier, clubDbID):
+        super(ClubDossier, self).__init__(dossier, DOSSIER_TYPE.CLUB)
+        self._clubDbID = clubDbID
+
+    def pack(self):
+        return (ClubDossier, self._dossier.makeCompDescr(), self._clubDbID)
+
+    @staticmethod
+    def unpack(dossierCD, clubDbID):
+        return ClubDossier(dossiers2.getClubDossierDescr(dossierCD), clubDbID)
+
+    def getClubDbID(self):
+        return self._clubDbID
+
+    def _getDossierItem(self):
+        return self
+
+
+class ClubMemberDossier(_Dossier, stats.ClubMemberDossierStats):
+
+    def __init__(self, dossier, clubDbID, memberDbID):
+        super(ClubMemberDossier, self).__init__(dossier, DOSSIER_TYPE.RATED7X7, memberDbID)
+        self._clubDbID = clubDbID
+
+    def pack(self):
+        return (ClubMemberDossier,
+         self._dossier.makeCompactDescr(),
+         self._clubDbID,
+         self._playerDBID)
+
+    @staticmethod
+    def unpack(dossierCD, clubDbID, memberDbID):
+        return ClubMemberDossier(dossiers2.getRated7x7DossierDescr(dossierCD), clubDbID, memberDbID)
+
+    def getClubDbID(self):
+        return self._clubDbID
+
+    def _getDossierItem(self):
+        return self
+# okay decompiling ./res/scripts/client/gui/shared/gui_items/dossier/__init__.pyc

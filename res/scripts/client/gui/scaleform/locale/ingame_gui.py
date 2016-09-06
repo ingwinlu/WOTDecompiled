@@ -1,6 +1,19 @@
-
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/locale/INGAME_GUI.py
+from debug_utils import LOG_WARNING
 
 class INGAME_GUI(object):
+    """
+    DO NOT MODIFY!
+    Generated with yaml.
+    __author__ = 'yaml_processor'
+    null
+    """
+    PLAYERS_PANEL_STATE_NONE = '#ingame_gui:players_panel/state/none'
+    PLAYERS_PANEL_STATE_SHORT = '#ingame_gui:players_panel/state/short'
+    PLAYERS_PANEL_STATE_MEDIUM = '#ingame_gui:players_panel/state/medium'
+    PLAYERS_PANEL_STATE_MEDIUM2 = PLAYERS_PANEL_STATE_MEDIUM + '2'
+    PLAYERS_PANEL_STATE_LARGE = '#ingame_gui:players_panel/state/large'
     DEVICES_ENGINE = '#ingame_gui:devices/engine'
     DEVICES_AMMO_BAY = '#ingame_gui:devices/ammo_bay'
     DEVICES_FUEL_TANK = '#ingame_gui:devices/fuel_tank'
@@ -16,7 +29,6 @@ class INGAME_GUI(object):
     TANKMEN_RADIOMAN = '#ingame_gui:tankmen/radioman'
     TANKMEN_GUNNER = '#ingame_gui:tankmen/gunner'
     TANKMEN_LOADER = '#ingame_gui:tankmen/loader'
-    PLAYER_ERRORS_CANT_MOVE_VEHICLE_DESTROYED = '#ingame_gui:player_errors/cant_move/vehicle_destroyed'
     PLAYER_ERRORS_CANT_MOVE_CREW_INACTIVE = '#ingame_gui:player_errors/cant_move/crew_inactive'
     PLAYER_ERRORS_CANT_MOVE_ENGINE_DAMAGED = '#ingame_gui:player_errors/cant_move/engine_damaged'
     PLAYER_ERRORS_CANT_MOVE_CHASSIS_DAMAGED = '#ingame_gui:player_errors/cant_move/chassis_damaged'
@@ -32,6 +44,7 @@ class INGAME_GUI(object):
     PLAYER_ERRORS_EQUIPMENT_REPAIRKIT_DEVICEISNOTDAMAGED = '#ingame_gui:player_errors/equipment/repairkit/deviceIsNotDamaged'
     PLAYER_ERRORS_EQUIPMENT_REPAIRKIT_ALLDEVICESARENOTDAMAGED = '#ingame_gui:player_errors/equipment/repairkit/allDevicesAreNotDamaged'
     PLAYER_ERRORS_EQUIPMENT_EXTINGUISHER_DOESNOTACTIVATED = '#ingame_gui:player_errors/equipment/extinguisher/doesNotActivated'
+    PLAYER_ERRORS_EQUIPMENT_ORDER_NOTREADY = '#ingame_gui:player_errors/equipment/order/notReady'
     PLAYER_MESSAGES_DEVICE_CRITICAL_AT_SHOT = '#ingame_gui:player_messages/DEVICE_CRITICAL_AT_SHOT'
     PLAYER_MESSAGES_DEVICE_DESTROYED_AT_SHOT = '#ingame_gui:player_messages/DEVICE_DESTROYED_AT_SHOT'
     PLAYER_MESSAGES_DEVICE_STARTED_FIRE_AT_SHOT = '#ingame_gui:player_messages/DEVICE_STARTED_FIRE_AT_SHOT'
@@ -54,6 +67,8 @@ class INGAME_GUI(object):
     PLAYER_MESSAGES_ALLIED_TEAM_NAME = '#ingame_gui:player_messages/allied_team_name'
     PLAYER_MESSAGES_ENEMY_TEAM_NAME = '#ingame_gui:player_messages/enemy_team_name'
     PLAYER_MESSAGES_POSTMORTEM_CAPTION = '#ingame_gui:player_messages/postmortem_caption'
+    PLAYER_MESSAGES_POSTMORTEM_CAPTION_SELF = '#ingame_gui:player_messages/postmortem_caption/self'
+    PLAYER_MESSAGES_POSTMORTEM_CAPTION_OTHER = '#ingame_gui:player_messages/postmortem_caption/other'
     PLAYER_MESSAGES_POSTMORTEM_USERNOHASAMMO = '#ingame_gui:player_messages/postmortem_userNoHasAmmo'
     PLAYER_MESSAGES_TANK_IN_FIRE = '#ingame_gui:player_messages/tank_in_fire'
     PLAYER_MESSAGES_REPLAYFREECAMERAACTIVATED = '#ingame_gui:player_messages/replayFreeCameraActivated'
@@ -65,15 +80,13 @@ class INGAME_GUI(object):
     PLAYER_MESSAGES_REPLAYCONTROLSHELP3 = '#ingame_gui:player_messages/replayControlsHelp3'
     PLAYER_MESSAGES_HORN_IS_BLOCKED = '#ingame_gui:player_messages/horn_is_blocked'
     PLAYER_MESSAGES_LOADER_INTUITION_WAS_USED = '#ingame_gui:player_messages/loader_intuition_was_used'
-    PLAYER_MESSAGES_ENEMY_SPOTTED = '#ingame_gui:player_messages/ENEMY_SPOTTED'
-    PLAYER_MESSAGES_ENEMY_SPOTTED_PLURAL = '#ingame_gui:player_messages/ENEMY_SPOTTED_PLURAL'
-    PLAYER_MESSAGES_ENEMY_SPOTTED_HIT = '#ingame_gui:player_messages/ENEMY_SPOTTED_HIT'
-    PLAYER_MESSAGES_ENEMY_SPOTTED_HIT_PLURAL = '#ingame_gui:player_messages/ENEMY_SPOTTED_HIT_PLURAL'
-    PLAYER_MESSAGES_ENEMY_SPOTTED_KILLED = '#ingame_gui:player_messages/ENEMY_SPOTTED_KILLED'
-    PLAYER_MESSAGES_ENEMY_SPOTTED_KILLED_PLURAL = '#ingame_gui:player_messages/ENEMY_SPOTTED_KILLED_PLURAL'
     CHAT_SHORTCUTS_TURN_BACK = '#ingame_gui:chat_shortcuts/turn_back'
     CHAT_SHORTCUTS_SUPPORT_ME_WITH_FIRE = '#ingame_gui:chat_shortcuts/support_me_with_fire'
     CHAT_SHORTCUTS_RELOADING_GUN = '#ingame_gui:chat_shortcuts/reloading_gun'
+    CHAT_SHORTCUTS_RELOADING_CASSETTE = '#ingame_gui:chat_shortcuts/reloading_cassette'
+    CHAT_SHORTCUTS_RELOADING_READY = '#ingame_gui:chat_shortcuts/reloading_ready'
+    CHAT_SHORTCUTS_RELOADING_READY_CASSETTE = '#ingame_gui:chat_shortcuts/reloading_ready_cassette'
+    CHAT_SHORTCUTS_RELOADING_UNAVAILABLE = '#ingame_gui:chat_shortcuts/reloading_unavailable'
     CHAT_SHORTCUTS_STOP = '#ingame_gui:chat_shortcuts/stop'
     CHAT_SHORTCUTS_HELP_ME = '#ingame_gui:chat_shortcuts/help_me'
     CHAT_SHORTCUTS_HELP_ME_EX = '#ingame_gui:chat_shortcuts/help_me_ex'
@@ -84,6 +97,23 @@ class INGAME_GUI(object):
     CHAT_SHORTCUTS_NEGATIVE = '#ingame_gui:chat_shortcuts/negative'
     CHAT_SHORTCUTS_ATTENTION_TO_CELL = '#ingame_gui:chat_shortcuts/attention_to_cell'
     CHAT_SHORTCUTS_ATTACK_ENEMY = '#ingame_gui:chat_shortcuts/attack_enemy'
+    CHAT_EXAMPLE_SUPPORT_ME_WITH_FIRE = '#ingame_gui:chat_example/support_me_with_fire'
+    CHAT_EXAMPLE_RELOADING_GUN = '#ingame_gui:chat_example/reloading_gun'
+    CHAT_EXAMPLE_RELOADING_CASSETTE = '#ingame_gui:chat_example/reloading_cassette'
+    CHAT_EXAMPLE_RELOADING_READY = '#ingame_gui:chat_example/reloading_ready'
+    CHAT_EXAMPLE_TURN_BACK = '#ingame_gui:chat_example/turn_back'
+    CHAT_EXAMPLE_RELOADING_READY_CASSETTE = '#ingame_gui:chat_example/reloading_ready_cassette'
+    CHAT_EXAMPLE_RELOADING_UNAVAILABLE = '#ingame_gui:chat_example/reloading_unavailable'
+    CHAT_EXAMPLE_STOP = '#ingame_gui:chat_example/stop'
+    CHAT_EXAMPLE_HELP_ME = '#ingame_gui:chat_example/help_me'
+    CHAT_EXAMPLE_HELP_ME_EX = '#ingame_gui:chat_example/help_me_ex'
+    CHAT_EXAMPLE_FOLLOW_ME = '#ingame_gui:chat_example/follow_me'
+    CHAT_EXAMPLE_ATTACK = '#ingame_gui:chat_example/attack'
+    CHAT_EXAMPLE_BACK_TO_BASE = '#ingame_gui:chat_example/back_to_base'
+    CHAT_EXAMPLE_POSITIVE = '#ingame_gui:chat_example/positive'
+    CHAT_EXAMPLE_NEGATIVE = '#ingame_gui:chat_example/negative'
+    CHAT_EXAMPLE_ATTENTION_TO_CELL = '#ingame_gui:chat_example/attention_to_cell'
+    CHAT_EXAMPLE_ATTACK_ENEMY = '#ingame_gui:chat_example/attack_enemy'
     STATISTICS_HEADER = '#ingame_gui:statistics/header'
     STATISTICS_TEAM1TITLE = '#ingame_gui:statistics/team1title'
     STATISTICS_TEAM2TITLE = '#ingame_gui:statistics/team2title'
@@ -114,8 +144,8 @@ class INGAME_GUI(object):
     STATISTICS_FINAL_PERSONAL_DAMAGED = '#ingame_gui:statistics/final/personal/damaged'
     STATISTICS_FINAL_PERSONAL_SPOTTED = '#ingame_gui:statistics/final/personal/spotted'
     STATISTICS_FINAL_PERSONAL_SHOTS = '#ingame_gui:statistics/final/personal/shots'
-    STATISTICS_FINAL_PERSONAL_HITS = '#ingame_gui:statistics/final/personal/hits'
-    STATISTICS_FINAL_PERSONAL_SHOTSRECEIVED = '#ingame_gui:statistics/final/personal/shotsReceived'
+    STATISTICS_FINAL_PERSONAL_DIRECTHITS = '#ingame_gui:statistics/final/personal/directHits'
+    STATISTICS_FINAL_PERSONAL_DIRECTHITSRECEIVED = '#ingame_gui:statistics/final/personal/directHitsReceived'
     STATISTICS_FINAL_PERSONAL_CAPTUREPOINTS = '#ingame_gui:statistics/final/personal/capturePoints'
     STATISTICS_FINAL_PERSONAL_DROPPEDCAPTUREPOINTS = '#ingame_gui:statistics/final/personal/droppedCapturePoints'
     STATISTICS_FINAL_HEROES = '#ingame_gui:statistics/final/heroes'
@@ -131,6 +161,7 @@ class INGAME_GUI(object):
     SHELLS_KINDS_ARMOR_PIERCING = '#ingame_gui:shells_kinds/ARMOR_PIERCING'
     SHELLS_KINDS_ARMOR_PIERCING_HE = '#ingame_gui:shells_kinds/ARMOR_PIERCING_HE'
     SHELLS_KINDS_ARMOR_PIERCING_CR = '#ingame_gui:shells_kinds/ARMOR_PIERCING_CR'
+    SHELLS_KINDS_PARAMS = '#ingame_gui:shells_kinds/params'
     DAMAGE_PANEL_DEVICES_TURRETROTATOR_NORMAL = '#ingame_gui:damage_panel/devices/turretRotator/normal'
     DAMAGE_PANEL_DEVICES_TURRETROTATOR_CRITICAL = '#ingame_gui:damage_panel/devices/turretRotator/critical'
     DAMAGE_PANEL_DEVICES_TURRETROTATOR_DESTROYED = '#ingame_gui:damage_panel/devices/turretRotator/destroyed'
@@ -146,6 +177,9 @@ class INGAME_GUI(object):
     DAMAGE_PANEL_DEVICES_TRACK_NORMAL = '#ingame_gui:damage_panel/devices/track/normal'
     DAMAGE_PANEL_DEVICES_TRACK_CRITICAL = '#ingame_gui:damage_panel/devices/track/critical'
     DAMAGE_PANEL_DEVICES_TRACK_DESTROYED = '#ingame_gui:damage_panel/devices/track/destroyed'
+    DAMAGE_PANEL_DEVICES_CHASSIS_NORMAL = '#ingame_gui:damage_panel/devices/chassis/normal'
+    DAMAGE_PANEL_DEVICES_CHASSIS_CRITICAL = '#ingame_gui:damage_panel/devices/chassis/critical'
+    DAMAGE_PANEL_DEVICES_CHASSIS_DESTROYED = '#ingame_gui:damage_panel/devices/chassis/destroyed'
     DAMAGE_PANEL_DEVICES_RADIO_NORMAL = '#ingame_gui:damage_panel/devices/radio/normal'
     DAMAGE_PANEL_DEVICES_RADIO_CRITICAL = '#ingame_gui:damage_panel/devices/radio/critical'
     DAMAGE_PANEL_DEVICES_RADIO_DESTROYED = '#ingame_gui:damage_panel/devices/radio/destroyed'
@@ -181,21 +215,21 @@ class INGAME_GUI(object):
     POSTMORTEM_TIPS_OBSERVERMODE_TEXT = '#ingame_gui:postmortem/tips/observerMode/text'
     POSTMORTEM_TIPS_EXITHANGAR_LABEL = '#ingame_gui:postmortem/tips/exitHangar/label'
     POSTMORTEM_TIPS_EXITHANGAR_TEXT = '#ingame_gui:postmortem/tips/exitHangar/text'
-    PLAYERS_PANEL_STATE_NONE_HEADER = '#ingame_gui:players_panel/state/none/header'
-    PLAYERS_PANEL_STATE_NONE_BODY = '#ingame_gui:players_panel/state/none/body'
-    PLAYERS_PANEL_STATE_NONE_NOTE = '#ingame_gui:players_panel/state/none/note'
-    PLAYERS_PANEL_STATE_SHORT_HEADER = '#ingame_gui:players_panel/state/short/header'
-    PLAYERS_PANEL_STATE_SHORT_BODY = '#ingame_gui:players_panel/state/short/body'
-    PLAYERS_PANEL_STATE_SHORT_NOTE = '#ingame_gui:players_panel/state/short/note'
-    PLAYERS_PANEL_STATE_MEDIUM_HEADER = '#ingame_gui:players_panel/state/medium/header'
-    PLAYERS_PANEL_STATE_MEDIUM_BODY = '#ingame_gui:players_panel/state/medium/body'
-    PLAYERS_PANEL_STATE_MEDIUM_NOTE = '#ingame_gui:players_panel/state/medium/note'
-    PLAYERS_PANEL_STATE_MEDIUM2_HEADER = '#ingame_gui:players_panel/state/medium2/header'
-    PLAYERS_PANEL_STATE_MEDIUM2_BODY = '#ingame_gui:players_panel/state/medium2/body'
-    PLAYERS_PANEL_STATE_MEDIUM2_NOTE = '#ingame_gui:players_panel/state/medium2/note'
-    PLAYERS_PANEL_STATE_LARGE_HEADER = '#ingame_gui:players_panel/state/large/header'
-    PLAYERS_PANEL_STATE_LARGE_BODY = '#ingame_gui:players_panel/state/large/body'
-    PLAYERS_PANEL_STATE_LARGE_NOTE = '#ingame_gui:players_panel/state/large/note'
+    PLAYERS_PANEL_STATE_NONE_HEADER = PLAYERS_PANEL_STATE_NONE + '/header'
+    PLAYERS_PANEL_STATE_NONE_BODY = PLAYERS_PANEL_STATE_NONE + '/body'
+    PLAYERS_PANEL_STATE_NONE_NOTE = PLAYERS_PANEL_STATE_NONE + '/note'
+    PLAYERS_PANEL_STATE_SHORT_HEADER = PLAYERS_PANEL_STATE_SHORT + '/header'
+    PLAYERS_PANEL_STATE_SHORT_BODY = PLAYERS_PANEL_STATE_SHORT + '/body'
+    PLAYERS_PANEL_STATE_SHORT_NOTE = PLAYERS_PANEL_STATE_SHORT + '/note'
+    PLAYERS_PANEL_STATE_MEDIUM_HEADER = PLAYERS_PANEL_STATE_MEDIUM + '/header'
+    PLAYERS_PANEL_STATE_MEDIUM_BODY = PLAYERS_PANEL_STATE_MEDIUM + '/body'
+    PLAYERS_PANEL_STATE_MEDIUM_NOTE = PLAYERS_PANEL_STATE_MEDIUM + '/note'
+    PLAYERS_PANEL_STATE_MEDIUM2_HEADER = PLAYERS_PANEL_STATE_MEDIUM + '2/header'
+    PLAYERS_PANEL_STATE_MEDIUM2_BODY = PLAYERS_PANEL_STATE_MEDIUM + '2/body'
+    PLAYERS_PANEL_STATE_MEDIUM2_NOTE = PLAYERS_PANEL_STATE_MEDIUM + '2/note'
+    PLAYERS_PANEL_STATE_LARGE_HEADER = PLAYERS_PANEL_STATE_LARGE + '/header'
+    PLAYERS_PANEL_STATE_LARGE_BODY = PLAYERS_PANEL_STATE_LARGE + '/body'
+    PLAYERS_PANEL_STATE_LARGE_NOTE = PLAYERS_PANEL_STATE_LARGE + '/note'
     PLAYERS_PANEL_UNKNOWN_NAME = '#ingame_gui:players_panel/unknown_name'
     PLAYERS_PANEL_UNKNOWN_VEHICLE = '#ingame_gui:players_panel/unknown_vehicle'
     PLAYERS_PANEL_UNKNOWN_FRAGS = '#ingame_gui:players_panel/unknown_frags'
@@ -238,14 +272,32 @@ class INGAME_GUI(object):
     VEHICLE_MESSAGES_TANKMAN_HIT_AT_WORLD_COLLISION_ENEMY_ALLY = '#ingame_gui:vehicle_messages/TANKMAN_HIT_AT_WORLD_COLLISION_ENEMY_ALLY'
     VEHICLE_MESSAGES_TANKMAN_HIT_AT_WORLD_COLLISION_ALLY_ALLY = '#ingame_gui:vehicle_messages/TANKMAN_HIT_AT_WORLD_COLLISION_ALLY_ALLY'
     VEHICLE_MESSAGES_DEATH_FROM_SHOT = '#ingame_gui:vehicle_messages/DEATH_FROM_SHOT'
+    VEHICLE_MESSAGES_DEATH_FROM_SHOT_ARTILLERY = '#ingame_gui:vehicle_messages/DEATH_FROM_SHOT_ARTILLERY'
+    VEHICLE_MESSAGES_DEATH_FROM_SHOT_BOMBER = '#ingame_gui:vehicle_messages/DEATH_FROM_SHOT_BOMBER'
     PLAYER_MESSAGES_DEATH_FROM_SHOT_SELF_ALLY = '#ingame_gui:player_messages/DEATH_FROM_SHOT_SELF_ALLY'
+    PLAYER_MESSAGES_DEATH_FROM_SHOT_SELF_ALLY_ARTILLERY = '#ingame_gui:player_messages/DEATH_FROM_SHOT_SELF_ALLY_ARTILLERY'
+    PLAYER_MESSAGES_DEATH_FROM_SHOT_SELF_ALLY_BOMBER = '#ingame_gui:player_messages/DEATH_FROM_SHOT_SELF_ALLY_BOMBER'
     PLAYER_MESSAGES_DEATH_FROM_SHOT_SELF_ENEMY = '#ingame_gui:player_messages/DEATH_FROM_SHOT_SELF_ENEMY'
+    PLAYER_MESSAGES_DEATH_FROM_SHOT_SELF_ENEMY_ARTILLERY = '#ingame_gui:player_messages/DEATH_FROM_SHOT_SELF_ENEMY_ARTILLERY'
+    PLAYER_MESSAGES_DEATH_FROM_SHOT_SELF_ENEMY_BOMBER = '#ingame_gui:player_messages/DEATH_FROM_SHOT_SELF_ENEMY_BOMBER'
     PLAYER_MESSAGES_DEATH_FROM_SHOT_ALLY_ALLY = '#ingame_gui:player_messages/DEATH_FROM_SHOT_ALLY_ALLY'
+    PLAYER_MESSAGES_DEATH_FROM_SHOT_ALLY_ALLY_ARTILLERY = '#ingame_gui:player_messages/DEATH_FROM_SHOT_ALLY_ALLY_ARTILLERY'
+    PLAYER_MESSAGES_DEATH_FROM_SHOT_ALLY_ALLY_BOMBER = '#ingame_gui:player_messages/DEATH_FROM_SHOT_ALLY_ALLY_BOMBER'
     PLAYER_MESSAGES_DEATH_FROM_SHOT_ALLY_ENEMY = '#ingame_gui:player_messages/DEATH_FROM_SHOT_ALLY_ENEMY'
+    PLAYER_MESSAGES_DEATH_FROM_SHOT_ALLY_ENEMY_ARTILLERY = '#ingame_gui:player_messages/DEATH_FROM_SHOT_ALLY_ENEMY_ARTILLERY'
+    PLAYER_MESSAGES_DEATH_FROM_SHOT_ALLY_ENEMY_BOMBER = '#ingame_gui:player_messages/DEATH_FROM_SHOT_ALLY_ENEMY_BOMBER'
     PLAYER_MESSAGES_DEATH_FROM_SHOT_ALLY_SUICIDE = '#ingame_gui:player_messages/DEATH_FROM_SHOT_ALLY_SUICIDE'
+    PLAYER_MESSAGES_DEATH_FROM_SHOT_ALLY_SUICIDE_ARTILLERY = '#ingame_gui:player_messages/DEATH_FROM_SHOT_ALLY_SUICIDE_ARTILLERY'
+    PLAYER_MESSAGES_DEATH_FROM_SHOT_ALLY_SUICIDE_BOMBER = '#ingame_gui:player_messages/DEATH_FROM_SHOT_ALLY_SUICIDE_BOMBER'
     PLAYER_MESSAGES_DEATH_FROM_SHOT_ENEMY_SUICIDE = '#ingame_gui:player_messages/DEATH_FROM_SHOT_ENEMY_SUICIDE'
+    PLAYER_MESSAGES_DEATH_FROM_SHOT_ENEMY_SUICIDE_ARTILLERY = '#ingame_gui:player_messages/DEATH_FROM_SHOT_ENEMY_SUICIDE_ARTILLERY'
+    PLAYER_MESSAGES_DEATH_FROM_SHOT_ENEMY_SUICIDE_BOMBER = '#ingame_gui:player_messages/DEATH_FROM_SHOT_ENEMY_SUICIDE_BOMBER'
     PLAYER_MESSAGES_DEATH_FROM_SHOT_ENEMY_ALLY = '#ingame_gui:player_messages/DEATH_FROM_SHOT_ENEMY_ALLY'
+    PLAYER_MESSAGES_DEATH_FROM_SHOT_ENEMY_ALLY_ARTILLERY = '#ingame_gui:player_messages/DEATH_FROM_SHOT_ENEMY_ALLY_ARTILLERY'
+    PLAYER_MESSAGES_DEATH_FROM_SHOT_ENEMY_ALLY_BOMBER = '#ingame_gui:player_messages/DEATH_FROM_SHOT_ENEMY_ALLY_BOMBER'
     PLAYER_MESSAGES_DEATH_FROM_SHOT_ENEMY_ENEMY = '#ingame_gui:player_messages/DEATH_FROM_SHOT_ENEMY_ENEMY'
+    PLAYER_MESSAGES_DEATH_FROM_SHOT_ENEMY_ENEMY_ARTILLERY = '#ingame_gui:player_messages/DEATH_FROM_SHOT_ENEMY_ENEMY_ARTILLERY'
+    PLAYER_MESSAGES_DEATH_FROM_SHOT_ENEMY_ENEMY_BOMBER = '#ingame_gui:player_messages/DEATH_FROM_SHOT_ENEMY_ENEMY_BOMBER'
     VEHICLE_MESSAGES_DEATH_FROM_FIRE = '#ingame_gui:vehicle_messages/DEATH_FROM_FIRE'
     PLAYER_MESSAGES_DEATH_FROM_INACTIVE_CREW_AT_SHOT = '#ingame_gui:player_messages/DEATH_FROM_INACTIVE_CREW_AT_SHOT'
     PLAYER_MESSAGES_DEATH_FROM_INACTIVE_CREW = '#ingame_gui:player_messages/DEATH_FROM_INACTIVE_CREW'
@@ -265,6 +317,10 @@ class INGAME_GUI(object):
     PLAYER_MESSAGES_DEATH_FROM_DROWNING_ENEMY_SELF = '#ingame_gui:player_messages/DEATH_FROM_DROWNING_ENEMY_SELF'
     PLAYER_MESSAGES_DEATH_FROM_DROWNING_ENEMY_ALLY = '#ingame_gui:player_messages/DEATH_FROM_DROWNING_ENEMY_ALLY'
     PLAYER_MESSAGES_DEATH_FROM_DROWNING_ENEMY_ENEMY = '#ingame_gui:player_messages/DEATH_FROM_DROWNING_ENEMY_ENEMY'
+    PLAYER_MESSAGES_COMBAT_EQUIPMENT_READY_ARTILLERY = '#ingame_gui:player_messages/COMBAT_EQUIPMENT_READY_ARTILLERY'
+    PLAYER_MESSAGES_COMBAT_EQUIPMENT_READY_BOMBER = '#ingame_gui:player_messages/COMBAT_EQUIPMENT_READY_BOMBER'
+    PLAYER_MESSAGES_COMBAT_EQUIPMENT_USED_ARTILLERY = '#ingame_gui:player_messages/COMBAT_EQUIPMENT_USED_ARTILLERY'
+    PLAYER_MESSAGES_COMBAT_EQUIPMENT_USED_BOMBER = '#ingame_gui:player_messages/COMBAT_EQUIPMENT_USED_BOMBER'
     VEHICLE_MESSAGES_DEATH_FROM_WORLD_COLLISION_SELF_SUICIDE = '#ingame_gui:vehicle_messages/DEATH_FROM_WORLD_COLLISION_SELF_SUICIDE'
     VEHICLE_MESSAGES_DEATH_FROM_WORLD_COLLISION_ENEMY_SELF = '#ingame_gui:vehicle_messages/DEATH_FROM_WORLD_COLLISION_ENEMY_SELF'
     VEHICLE_MESSAGES_DEATH_FROM_WORLD_COLLISION_ALLY_SELF = '#ingame_gui:vehicle_messages/DEATH_FROM_WORLD_COLLISION_ALLY_SELF'
@@ -296,6 +352,8 @@ class INGAME_GUI(object):
     VEHICLE_MESSAGES_DEATH_FROM_DEATH_ZONE_SELF_SUICIDE = '#ingame_gui:vehicle_messages/DEATH_FROM_DEATH_ZONE_SELF_SUICIDE'
     VEHICLE_MESSAGES_DEATH_FROM_DEATH_ZONE_ENEMY_SELF = '#ingame_gui:vehicle_messages/DEATH_FROM_DEATH_ZONE_ENEMY_SELF'
     VEHICLE_MESSAGES_DEATH_FROM_DEATH_ZONE_ALLY_SELF = '#ingame_gui:vehicle_messages/DEATH_FROM_DEATH_ZONE_ALLY_SELF'
+    VEHICLE_MESSAGES_DEATH_FROM_GAS_ATTACK_ENEMY_SELF = '#ingame_gui:vehicle_messages/DEATH_FROM_GAS_ATTACK_ENEMY_SELF'
+    VEHICLE_MESSAGES_DEATH_FROM_GAS_ATTACK_ALLY_SELF = '#ingame_gui:vehicle_messages/DEATH_FROM_GAS_ATTACK_ALLY_SELF'
     PLAYER_MESSAGES_DEATH_FROM_DEATH_ZONE_SELF_SUICIDE = '#ingame_gui:player_messages/DEATH_FROM_DEATH_ZONE_SELF_SUICIDE'
     PLAYER_MESSAGES_DEATH_FROM_DEATH_ZONE_SELF_ALLY = '#ingame_gui:player_messages/DEATH_FROM_DEATH_ZONE_SELF_ALLY'
     PLAYER_MESSAGES_DEATH_FROM_DEATH_ZONE_SELF_ENEMY = '#ingame_gui:player_messages/DEATH_FROM_DEATH_ZONE_SELF_ENEMY'
@@ -307,6 +365,14 @@ class INGAME_GUI(object):
     PLAYER_MESSAGES_DEATH_FROM_DEATH_ZONE_ENEMY_SELF = '#ingame_gui:player_messages/DEATH_FROM_DEATH_ZONE_ENEMY_SELF'
     PLAYER_MESSAGES_DEATH_FROM_DEATH_ZONE_ENEMY_ALLY = '#ingame_gui:player_messages/DEATH_FROM_DEATH_ZONE_ENEMY_ALLY'
     PLAYER_MESSAGES_DEATH_FROM_DEATH_ZONE_ENEMY_ENEMY = '#ingame_gui:player_messages/DEATH_FROM_DEATH_ZONE_ENEMY_ENEMY'
+    PLAYER_MESSAGES_DEATH_FROM_GAS_ATTACK_SELF_ALLY = '#ingame_gui:player_messages/DEATH_FROM_GAS_ATTACK_SELF_ALLY'
+    PLAYER_MESSAGES_DEATH_FROM_GAS_ATTACK_SELF_ENEMY = '#ingame_gui:player_messages/DEATH_FROM_GAS_ATTACK_SELF_ENEMY'
+    PLAYER_MESSAGES_DEATH_FROM_GAS_ATTACK_ALLY_SELF = '#ingame_gui:player_messages/DEATH_FROM_GAS_ATTACK_ALLY_SELF'
+    PLAYER_MESSAGES_DEATH_FROM_GAS_ATTACK_ALLY_ALLY = '#ingame_gui:player_messages/DEATH_FROM_GAS_ATTACK_ALLY_ALLY'
+    PLAYER_MESSAGES_DEATH_FROM_GAS_ATTACK_ALLY_ENEMY = '#ingame_gui:player_messages/DEATH_FROM_GAS_ATTACK_ALLY_ENEMY'
+    PLAYER_MESSAGES_DEATH_FROM_GAS_ATTACK_ENEMY_SELF = '#ingame_gui:player_messages/DEATH_FROM_GAS_ATTACK_ENEMY_SELF'
+    PLAYER_MESSAGES_DEATH_FROM_GAS_ATTACK_ENEMY_ALLY = '#ingame_gui:player_messages/DEATH_FROM_GAS_ATTACK_ENEMY_ALLY'
+    PLAYER_MESSAGES_DEATH_FROM_GAS_ATTACK_ENEMY_ENEMY = '#ingame_gui:player_messages/DEATH_FROM_GAS_ATTACK_ENEMY_ENEMY'
     VEHICLE_MESSAGES_DEATH_FROM_RAMMING_SELF_SUICIDE = '#ingame_gui:vehicle_messages/DEATH_FROM_RAMMING_SELF_SUICIDE'
     VEHICLE_MESSAGES_DEATH_FROM_RAMMING_ENEMY_SELF = '#ingame_gui:vehicle_messages/DEATH_FROM_RAMMING_ENEMY_SELF'
     VEHICLE_MESSAGES_DEATH_FROM_RAMMING_ALLY_SELF = '#ingame_gui:vehicle_messages/DEATH_FROM_RAMMING_ALLY_SELF'
@@ -321,3 +387,110 @@ class INGAME_GUI(object):
     PLAYER_MESSAGES_DEATH_FROM_RAMMING_ENEMY_SELF = '#ingame_gui:player_messages/DEATH_FROM_RAMMING_ENEMY_SELF'
     PLAYER_MESSAGES_DEATH_FROM_RAMMING_ENEMY_ALLY = '#ingame_gui:player_messages/DEATH_FROM_RAMMING_ENEMY_ALLY'
     PLAYER_MESSAGES_DEATH_FROM_RAMMING_ENEMY_ENEMY = '#ingame_gui:player_messages/DEATH_FROM_RAMMING_ENEMY_ENEMY'
+    POTAPOVQUESTS_TIP_MAINHEADER = '#ingame_gui:potapovQuests/tip/mainHeader'
+    POTAPOVQUESTS_TIP_ADDITIONALHEADER = '#ingame_gui:potapovQuests/tip/additionalHeader'
+    POTAPOVQUESTS_TIP_NOQUESTS_VEHICLETYPE = '#ingame_gui:potapovQuests/tip/noQuests/vehicleType'
+    POTAPOVQUESTS_TIP_NOQUESTS_BATTLETYPE = '#ingame_gui:potapovQuests/tip/noQuests/battleType'
+    FORTCONSUMABLES_TIMER_POSTFIX = '#ingame_gui:fortConsumables/timer/postfix'
+    FLAGS_TIMER = '#ingame_gui:flags/timer'
+    COUNTRIBBONS_MULTISEPARATOR = '#ingame_gui:countRibbons/multiSeparator'
+    EFFICIENCYRIBBONS_ARMOR = '#ingame_gui:efficiencyRibbons/armor'
+    EFFICIENCYRIBBONS_CAPTURE = '#ingame_gui:efficiencyRibbons/capture'
+    EFFICIENCYRIBBONS_DAMAGE = '#ingame_gui:efficiencyRibbons/damage'
+    EFFICIENCYRIBBONS_DEFENCE = '#ingame_gui:efficiencyRibbons/defence'
+    EFFICIENCYRIBBONS_KILL = '#ingame_gui:efficiencyRibbons/kill'
+    EFFICIENCYRIBBONS_SPOTTED = '#ingame_gui:efficiencyRibbons/spotted'
+    EFFICIENCYRIBBONS_ASSIST = '#ingame_gui:efficiencyRibbons/assist'
+    EFFICIENCYRIBBONS_CRITS = '#ingame_gui:efficiencyRibbons/crits'
+    RESPAWNVIEW_TITLE = '#ingame_gui:respawnView/title'
+    RESPAWNVIEW_ADDITIONALTIP = '#ingame_gui:respawnView/additionalTip'
+    RESPAWNVIEW_ADDITIONALTIPLIMITED = '#ingame_gui:respawnView/additionalTipLimited'
+    RESPAWNVIEW_COOLDOWNLBL = '#ingame_gui:respawnView/cooldownLbl'
+    RESPAWNVIEW_DESTROYEDLBL = '#ingame_gui:respawnView/destroyedLbl'
+    RESPAWNVIEW_DISABLEDLBL = '#ingame_gui:respawnView/disabledLbl'
+    RESPAWNVIEW_NEXTVEHICLENAME = '#ingame_gui:respawnView/nextVehicleName'
+    RESPAWNVIEW_EMPTYSLOTINFO = '#ingame_gui:respawnView/emptySlotInfo'
+    RESPAWNVIEW_EMPTYSLOTINFOTOOLTIP = '#ingame_gui:respawnView/emptySlotInfoTooltip'
+    FLAGNOTIFICATION_FLAGCAPTURED = '#ingame_gui:flagNotification/flagCaptured'
+    FLAGNOTIFICATION_FLAGINBASE = '#ingame_gui:flagNotification/flagInbase'
+    FLAGNOTIFICATION_FLAGDELIVERED = '#ingame_gui:flagNotification/flagDelivered'
+    FLAGNOTIFICATION_FLAGABSORBED = '#ingame_gui:flagNotification/flagAbsorbed'
+    SCOREPANEL_SQUADLBL = '#ingame_gui:scorePanel/squadLbl'
+    SCOREPANEL_MYSQUADLBL = '#ingame_gui:scorePanel/mySquadLbl'
+    SCOREPANEL_PLAYERSCORE = '#ingame_gui:scorePanel/playerScore'
+    DYNAMICSQUAD_ALLY_ADD = '#ingame_gui:dynamicSquad/ally/add'
+    DYNAMICSQUAD_ENEMY_ADD = '#ingame_gui:dynamicSquad/enemy/add'
+    DYNAMICSQUAD_ALLY_DISABLED = '#ingame_gui:dynamicSquad/ally/disabled'
+    DYNAMICSQUAD_ENEMY_DISABLED = '#ingame_gui:dynamicSquad/enemy/disabled'
+    DYNAMICSQUAD_ALLY_WASSENT = '#ingame_gui:dynamicSquad/ally/wasSent'
+    DYNAMICSQUAD_ENEMY_WASSENT = '#ingame_gui:dynamicSquad/enemy/wasSent'
+    DYNAMICSQUAD_INVITE = '#ingame_gui:dynamicSquad/invite'
+    DYNAMICSQUAD_ALLY_RECEIVED = '#ingame_gui:dynamicSquad/ally/received'
+    DYNAMICSQUAD_ENEMY_RECEIVED = '#ingame_gui:dynamicSquad/enemy/received'
+    AIM_ZOOM = '#ingame_gui:aim/zoom'
+    DISTANCE_METERS = '#ingame_gui:distance/meters'
+    TABSTATSHINT = '#ingame_gui:tabStatsHint'
+    REPAIRPOINT_TITLE = '#ingame_gui:repairPoint/title'
+    REPAIRPOINT_UNAVAILABLE = '#ingame_gui:repairPoint/unavailable'
+    BATTLEENDWARNING_TEXT = '#ingame_gui:battleEndWarning/text'
+    CHAT_EXAMPLE_ENUM = (CHAT_EXAMPLE_SUPPORT_ME_WITH_FIRE,
+     CHAT_EXAMPLE_RELOADING_GUN,
+     CHAT_EXAMPLE_RELOADING_CASSETTE,
+     CHAT_EXAMPLE_RELOADING_READY,
+     CHAT_EXAMPLE_TURN_BACK,
+     CHAT_EXAMPLE_RELOADING_READY_CASSETTE,
+     CHAT_EXAMPLE_RELOADING_UNAVAILABLE,
+     CHAT_EXAMPLE_STOP,
+     CHAT_EXAMPLE_HELP_ME,
+     CHAT_EXAMPLE_HELP_ME_EX,
+     CHAT_EXAMPLE_FOLLOW_ME,
+     CHAT_EXAMPLE_ATTACK,
+     CHAT_EXAMPLE_BACK_TO_BASE,
+     CHAT_EXAMPLE_POSITIVE,
+     CHAT_EXAMPLE_NEGATIVE,
+     CHAT_EXAMPLE_ATTENTION_TO_CELL,
+     CHAT_EXAMPLE_ATTACK_ENEMY)
+    CHAT_SHORTCUTS_ENUM = (CHAT_SHORTCUTS_TURN_BACK,
+     CHAT_SHORTCUTS_SUPPORT_ME_WITH_FIRE,
+     CHAT_SHORTCUTS_RELOADING_GUN,
+     CHAT_SHORTCUTS_RELOADING_CASSETTE,
+     CHAT_SHORTCUTS_RELOADING_READY,
+     CHAT_SHORTCUTS_RELOADING_READY_CASSETTE,
+     CHAT_SHORTCUTS_RELOADING_UNAVAILABLE,
+     CHAT_SHORTCUTS_STOP,
+     CHAT_SHORTCUTS_HELP_ME,
+     CHAT_SHORTCUTS_HELP_ME_EX,
+     CHAT_SHORTCUTS_FOLLOW_ME,
+     CHAT_SHORTCUTS_ATTACK,
+     CHAT_SHORTCUTS_BACK_TO_BASE,
+     CHAT_SHORTCUTS_POSITIVE,
+     CHAT_SHORTCUTS_NEGATIVE,
+     CHAT_SHORTCUTS_ATTENTION_TO_CELL,
+     CHAT_SHORTCUTS_ATTACK_ENEMY)
+
+    @staticmethod
+    def chat_example(key):
+        """
+        :param key:
+        :return String:
+        """
+        outcome = '#ingame_gui:chat_example/%s' % key
+        if outcome not in INGAME_GUI.CHAT_EXAMPLE_ENUM:
+            LOG_WARNING('locale key "' + outcome + '" was not found')
+            return None
+        else:
+            return outcome
+
+    @staticmethod
+    def chat_shortcuts(key):
+        """
+        :param key:
+        :return String:
+        """
+        outcome = '#ingame_gui:chat_shortcuts/%s' % key
+        if outcome not in INGAME_GUI.CHAT_SHORTCUTS_ENUM:
+            LOG_WARNING('locale key "' + outcome + '" was not found')
+            return None
+        else:
+            return outcome
+# okay decompiling ./res/scripts/client/gui/scaleform/locale/ingame_gui.pyc

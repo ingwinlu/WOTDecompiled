@@ -1,8 +1,8 @@
-# 2013.11.15 11:25:10 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/account_helpers/QuestProgress.py
 import AccountCommands
 from functools import partial
-from AccountSyncData import synchronizeDicts
+from diff_utils import synchronizeDicts
 from debug_utils import *
 
 class QuestProgress(object):
@@ -26,14 +26,14 @@ class QuestProgress(object):
     def synchronize(self, isFullSync, diff):
         if isFullSync:
             self.__cache.clear()
-        for item in ('quests', 'tokens'):
+        for item in ('quests', 'tokens', 'potapovQuests'):
             itemDiff = diff.get(item, None)
             if itemDiff is not None:
                 synchronizeDicts(itemDiff, self.__cache.setdefault(item, {}))
 
         return
 
-    def getCache(self, callback = None):
+    def getCache(self, callback=None):
         if self.__ignore:
             if callback is not None:
                 callback(AccountCommands.RES_NON_PLAYER, None)
@@ -70,6 +70,4 @@ class QuestProgress(object):
             if callback is not None:
                 callback(resultID, self.__cache.get(itemsType, None))
             return
-# okay decompyling res/scripts/client/account_helpers/questprogress.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:25:10 EST
+# okay decompiling ./res/scripts/client/account_helpers/questprogress.pyc

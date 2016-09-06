@@ -1,26 +1,32 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/daapi/view/login/EULA.py
 import BigWorld
-import ResMgr
+from ConnectionManager import connectionManager
 from gui import DialogsInterface
 from gui.Scaleform.daapi.view.meta.EULAMeta import EULAMeta
-from gui.Scaleform.daapi.view.meta.WindowViewMeta import WindowViewMeta
-from gui.Scaleform.framework.entities.View import View
-from gui.shared.events import CloseWindowEvent
+from gui.Scaleform.daapi.view.dialogs import DIALOG_BUTTON_ID
+from gui.shared.events import CloseWindowEvent, OpenLinkEvent
 
-class EULADlg(View, EULAMeta, WindowViewMeta):
+class EULADlg(EULAMeta):
 
-    def __init__(self, ctx):
+    def __init__(self, ctx=None):
         super(EULADlg, self).__init__()
         self.__applied = False
         self.__eulaString = ctx.get('text', '')
 
+    def _populate(self):
+        super(EULADlg, self)._populate()
+        connectionManager.onDisconnected += self.__onDisconnected
+
     def _dispose(self):
         super(EULADlg, self)._dispose()
+        connectionManager.onDisconnected -= self.__onDisconnected
         self.__eulaString = None
         return
 
     def onWindowClose(self):
         if not self.__applied:
-            DialogsInterface.showI18nConfirmDialog('quit', self.__onConfirmClosed, focusedID=DialogsInterface.DIALOG_BUTTON_ID.CLOSE)
+            DialogsInterface.showI18nConfirmDialog('quit', self.__onConfirmClosed, focusedID=DIALOG_BUTTON_ID.CLOSE)
         else:
             self.destroy()
 
@@ -33,7 +39,7 @@ class EULADlg(View, EULAMeta, WindowViewMeta):
         self.onWindowClose()
 
     def onLinkClick(self, url):
-        BigWorld.wg_openWebBrowser(url)
+        self.fireEvent(OpenLinkEvent(OpenLinkEvent.SPECIFIED, url))
 
     def __onQuitOk(self):
         self.__fireEulaClose()
@@ -46,3 +52,8 @@ class EULADlg(View, EULAMeta, WindowViewMeta):
     def __onConfirmClosed(self, isOk):
         if isOk:
             self.__onQuitOk()
+
+    def __onDisconnected(self):
+        self.__fireEulaClose()
+        self.destroy()
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/login/eula.pyc

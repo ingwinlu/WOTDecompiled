@@ -1,9 +1,12 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/messenger/proto/bw/ClanListener.py
 import BigWorld
 from PlayerEvents import g_playerEvents
 from debug_utils import LOG_DEBUG, LOG_ERROR
-from messenger.ext.player_helpers import getPlayerDatabaseID
-from messenger.proto.bw.entities import BWUserEntity
+from gui.shared.utils import getPlayerDatabaseID
+from messenger.m_constants import USER_TAG, GAME_ONLINE_STATUS
 from messenger.proto.bw.find_criteria import BWClanChannelFindCriteria
+from messenger.proto.entities import CurrentUserEntity, SharedUserEntity, ClanInfo
 from messenger.proto.events import g_messengerEvents
 from messenger.storage import storage_getter
 
@@ -67,28 +70,30 @@ class ClanListener(object):
             self.__clanChannel.onMembersListChanged -= self.__ce_onMembersListChanged
             self.__clanChannel = None
             for user in self.usersStorage.getClanMembersIterator():
-                user.update(isOnline=False)
+                user.update(gosBit=-GAME_ONLINE_STATUS.IN_CLAN_CHAT)
 
-            g_messengerEvents.users.onClanMembersListChanged()
         return
 
     def __refreshClanMembers(self):
         getter = self.__clanChannel.getMember
+        events = g_messengerEvents.users
         changed = False
         for user in self.usersStorage.getClanMembersIterator():
             dbID = user.getID()
-            isOnline = user.isOnline()
+            isOnline = user.getGOS() & GAME_ONLINE_STATUS.IN_CLAN_CHAT > 0
             member = getter(dbID)
             if member is not None:
                 if not isOnline:
-                    user.update(isOnline=True)
+                    user.update(gosBit=GAME_ONLINE_STATUS.IN_CLAN_CHAT)
+                    events.onUserStatusUpdated(user)
                     changed = True
             elif isOnline:
-                user.update(isOnline=False)
+                user.update(gosBit=-GAME_ONLINE_STATUS.IN_CLAN_CHAT)
+                events.onUserStatusUpdated(user)
                 changed = True
 
         if changed:
-            g_messengerEvents.users.onClanMembersListChanged()
+            events.onClanMembersListChanged()
         return
 
     def __pe_onClanMembersListChanged(self):
@@ -103,11 +108,16 @@ class ClanListener(object):
         else:
             getter = lambda dbID: None
         playerID = getPlayerDatabaseID()
-        for dbID, name in clanMembers.iteritems():
-            isOnline = False if getter(dbID) is None else True
+        for dbID, (name, roleFlags) in clanMembers.iteritems():
+            if getter(dbID) is None:
+                gos = GAME_ONLINE_STATUS.UNDEFINED
+            else:
+                gos = GAME_ONLINE_STATUS.ONLINE
             if playerID == dbID:
-                continue
-            members.append(BWUserEntity(dbID, name=name, clanAbbrev=clanAbbrev, isOnline=isOnline))
+                user = CurrentUserEntity(dbID, name=name, clanInfo=ClanInfo(0, clanAbbrev, roleFlags))
+            else:
+                user = SharedUserEntity(dbID, name=name, clanInfo=ClanInfo(0, clanAbbrev, roleFlags), gos=gos, tags={USER_TAG.CLAN_MEMBER})
+            members.append(user)
 
         self.usersStorage._setClanMembersList(members)
         if self.__initSteps & _INIT_STEPS.LIST_INITED != 0:
@@ -115,17 +125,20 @@ class ClanListener(object):
         return
 
     def __pc_onClanInfoChanged(self):
-        clanInfo = self.playerCtx.clanInfo
-        if clanInfo is not None:
-            hasClanInfo = len(clanInfo) > 0
-            if not self.__initSteps & _INIT_STEPS.CLAN_INFO_RECEIVED and hasClanInfo:
-                self.__initSteps |= _INIT_STEPS.CLAN_INFO_RECEIVED
-            clanAbbrev = self.playerCtx.getClanAbbrev()
-            for user in self.usersStorage.getClanMembersIterator():
-                user.update(clanAbbrev=clanAbbrev)
+        clanInfo = self.playerCtx.getClanInfo()
+        if clanInfo:
+            isInClan = clanInfo.isInClan()
+            clanAbbrev = clanInfo.abbrev
+        else:
+            isInClan = False
+            clanAbbrev = ''
+        if not self.__initSteps & _INIT_STEPS.CLAN_INFO_RECEIVED and isInClan:
+            self.__initSteps |= _INIT_STEPS.CLAN_INFO_RECEIVED
+        for user in self.usersStorage.getClanMembersIterator():
+            user.update(clanInfo=ClanInfo(abbrev=clanAbbrev))
 
-            self.__initSteps & _INIT_STEPS.LIST_INITED != 0 and g_messengerEvents.users.onClanMembersListChanged()
-        return
+        if self.__initSteps & _INIT_STEPS.LIST_INITED != 0:
+            g_messengerEvents.users.onClanMembersListChanged()
 
     def __ce_onChannelInited(self, channel):
         if self.__channelCriteria.filter(channel):
@@ -134,6 +147,10 @@ class ClanListener(object):
     def __ce_onChannelDestroyed(self, channel):
         if self.__channelCriteria.filter(channel):
             self.__clearClanChannel()
+            if self.__clanChannel is not None:
+                g_messengerEvents.users.onClanMembersListChanged()
+        return
 
     def __ce_onMembersListChanged(self):
         self.__refreshClanMembers()
+# okay decompiling ./res/scripts/client/messenger/proto/bw/clanlistener.pyc

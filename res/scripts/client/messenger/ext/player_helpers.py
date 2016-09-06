@@ -1,22 +1,20 @@
-# 2013.11.15 11:27:10 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/messenger/ext/player_helpers.py
 import BigWorld
-import account_helpers
-from adisp import process
 from debug_utils import LOG_ERROR
 from gui.ClientUpdateManager import g_clientUpdateManager
+from gui.shared import g_itemsCache
+from gui.shared.utils import getPlayerDatabaseID, getPlayerName
+from messenger.m_constants import USER_TAG
+from messenger.proto.entities import ClanInfo
 from messenger.storage import storage_getter
 
 def _getInfo4AccountPlayer():
-    return (account_helpers.getPlayerDatabaseID(), BigWorld.player().name, None)
-
-
-def _getAccountDatabaseID():
-    return account_helpers.getPlayerDatabaseID()
+    return (getPlayerDatabaseID(), getPlayerName(), None)
 
 
 def _getInfo4AvatarPlayer():
-    dbID, name, clanAbbrev = (0L, '', None)
+    dbID, name, clanAbbrev = (0, '', None)
     player = BigWorld.player()
     arena = getattr(player, 'arena', None)
     if arena is not None:
@@ -29,34 +27,8 @@ def _getInfo4AvatarPlayer():
     return (dbID, name, clanAbbrev)
 
 
-def _getAvatarDatabaseID():
-    dbID = 0L
-    player = BigWorld.player()
-    arena = getattr(player, 'arena', None)
-    if arena is not None:
-        vehID = getattr(player, 'playerVehicleID', None)
-        if vehID is not None and vehID in arena.vehicles:
-            dbID = arena.vehicles[vehID]['accountDBID']
-    return dbID
-
-
-def getPlayerDatabaseID():
-    return _getAccountDatabaseID()
-
-
 def isCurrentPlayer(dbID):
-    global getPlayerDatabaseID
     return getPlayerDatabaseID() == dbID
-
-
-def switchToAccount():
-    global getPlayerDatabaseID
-    getPlayerDatabaseID = _getAccountDatabaseID
-
-
-def switchToAvatar():
-    global getPlayerDatabaseID
-    getPlayerDatabaseID = _getAvatarDatabaseID
 
 
 class CurrentPlayerHelper(object):
@@ -75,33 +47,33 @@ class CurrentPlayerHelper(object):
     def clear(self):
         g_clientUpdateManager.removeObjectCallbacks(self)
 
-    @process
-    def onAccountShowGUI(self):
-        from gui.shared.utils.requesters import StatsRequester
-        switchToAccount()
+    def initPersonalAccount(self):
         dbID, name, clanAbbrev = _getInfo4AccountPlayer()
         if dbID:
             if self.usersStorage.getUser(dbID) is None:
                 from messenger.proto.entities import CurrentUserEntity
-                self.usersStorage.addUser(CurrentUserEntity(dbID, name, clanAbbrev))
+                user = CurrentUserEntity(dbID, name, ClanInfo(abbrev=clanAbbrev))
+                user.addTags({USER_TAG.CLAN_MEMBER})
+                self.usersStorage.addUser(user)
         else:
             LOG_ERROR('Current player is not found')
-        accountAttrs = yield StatsRequester().getAccountAttrs()
+        return
+
+    def initCachedData(self):
+        accountAttrs = g_itemsCache.items.stats.attributes
         self.__setAccountAttrs(accountAttrs)
-        clanInfo = yield StatsRequester().getClanInfo()
+        clanInfo = g_itemsCache.items.stats.clanInfo
         self.__setClanInfo(clanInfo)
         g_clientUpdateManager.addCallbacks({'account.attrs': self.__setAccountAttrs,
          'stats.clanInfo': self.__setClanInfo})
-        return
 
     def onAvatarShowGUI(self):
-        switchToAvatar()
         dbID, name, clanAbbrev = _getInfo4AvatarPlayer()
         user = self.usersStorage.getUser(dbID)
         if dbID:
             if user is None:
                 from messenger.proto.entities import CurrentUserEntity
-                self.usersStorage.addUser(CurrentUserEntity(dbID, name, clanAbbrev))
+                self.usersStorage.addUser(CurrentUserEntity(dbID, name, clanInfo=ClanInfo(abbrev=clanAbbrev)))
         else:
             LOG_ERROR('Current player is not found')
         return
@@ -113,13 +85,25 @@ class CurrentPlayerHelper(object):
         self.clear()
 
     def __setAccountAttrs(self, accountAttrs):
-        self.playerCtx._setAccountAttrs(accountAttrs)
+        self.playerCtx.setAccountAttrs(accountAttrs)
 
-    def __setClanInfo(self, clanInfo):
-        self.playerCtx._setClanInfo(clanInfo)
+    def __setClanInfo(self, info):
+        if info:
+            length = len(info)
+        else:
+            length = 0
+        if length > 1:
+            abbrev = info[1]
+        else:
+            abbrev = ''
+        if length > 3:
+            role = info[3]
+        else:
+            role = 0
+        clanInfo = ClanInfo(abbrev=abbrev, role=role)
+        self.playerCtx.setClanInfo(clanInfo)
         user = self.usersStorage.getUser(getPlayerDatabaseID())
         if user:
-            user.update(clanAbbrev=self.playerCtx.getClanAbbrev())
-# okay decompyling res/scripts/client/messenger/ext/player_helpers.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:10 EST
+            user.update(clanInfo=clanInfo)
+            user.addTags({USER_TAG.CLAN_MEMBER})
+# okay decompiling ./res/scripts/client/messenger/ext/player_helpers.pyc

@@ -1,4 +1,4 @@
-# 2013.11.15 11:26:46 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/shared/actions_chain.py
 import BigWorld
 import Event
@@ -92,6 +92,4 @@ class ActionsChain(object):
             self.stop()
             result = False
         return result
-# okay decompyling res/scripts/client/gui/shared/actions_chain.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:46 EST
+# okay decompiling ./res/scripts/client/gui/shared/actions_chain.pyc

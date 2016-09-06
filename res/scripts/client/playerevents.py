@@ -1,4 +1,4 @@
-# 2013.11.15 11:27:17 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/PlayerEvents.py
 import Event
 from constants import ARENA_PERIOD
@@ -31,19 +31,40 @@ class _PlayerEvents(object):
         self.onEnqueuedUnitAssembler = Event.Event()
         self.onDequeuedUnitAssembler = Event.Event()
         self.onEnqueueUnitAssemblerFailure = Event.Event()
+        self.onEnqueuedEventBattles = Event.Event()
+        self.onEnqueuedFalloutClassic = Event.Event()
+        self.onEnqueuedFalloutMultiteam = Event.Event()
+        self.onDequeuedEventBattles = Event.Event()
+        self.onDequeuedFalloutClassic = Event.Event()
+        self.onDequeuedFalloutMultiteam = Event.Event()
+        self.onEnqueueEventBattlesFailure = Event.Event()
+        self.onEnqueueFalloutClassicFailure = Event.Event()
+        self.onEnqueueFalloutMultiteamFailure = Event.Event()
+        self.onEnqueuedSandbox = Event.Event()
+        self.onDequeuedSandbox = Event.Event()
+        self.onEnqueuedSandboxFailure = Event.Event()
         self.onPrebattleJoined = Event.Event()
         self.onPrebattleLeft = Event.Event()
         self.onPrebattleJoinFailure = Event.Event()
         self.onArenaCreated = Event.Event()
         self.onArenaJoinFailure = Event.Event()
         self.onKickedFromRandomQueue = Event.Event()
+        self.onKickedFromTutorialQueue = Event.Event()
         self.onKickedFromUnitAssembler = Event.Event()
+        self.onKickedFromUnitsQueue = Event.Event()
+        self.onKickedFromEventBattles = Event.Event()
+        self.onKickedFromFalloutClassic = Event.Event()
+        self.onKickedFromFalloutMultiteam = Event.Event()
+        self.onKickedFromSandboxQueue = Event.Event()
         self.onKickedFromPrebattle = Event.Event()
         self.onKickedFromArena = Event.Event()
         self.onQueueInfoReceived = Event.Event()
         self.onPrebattlesListReceived = Event.Event()
         self.onPrebattleAutoInvitesChanged = Event.Event()
+        self.onAccountGlobalRatingChanged = Event.Event()
         self.onPrebattleInvitesChanged = Event.Event()
+        self.onPrebattleInvitationsChanged = Event.Event()
+        self.onPrebattleInvitesStatus = Event.Event()
         self.onClanMembersListChanged = Event.Event()
         self.onEventsDataChanged = Event.Event()
         self.onPrebattleRosterReceived = Event.Event()
@@ -67,9 +88,9 @@ class _PlayerEvents(object):
         self.onBattleResultsReceived = Event.Event()
         self.onLoginQueueNumberReceived = Event.Event()
         self.onKickWhileLoginReceived = Event.Event()
+        self.onGuiCacheSyncCompleted = Event.Event()
+        self.onPQLocksChanged = Event.Event()
 
 
 g_playerEvents = _PlayerEvents()
-# okay decompyling res/scripts/client/playerevents.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:17 EST
+# okay decompiling ./res/scripts/client/playerevents.pyc

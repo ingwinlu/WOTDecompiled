@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/common/Singleton.py
 
 
 class Singleton(object):
@@ -27,3 +29,4 @@ if __name__ == '__main__':
     print id(ins1), ins1.instanceName
     ins2 = MySingleton('instance2')
     print id(ins2), ins2.instanceName
+# okay decompiling ./res/scripts/common/singleton.pyc

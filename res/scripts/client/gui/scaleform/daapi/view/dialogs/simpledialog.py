@@ -1,21 +1,22 @@
-# 2013.11.15 11:25:56 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/dialogs/SimpleDialog.py
+import BigWorld
 from gui.Scaleform.daapi.view.dialogs import DIALOG_BUTTON_ID
 from gui.Scaleform.daapi.view.meta.SimpleDialogMeta import SimpleDialogMeta
-from gui.Scaleform.daapi.view.meta.WindowViewMeta import WindowViewMeta
-from gui.Scaleform.framework import VIEW_SCOPE
-from gui.Scaleform.framework.entities.View import View
+from gui.Scaleform.framework import ScopeTemplates
 
-class SimpleDialog(View, SimpleDialogMeta, WindowViewMeta):
+class SimpleDialog(SimpleDialogMeta):
 
-    def __init__(self, message, title, buttons, handler, canViewSkip = True, dialogScope = VIEW_SCOPE.DEFAULT):
+    def __init__(self, message, title, buttons, handler, dialogScope=ScopeTemplates.DEFAULT_SCOPE, timer=0):
         super(SimpleDialog, self).__init__()
         self.__message = message
         self.__title = title
         self.__buttons = buttons
+        self.__timer = timer
+        self.__timerCallbackID = None
         self.__handler = handler
-        self.setCanViewSkip(canViewSkip)
         self.__dialogScope = dialogScope
+        return
 
     def __callHandler(self, buttonID):
         if self.__handler is not None:
@@ -30,18 +31,24 @@ class SimpleDialog(View, SimpleDialogMeta, WindowViewMeta):
 
     def _populate(self):
         super(SimpleDialog, self)._populate()
-        self.as_setTextS(self.__message)
+        self.__setMessage()
         self.as_setTitleS(self.__title)
         self.as_setButtonsS(self.__buttons)
         self.setCurrentScope(self.__dialogScope)
         self.__dialogScope = None
+        if self.__timer > 0:
+            self.__timerCallbackID = BigWorld.callback(1, self._timerCallback)
         return
 
     def _dispose(self):
+        if self.__timerCallbackID is not None:
+            BigWorld.cancelCallback(self.__timerCallbackID)
+            self.__timerCallbackID = None
         self.__message = None
         self.__title = None
         self.__buttons = None
         self.__handler = None
+        self.__timer = None
         super(SimpleDialog, self)._dispose()
         return
 
@@ -52,6 +59,18 @@ class SimpleDialog(View, SimpleDialogMeta, WindowViewMeta):
     def onWindowClose(self):
         self.__callHandler(DIALOG_BUTTON_ID.CLOSE)
         self.destroy()
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/dialogs/simpledialog.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:25:56 EST
+
+    def __setMessage(self):
+        message = self.__message
+        if self.__timer > 0:
+            message = self.__message % {'time': self.__timer}
+        self.as_setTextS(message)
+
+    def _timerCallback(self):
+        self.__timer -= 1
+        if self.__timer > 0:
+            self.__setMessage()
+            self.__timerCallbackID = BigWorld.callback(1, self._timerCallback)
+        else:
+            self.onWindowClose()
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/dialogs/simpledialog.pyc

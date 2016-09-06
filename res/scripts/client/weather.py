@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/Weather.py
 import BigWorld
 import ResMgr
 import FX
@@ -50,7 +52,7 @@ class WeatherSystem():
         self.loaded = False
         return
 
-    def _loadSkyBoxes(self, callback = None, immediate = False):
+    def _loadSkyBoxes(self, callback=None, immediate=False):
         if self.loaded:
             if callback:
                 callback()
@@ -74,7 +76,7 @@ class WeatherSystem():
             except ValueError:
                 self.skyBoxModels.append(BigWorld.Model(''))
 
-        if callback != None:
+        if callback is not None:
             callback()
         return
 
@@ -83,20 +85,20 @@ class WeatherSystem():
             BigWorld.delSkyBox(i, self.fader)
 
         self.skyBoxModels = []
-        if self.fx != None:
+        if self.fx is not None:
             self.fx.detach()
             self.fx = None
         self.loaded = False
         return
 
-    def _loadFX(self, callback = None):
+    def _loadFX(self, callback=None):
         if self.fxName != '':
             BigWorld.loadResourceListBG(FX.prerequisites(self.fxName), partial(self._onLoadFX, callback))
         elif callback:
             callback()
 
     def _onLoadFX(self, callback, resourceRef):
-        if self.fx != None:
+        if self.fx is not None:
             self.fx.detach()
             self.fx = None
         if self.loaded:
@@ -108,12 +110,12 @@ class WeatherSystem():
         return
 
     def _fadeOutFX(self):
-        if self.fx != None:
+        if self.fx is not None:
             return self.fx.stop()
         else:
             return 0.0
 
-    def fadeIn(self, fadingIn, fadeSpeed, immediate = False):
+    def fadeIn(self, fadingIn, fadeSpeed, immediate=False):
         """
         This method Fades in / out this weather system.  We load
         our models/textures on demand when fading in, and free them
@@ -127,11 +129,12 @@ class WeatherSystem():
         curr = self.fader.value
         if fadingIn:
             if not self.loaded:
-                print "calling fadeIn on a weather system that isn't loaded.  please call prepareResources() first", self.name
+                print "calling fadeIn on a weather system that isn't loaded. please call prepareResources() first",
+                print self.name
                 traceback.print_stack()
                 return
             for sb in self.skyBoxModels:
-                if sb != None:
+                if sb is not None:
                     BigWorld.addSkyBox(sb, self.fader)
 
             f = self._fogAmount(self.fog[3])
@@ -167,7 +170,7 @@ class WeatherSystem():
         """
         return (amount - 1.0) * self.skyBoxFogFactor
 
-    def prepareResources(self, callback = None, immediate = False):
+    def prepareResources(self, callback=None, immediate=False):
         """
         This method prepares the weather system for use.  It cues up
         resource loading in the background thread, and when ready, calls
@@ -192,7 +195,7 @@ class WeatherSystem():
         This method unsets all sky boxes used by this weather system.
         """
         for sb in self.skyBoxModels:
-            if sb != None:
+            if sb is not None:
                 BigWorld.delSkyBox(sb, self.fader)
 
         return
@@ -233,17 +236,17 @@ class Weather(Listenable):
         self.onChangeSpace()
         return
 
-    def toggleRandomWeather(self, force = None):
+    def toggleRandomWeather(self, force=None):
         """
         This method chooses a random weather system every 60 seconds.
         """
-        if force != None:
+        if force is not None:
             turningOff = not force
         else:
-            turningOff = self.randomWeatherCallback != None
+            turningOff = self.randomWeatherCallback is not None
         stateChanged = False
-        wasOn = self.randomWeatherCallback != None
-        if turningOff and self.randomWeatherCallback != None:
+        wasOn = self.randomWeatherCallback is not None
+        if turningOff and self.randomWeatherCallback is not None:
             BigWorld.cancelCallback(self.randomWeatherCallback)
             self.randomWeatherCallback = None
             stateChanged = wasOn
@@ -258,17 +261,17 @@ class Weather(Listenable):
         """
         This method returns whether or not random weather is currently enabled.
         """
-        return self.randomWeatherCallback != None
+        return self.randomWeatherCallback is not None
 
-    def nextWeatherSystem(self, direction, immediate = False):
+    def nextWeatherSystem(self, direction, immediate=False):
         """
         This method summons the next weather system that is available
         for the current space.  If direction is False however, the
-        previous weather system will be summoned instead. 
+        previous weather system will be summoned instead.
         """
         systems = self._weatherSystemsForCurrentSpace()
         idx = 0
-        if self.system != None:
+        if self.system is not None:
             for s in systems:
                 if s.name == self.system.name:
                     break
@@ -282,8 +285,8 @@ class Weather(Listenable):
         self.summon(systems[idx % len(systems)].name, immediate)
         return
 
-    def _randomWeather(self, initial = False):
-        if initial or self.randomWeatherCallback != None:
+    def _randomWeather(self, initial=False):
+        if initial or self.randomWeatherCallback is not None:
             self.randomWeatherCallback = BigWorld.callback(60.0, self._randomWeather)
             systems = self._weatherSystemsForCurrentSpace()
             ds = random.choice(systems)
@@ -303,40 +306,36 @@ class Weather(Listenable):
         systems = weatherXML.values()
         return systems
 
-    def onChangeSpace(self, spaceID = -1, spaceSettings = None):
+    def onChangeSpace(self, spaceID=-1, spaceSettings=None):
         """
         This method implements a callback for when the camera space has
         changed.  When the space is changed, appropriate weather is chosen
         for the new space.  This is chosen by either the last known
-        weather system for the space, or the default from the weather xml file.         
+        weather system for the space, or the default from the weather xml file.
         """
         self.currentSpaceID = spaceID
         m = Math.Vector4Morph()
         m.duration = self.fadeSpeed
         m.target = (0, 0, 0, 0)
         m.time = m.duration
-        BigWorld.weatherController(m)
         self.weatherController = m
         m = Math.Vector4Morph()
         m.duration = self.fadeSpeed
         m.target = (1, 1, 1, 1)
         m.time = m.duration
-        BigWorld.sunlightController(m)
         self.sunlightController = m
         m = Math.Vector4Morph()
         m.duration = self.fadeSpeed
         m.target = (1, 1, 1, 1)
         m.time = m.duration
-        BigWorld.ambientController(m)
         self.ambientController = m
         m = Math.Vector4Morph()
         m.duration = self.fadeSpeed
         m.target = (1, 1, 1, 1)
         m.time = m.duration
-        BigWorld.fogController(m)
         self.fogController = m
 
-    def summon(self, systemName, immediate = False, serverSync = False, resummon = False):
+    def summon(self, systemName, immediate=False, serverSync=False, resummon=False):
         """
         This method queues a weather system for display.  Usually weather
         systems will fade in over a period of 15 seconds or so, to make the
@@ -349,7 +348,7 @@ class Weather(Listenable):
         will be informed of the change and this will be propogated to other
         clients.
         """
-        if self.localOverride != None:
+        if self.localOverride is not None:
             self.overridenWeather = systemName
             systemName = self.localOverride
         if not resummon and self.system and self.system.name == systemName:
@@ -383,7 +382,7 @@ class Weather(Listenable):
 
             return
 
-    def override(self, systemName, immediate = False):
+    def override(self, systemName, immediate=False):
         """
         This method allows you to set a local override to the weather systems; for example
         if you have a regional weather system entity overriding the weather for the rest
@@ -391,7 +390,7 @@ class Weather(Listenable):
         Calling this method with and empty string, or None as the systemName, will remove
         the existing override, and restore the last requested system.
         """
-        if systemName == None or systemName == '':
+        if systemName is None or systemName == '':
             self.localOverride = None
             self.summon(self.overridenWeather, immediate, serverSync=False, resummon=False)
             self.overridenWeather = None
@@ -405,14 +404,11 @@ class Weather(Listenable):
         if self.system:
             self.system.fadeIn(False, self.fadeSpeed, immediate)
             self.system = None
-        if system != None:
+        if system is not None:
             self.system = system
             self.system.fadeIn(True, self.fadeSpeed)
-            self.skyBoxFogFactor = system.skyBoxFogFactor
-            self.rain(system.rain)
-            self.ambient(system.ambient)
-            self.fog(system.fog, False)
-            self.sun(system.sun)
+            self.windSpeed(system.windSpeed)
+            self.windGustiness(system.windGustiness)
             BigWorld.callback(self.fadeSpeed, self._onSystemSummoned)
         else:
             self._onSystemSummoned()
@@ -421,7 +417,7 @@ class Weather(Listenable):
     def _onSystemSummoned(self):
         self.listeners.weather(system=self.system)
         self.summoning = False
-        if self.pendingWeatherChange != None:
+        if self.pendingWeatherChange is not None:
             self.summon(self.pendingWeatherChange)
             self.pendingWeatherChange = None
         return
@@ -452,7 +448,7 @@ class Weather(Listenable):
         """
         self._animateValue(amount, self.weatherController, 0)
 
-    def fog(self, value, applyToSystem = True):
+    def fog(self, value, applyToSystem=True):
         """
         This method sets the current fog colour and density.  It will be
         overridden when a new weather system is summoned.
@@ -482,6 +478,20 @@ class Weather(Listenable):
         value.w = 1.0
         self._animateVector4(self.ambientController, value)
 
+    def windSpeed(self, speed):
+        """
+        This method sets the current rain amount.  It will be overridden when
+        a new weather system is summoned.
+        """
+        BigWorld.weather().windAverage(float(speed[0]), float(speed[1]))
+
+    def windGustiness(self, value):
+        """
+        This method sets the current rain amount.  It will be overridden when
+        a new weather system is summoned.
+        """
+        BigWorld.weather().windGustiness(float(value))
+
 
 s_weather = None
 
@@ -507,3 +517,4 @@ def fini():
         Personality.delCameraSpaceChangeListener(s_weather.onChangeSpace)
         s_weather = None
     return
+# okay decompiling ./res/scripts/client/weather.pyc

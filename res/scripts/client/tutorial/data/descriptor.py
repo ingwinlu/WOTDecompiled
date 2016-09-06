@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/tutorial/data/descriptor.py
 from tutorial.data.chapter import ChapterProgress
 
 class DescriptorData(object):
@@ -49,15 +51,15 @@ class DescriptorData(object):
                 result = chapter.ignoreBonus(completed) or not chapter.isBonusReceived(completed)
         return result
 
-    def getInitialChapterID(self, completed = None):
+    def getInitialChapterID(self, completed=None):
         result = None
-        if len(self.__initialChapterID):
+        if self.__initialChapterID:
             index = self.__idMapping.get(self.__initialChapterID, -1)
             if -1 < index < len(self.__contents):
                 result = self.__contents[index].getID()
         if result is None:
             if completed is None:
-                if len(self.__contents):
+                if self.__contents:
                     result = self.__contents[0].getID()
             else:
                 result = self.getNextChapterID(completed)
@@ -89,7 +91,7 @@ class DescriptorData(object):
 
         return result
 
-    def hasReceivedBonuses(self, completed, minimum = 1):
+    def hasReceivedBonuses(self, completed, minimum=1):
         if not completed:
             return False
         result = False
@@ -103,10 +105,9 @@ class DescriptorData(object):
 
         return result
 
-    def getProgress(self, completed, failed = -1):
+    def getProgress(self, completed, failed=-1):
         result = 0
         offset = 0
-        bit = 0
         for chapter in self.__contents:
             if chapter.hasBonus():
                 if chapter.isBonusReceived(completed):
@@ -121,3 +122,10 @@ class DescriptorData(object):
             offset += 2
 
         return result
+
+    def getChapterByIdx(self, idx):
+        if idx < len(self.__contents):
+            return self.__contents[idx]
+        else:
+            return None
+# okay decompiling ./res/scripts/client/tutorial/data/descriptor.pyc

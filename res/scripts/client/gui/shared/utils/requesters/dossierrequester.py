@@ -1,4 +1,4 @@
-# 2013.11.15 11:27:04 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/shared/utils/requesters/DossierRequester.py
 import time
 from functools import partial
@@ -9,7 +9,7 @@ import AccountCommands
 from adisp import async
 from debug_utils import LOG_ERROR
 from gui.shared.utils import code2str
-from gui.shared.utils.requesters.abstract import RequesterAbstract
+from gui.shared.utils.requesters.abstract import AbstractSyncDataRequester
 
 class RequestProcessor(object):
 
@@ -46,7 +46,8 @@ class UserDossier(object):
          'clan': None,
          'hidden': False,
          'available': True,
-         'rating': None}
+         'rating': None,
+         'rated7x7Seasons': {}}
         return
 
     def __setLastResponseTime(self):
@@ -75,13 +76,18 @@ class UserDossier(object):
                 self.__cache['account'] = dossiers2.getAccountDossierDescr(value[1])
                 self.__cache['clan'] = value[2]
                 self.__cache['rating'] = value[3]
+                self.__cache['rated7x7Seasons'] = seasons = {}
+                for sID, d in (value[4] or {}).iteritems():
+                    seasons[sID] = dossiers2.getRated7x7DossierDescr(d)
+
             callback(self.__cache['account'])
             return
 
-        self.__queue.append(lambda : BigWorld.player().requestPlayerInfo(self.__cache['databaseID'], partial(lambda c, code, databaseID, dossier, clanID, clanInfo, gRating: self.__processValueResponse(c, code, (databaseID,
+        self.__queue.append(lambda : BigWorld.player().requestPlayerInfo(self.__cache['databaseID'], partial(lambda c, code, databaseID, dossier, clanID, clanInfo, gRating, eSportSeasons: self.__processValueResponse(c, code, (databaseID,
          dossier,
          (clanID, clanInfo),
-         gRating)), proxyCallback)))
+         gRating,
+         eSportSeasons)), proxyCallback)))
         self.__processQueue()
 
     def __requestAccountDossier(self, callback):
@@ -131,10 +137,7 @@ class UserDossier(object):
         if not self.isValid:
             callback(None)
         if self.__cache.get('account') is None:
-            if self.__cache.get('clan') is None:
-                self.__requestPlayerInfo(callback)
-            else:
-                self.__requestAccountDossier(callback)
+            self.__requestPlayerInfo(callback)
             return
         else:
             callback(self.__cache['account'])
@@ -149,6 +152,17 @@ class UserDossier(object):
             return
         else:
             callback(self.__cache['clan'])
+            return
+
+    @async
+    def getRated7x7Seasons(self, callback):
+        if not self.isValid:
+            callback({})
+        if self.__cache.get('rated7x7Seasons') is None:
+            self.__requestPlayerInfo(lambda accDossier: callback(self.__cache['rated7x7Seasons']))
+            return
+        else:
+            callback(self.__cache['rated7x7Seasons'])
             return
 
     @async
@@ -186,12 +200,7 @@ class UserDossier(object):
         return not self.isHidden and self.isAvailable
 
 
-class DossierRequester(RequesterAbstract):
-    """
-    This requester store only vehicles dossiers (server architecture).
-    Account dossier is stored in Stats and tankmen dossiers - in its own
-    compact descriptor (in inventory).
-    """
+class DossierRequester(AbstractSyncDataRequester):
 
     def __init__(self):
         super(DossierRequester, self).__init__()
@@ -202,10 +211,6 @@ class DossierRequester(RequesterAbstract):
         BigWorld.player().dossierCache.getCache(lambda resID, value: self._response(resID, value, callback))
 
     def getVehicleDossier(self, vehTypeCompDescr):
-        """
-        @param vehTypeCompDescr: vehicle type compact descriptor (int)
-        @return: vehicle dossier descriptor
-        """
         return self.getCacheValue((constants.DOSSIER_TYPE.VEHICLE, vehTypeCompDescr), (0, ''))[1]
 
     def getUserDossierRequester(self, databaseID):
@@ -220,6 +225,4 @@ class DossierRequester(RequesterAbstract):
         if isLongDisconnected:
             return
         self.__users = dict(filter(lambda item: item[1].isAvailable, self.__users.iteritems()))
-# okay decompyling res/scripts/client/gui/shared/utils/requesters/dossierrequester.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:04 EST
+# okay decompiling ./res/scripts/client/gui/shared/utils/requesters/dossierrequester.pyc

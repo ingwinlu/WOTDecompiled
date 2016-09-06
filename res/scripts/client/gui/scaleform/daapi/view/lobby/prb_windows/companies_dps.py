@@ -1,4 +1,7 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/prb_windows/companies_dps.py
 from constants import PREBATTLE_COMPANY_DIVISION, PREBATTLE_COMPANY_DIVISION_NAMES
+from gui.LobbyContext import g_lobbyContext
 from gui.Scaleform.framework.entities.DAAPIDataProvider import DAAPIDataProvider
 from gui.prb_control.formatters import getCompanyDivisionString
 from gui.prb_control.settings import PREBATTLE_ROSTER
@@ -7,7 +10,7 @@ from messenger import g_settings
 from messenger.m_constants import USER_GUI_TYPE
 from messenger.storage import storage_getter
 
-def getDivisionsList(addAll = True):
+def getDivisionsList(addAll=True):
     result = []
     if addAll:
         result.append({'data': 0,
@@ -38,7 +41,10 @@ class CompaniesDataProvider(DAAPIDataProvider):
         self.__list = []
         for item in prebattles:
             self.__list.append({'prbID': item.prbID,
-             'creatorName': item.getCreatorFullName(),
+             'creatorName': item.creator,
+             'creatorClan': item.clanAbbrev,
+             'creatorIgrType': item.creatorIgrType,
+             'creatorRegion': g_lobbyContext.getRegionCode(item.creatorDbId),
              'comment': item.getCensoredComment(),
              'playersCount': item.playersCount,
              'division': getCompanyDivisionString(item.getDivisionName()),
@@ -68,6 +74,10 @@ class CompaniesDataProvider(DAAPIDataProvider):
                         else:
                             key = USER_GUI_TYPE.OTHER
                         players.append({'label': info.getFullName(),
+                         'userName': info.name,
+                         'clanAbbrev': info.clanAbbrev,
+                         'igrType': info.igrType,
+                         'region': g_lobbyContext.getRegionCode(info.dbID),
                          'color': getColor(key)})
 
                 item['players'] = players
@@ -75,3 +85,4 @@ class CompaniesDataProvider(DAAPIDataProvider):
                 item['players'] = []
 
         return foundIdx
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/prb_windows/companies_dps.pyc

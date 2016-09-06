@@ -1,14 +1,21 @@
-# 2013.11.15 11:26:54 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/shared/gui_items/vehicle_modules.py
 import BigWorld
+from constants import SHELL_TYPES
+from gui.Scaleform.locale.RES_ICONS import RES_ICONS
+from gui.shared.items_parameters.params_cache import g_paramsCache
 import nations
 from helpers import i18n
 from items import vehicles as veh_core
 from gui.shared.gui_items import FittingItem, _ICONS_MASK
-from gui.shared.utils import ParametersCache, CLIP_VEHICLES_CD_PROP_NAME
+from gui.shared.utils import GUN_CLIP, GUN_CAN_BE_CLIP
+from gui.shared.money import Currency
 MODULE_TYPES_ORDER = ('vehicleGun', 'vehicleTurret', 'vehicleEngine', 'vehicleChassis', 'vehicleRadio', 'vehicleFuelTank')
 MODULE_TYPES_ORDER_INDICES = dict(((n, i) for i, n in enumerate(MODULE_TYPES_ORDER)))
-SHELL_TYPES_ORDER = ('ARMOR_PIERCING', 'ARMOR_PIERCING_CR', 'HOLLOW_CHARGE', 'HIGH_EXPLOSIVE')
+SHELL_TYPES_ORDER = (SHELL_TYPES.ARMOR_PIERCING,
+ SHELL_TYPES.ARMOR_PIERCING_CR,
+ SHELL_TYPES.HOLLOW_CHARGE,
+ SHELL_TYPES.HIGH_EXPLOSIVE)
 SHELL_TYPES_ORDER_INDICES = dict(((n, i) for i, n in enumerate(SHELL_TYPES_ORDER)))
 
 class VehicleModule(FittingItem):
@@ -16,13 +23,13 @@ class VehicleModule(FittingItem):
     Root vehicle module class.
     """
 
-    def __init__(self, intCompactDescr, proxy = None, descriptor = None):
+    def __init__(self, intCompactDescr, proxy=None, descriptor=None):
         super(VehicleModule, self).__init__(intCompactDescr, proxy)
         self._vehicleModuleDescriptor = descriptor
 
     @property
     def icon(self):
-        return self.descriptor.icon[0]
+        return ''
 
     @property
     def descriptor(self):
@@ -34,17 +41,35 @@ class VehicleModule(FittingItem):
     def _sortByType(self, other):
         return MODULE_TYPES_ORDER_INDICES[self.itemTypeName] - MODULE_TYPES_ORDER_INDICES[other.itemTypeName]
 
+    def getGUIEmblemID(self):
+        return self.itemTypeName
+
 
 class VehicleChassis(VehicleModule):
     """
     Vehicle chassis class.
     """
 
-    def mayInstall(self, vehicle, slotIdx = 0):
+    def isInstalled(self, vehicle, slotIdx=None):
+        return self.intCD == vehicle.chassis.intCD
+
+    def mayInstall(self, vehicle, slotIdx=None):
         installPossible, reason = FittingItem.mayInstall(self, vehicle, slotIdx)
         if not installPossible and reason == 'too heavy':
             return (False, 'too heavy chassis')
         return (installPossible, reason)
+
+    def getInstalledVehicles(self, vehicles):
+        result = set()
+        for vehicle in vehicles:
+            if self.intCD == vehicle.chassis.intCD:
+                result.add(vehicle)
+
+        return result
+
+    @property
+    def icon(self):
+        return RES_ICONS.MAPS_ICONS_MODULES_CHASSIS
 
 
 class VehicleTurret(VehicleModule):
@@ -52,8 +77,26 @@ class VehicleTurret(VehicleModule):
     Vehicle turret class.
     """
 
-    def mayInstall(self, vehicle, slotIdx = 0, gunCD = 0):
-        return vehicle.descriptor.mayInstallTurret(self.intCD, gunCD)
+    def isInstalled(self, vehicle, slotIdx=None):
+        return self.intCD == vehicle.turret.intCD
+
+    def mayInstall(self, vehicle, slotIdx=None, gunCD=0):
+        installPossible, reason = vehicle.descriptor.mayInstallTurret(self.intCD, gunCD)
+        if not installPossible and reason == 'not for this vehicle type':
+            return (False, 'need gun')
+        return (installPossible, reason)
+
+    def getInstalledVehicles(self, vehicles):
+        result = set()
+        for vehicle in vehicles:
+            if self.intCD == vehicle.turret.intCD:
+                result.add(vehicle)
+
+        return result
+
+    @property
+    def icon(self):
+        return RES_ICONS.MAPS_ICONS_MODULES_TOWER
 
 
 class VehicleGun(VehicleModule):
@@ -61,28 +104,26 @@ class VehicleGun(VehicleModule):
     Vehicle gun class.
     """
 
-    def __init__(self, intCompactDescr, proxy = None, descriptor = None):
+    def __init__(self, intCompactDescr, proxy=None, descriptor=None):
         super(VehicleGun, self).__init__(intCompactDescr, proxy, descriptor)
         self.defaultAmmo = self._getDefaultAmmo(proxy)
+        self.maxAmmo = self._getMaxAmmo(proxy)
 
-    def mayInstall(self, vehicle, slotIdx = 0):
+    def isInstalled(self, vehicle, slotIdx=None):
+        return self.intCD == vehicle.gun.intCD
+
+    def mayInstall(self, vehicle, slotIdx=None):
         installPossible, reason = FittingItem.mayInstall(self, vehicle)
         if not installPossible and reason == 'not for current vehicle':
             return (False, 'need turret')
         return (installPossible, reason)
 
-    def isClipGun(self, vehicleDescr = None):
-        compatibles = ParametersCache.g_instance.getGunCompatibles(self.descriptor, vehicleDescr)
-        clipVehicleList = compatibles[CLIP_VEHICLES_CD_PROP_NAME]
-        if vehicleDescr is not None:
-            if len(clipVehicleList) > 0:
-                for cVdescr in clipVehicleList:
-                    if cVdescr == vehicleDescr.type.compactDescr:
-                        return True
+    def getReloadingType(self, vehicleDescr=None):
+        return g_paramsCache.getGunReloadingSystemType(self.intCD, vehicleDescr.type.compactDescr if vehicleDescr is not None else None)
 
-        elif len(clipVehicleList) > 0 and len(compatibles['vehicles']) == 0:
-            return True
-        return False
+    def isClipGun(self, vehicleDescr=None):
+        typeToCheck = GUN_CLIP if vehicleDescr is not None else GUN_CAN_BE_CLIP
+        return self.getReloadingType(vehicleDescr) == typeToCheck
 
     def _getDefaultAmmo(self, proxy):
         result = []
@@ -92,26 +133,92 @@ class VehicleGun(VehicleModule):
 
         return result
 
+    def _getMaxAmmo(self, proxy):
+        return self.descriptor['maxAmmo']
+
+    def getInstalledVehicles(self, vehicles):
+        result = set()
+        for vehicle in vehicles:
+            if self.intCD == vehicle.gun.intCD:
+                result.add(vehicle)
+
+        return result
+
+    @property
+    def icon(self):
+        return RES_ICONS.MAPS_ICONS_MODULES_GUN
+
 
 class VehicleEngine(VehicleModule):
     """
     Vehicle engine class.
     """
-    pass
+
+    def isInstalled(self, vehicle, slotIdx=None):
+        return self.intCD == vehicle.engine.intCD
+
+    def getInstalledVehicles(self, vehicles):
+        result = set()
+        for vehicle in vehicles:
+            if self.intCD == vehicle.engine.intCD:
+                result.add(vehicle)
+
+        return result
+
+    def getConflictedEquipments(self, vehicle):
+        conflictEqs = list()
+        oldModuleId = vehicle.engine.intCD
+        vehicle.descriptor.installComponent(self.intCD)
+        for eq in vehicle.eqs:
+            if eq is not None:
+                installPossible, reason = eq.descriptor.checkCompatibilityWithVehicle(vehicle.descriptor)
+                if not installPossible:
+                    conflictEqs.append(eq)
+
+        vehicle.descriptor.installComponent(oldModuleId)
+        return conflictEqs
+
+    @property
+    def icon(self):
+        return RES_ICONS.MAPS_ICONS_MODULES_ENGINE
 
 
 class VehicleFuelTank(VehicleModule):
     """
     Vehicle fuel tank class.
     """
-    pass
+
+    def isInstalled(self, vehicle, slotIdx=None):
+        return self.intCD == vehicle.fuelTank.intCD
+
+    def getInstalledVehicles(self, vehicles):
+        result = set()
+        for vehicle in vehicles:
+            if self.intCD == vehicle.fuelTank.intCD:
+                result.add(vehicle)
+
+        return result
 
 
 class VehicleRadio(VehicleModule):
     """
     Vehicle radio class.
     """
-    pass
+
+    def isInstalled(self, vehicle, slotIdx=None):
+        return self.intCD == vehicle.radio.intCD
+
+    def getInstalledVehicles(self, vehicles):
+        result = set()
+        for vehicle in vehicles:
+            if self.intCD == vehicle.radio.intCD:
+                result.add(vehicle)
+
+        return result
+
+    @property
+    def icon(self):
+        return RES_ICONS.MAPS_ICONS_MODULES_RADIO
 
 
 class Shell(FittingItem):
@@ -119,7 +226,7 @@ class Shell(FittingItem):
     Vehicle shells class.
     """
 
-    def __init__(self, intCompactDescr, count = 0, defaultCount = 0, proxy = None, isBoughtForCredits = False):
+    def __init__(self, intCompactDescr, count=0, defaultCount=0, proxy=None, isBoughtForCredits=False):
         """
         Ctor.
         
@@ -132,21 +239,16 @@ class Shell(FittingItem):
         self.count = count
         self.defaultCount = defaultCount
 
-    def _getActionPrice(self, buyPrice, proxy):
+    def _getAltPrice(self, buyPrice, proxy):
         """ Overridden method for receiving special action price value for shells
         @param buyPrice:
         @param proxy:
         @return:
         """
-        return (buyPrice[0] + buyPrice[1] * proxy.shop.exchangeRateForShellsAndEqs, buyPrice[1])
+        creditsPrice = buyPrice.exchange(Currency.GOLD, Currency.CREDITS, proxy.exchangeRateForShellsAndEqs)
+        return buyPrice.replace(Currency.CREDITS, creditsPrice.credits)
 
-    @property
-    def type(self):
-        """ Returns shells type string (`HOLLOW_CHARGE` etc.). """
-        return self.descriptor['kind']
-
-    @property
-    def longUserName(self):
+    def _getFormatLongUserName(self, kind):
         if self.nationID == nations.INDICES['germany']:
             caliber = float(self.descriptor['caliber']) / 10
             dimension = i18n.makeString('#item_types:shell/dimension/sm')
@@ -156,10 +258,23 @@ class Shell(FittingItem):
         else:
             caliber = self.descriptor['caliber']
             dimension = i18n.makeString('#item_types:shell/dimension/mm')
-        return i18n.makeString('#item_types:shell/name') % {'kind': i18n.makeString('#item_types:shell/kinds/' + self.descriptor['kind']),
+        return i18n.makeString('#item_types:shell/name') % {'kind': i18n.makeString('#item_types:shell/%s/%s' % (kind, self.descriptor['kind'])),
          'name': self.userName,
          'caliber': BigWorld.wg_getNiceNumberFormat(caliber),
          'dimension': dimension}
+
+    @property
+    def type(self):
+        """ Returns shells type string (`HOLLOW_CHARGE` etc.). """
+        return self.descriptor['kind']
+
+    @property
+    def longUserName(self):
+        return self._getFormatLongUserName('kinds')
+
+    @property
+    def longUserNameAbbr(self):
+        return self._getFormatLongUserName('kindsAbbreviation')
 
     @property
     def icon(self):
@@ -167,18 +282,20 @@ class Shell(FittingItem):
          'subtype': '',
          'unicName': self.descriptor['icon'][0]}
 
-    def getCtorArgs(self):
-        return [self.intCD, self.count, self.defaultCount]
+    def getGUIEmblemID(self):
+        return self.type
 
-    def toDict(self):
-        d = FittingItem.toDict(self)
-        d.update({'count': self.count,
-         'defaulCount': self.defaultCount,
-         'kind': self.type})
-        return d
+    @property
+    def defaultLayoutValue(self):
+        return (self.intCD if not self.isBoughtForCredits else -self.intCD, self.defaultCount)
+
+    def isInstalled(self, vehicle, slotIdx=None):
+        for shell in vehicle.shells:
+            if self.intCD == shell.intCD:
+                return True
+
+        return super(Shell, self).isInstalled(vehicle, slotIdx)
 
     def _sortByType(self, other):
-        return SHELL_TYPES_ORDER_INDICES[self.itemTypeName] - SHELL_TYPES_ORDER_INDICES[other.itemTypeName]
-# okay decompyling res/scripts/client/gui/shared/gui_items/vehicle_modules.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:54 EST
+        return SHELL_TYPES_ORDER_INDICES[self.type] - SHELL_TYPES_ORDER_INDICES[other.type]
+# okay decompiling ./res/scripts/client/gui/shared/gui_items/vehicle_modules.pyc

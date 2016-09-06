@@ -1,7 +1,8 @@
-# 2013.11.15 11:27:19 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/TriggersManager.py
 import BigWorld
-import Math, math
+import Math
+import math
 import PlayerEvents
 from debug_utils import *
 from constants import ARENA_PERIOD
@@ -45,6 +46,8 @@ class TriggersManager():
         self.__cbID = BigWorld.callback(self.UPDATE_PERIOD, self.update)
         self.__isOnArena = False
         self.__isEnabled = False
+        self.__shotPoints = []
+        self.__explodePoints = []
         PlayerEvents.g_playerEvents.onArenaPeriodChange += self.__onArenaPeriodChange
 
     def isEnabled(self):
@@ -187,6 +190,8 @@ class TriggersManager():
                             for listener in self.__listeners:
                                 listener.onTriggerDeactivated(params)
 
+                self.__explodePoints = []
+                self.__shotPoints = []
             except:
                 LOG_CURRENT_EXCEPTION()
 
@@ -225,6 +230,4 @@ g_manager = None
 def init():
     global g_manager
     g_manager = TriggersManager()
-# okay decompyling res/scripts/client/triggersmanager.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:20 EST
+# okay decompiling ./res/scripts/client/triggersmanager.pyc

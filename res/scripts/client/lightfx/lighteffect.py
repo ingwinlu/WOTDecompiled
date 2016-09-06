@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/LightFx/LightEffect.py
 import BigWorld
 import weakref
 import Event
@@ -15,7 +17,7 @@ class OneLightAction:
 
 class LightEffect:
 
-    def __init__(self, name, lightActions, duration = None):
+    def __init__(self, name, lightActions, duration=None):
         self.name = name
         self.lightActions = lightActions
         self.__duration = duration
@@ -51,3 +53,4 @@ class LightEffect:
         self.onStop(self)
         self.__isRunning = False
         return
+# okay decompiling ./res/scripts/client/lightfx/lighteffect.pyc

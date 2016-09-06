@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/AvatarInputHandler/DynamicCameras/__init__.py
 import BigWorld
 import Math
 from Math import Vector3, Matrix
@@ -11,7 +13,7 @@ def createCrosshairMatrix(offsetFromNearPlane):
     return mathUtils.createTranslationMatrix(Vector3(0, 0, nearPlane + offsetFromNearPlane))
 
 
-def createOscillatorFromSection(oscillatorSection, constraintsAsAngle = True):
+def createOscillatorFromSection(oscillatorSection, constraintsAsAngle=True):
     constraints = readVec3(oscillatorSection, 'constraints', (0.0, 0.0, 0.0), (175.0, 175.0, 175.0), 10.0)
     if constraintsAsAngle:
         constraints = Vector3((math.radians(constraints.x), math.radians(constraints.y), math.radians(constraints.z)))
@@ -57,7 +59,8 @@ class CameraDynamicConfig(dict):
      ImpulseReason.SPLASH: 'splash',
      ImpulseReason.COLLISION: 'collision',
      ImpulseReason.VEHICLE_EXPLOSION: 'vehicleExplosion',
-     ImpulseReason.PROJECTILE_HIT: 'projectileHit'}
+     ImpulseReason.PROJECTILE_HIT: 'projectileHit',
+     ImpulseReason.HE_EXPLOSION: 'vehicleExplosion'}
 
     def readImpulsesConfig(self, rootDataSec):
         self.__readReasonProjection('impulseSensitivities', rootDataSec)
@@ -65,7 +68,7 @@ class CameraDynamicConfig(dict):
         self.__readReasonProjection('impulseLimits', rootDataSec, True)
         self.__readReasonProjection('noiseLimits', rootDataSec, True)
 
-    def __readReasonProjection(self, projectionName, rootDataSec, asMinMax = False):
+    def __readReasonProjection(self, projectionName, rootDataSec, asMinMax=False):
         self[projectionName] = impulseDict = {}
         projectionDataSec = rootDataSec[projectionName]
         if projectionDataSec is None:
@@ -126,12 +129,12 @@ class AccelerationSmoother(object):
         acceleration = self.__accelerationFilter.add(acceleration)
         movementFlags = vehicle.engineMode[1]
         moveMask = 3
-        if not movementFlags & moveMask ^ self.__prevMovementFlags & moveMask:
-            self.__hasChangedDirection = curVelocity.dot(self.__prevVelocity) <= 0.01
-            self.__prevMovementFlags = movementFlags
-            self.__prevVelocity = curVelocity
-            self.__timeLapsedSinceDirChange += deltaTime
-            self.__timeLapsedSinceDirChange = self.__hasChangedDirection and 0.0
+        self.__hasChangedDirection = movementFlags & moveMask ^ self.__prevMovementFlags & moveMask or curVelocity.dot(self.__prevVelocity) <= 0.01
+        self.__prevMovementFlags = movementFlags
+        self.__prevVelocity = curVelocity
+        self.__timeLapsedSinceDirChange += deltaTime
+        if self.__hasChangedDirection:
+            self.__timeLapsedSinceDirChange = 0.0
         elif self.__timeLapsedSinceDirChange > self.__maxAccelerationDuration:
             invVehMat = Matrix(vehicle.matrix)
             invVehMat.invert()
@@ -141,3 +144,4 @@ class AccelerationSmoother(object):
             acceleration = Matrix(vehicle.matrix).applyVector(accelerationRelativeToVehicle)
         self.__acceleration = acceleration
         return acceleration
+# okay decompiling ./res/scripts/client/avatarinputhandler/dynamiccameras/__init__.pyc

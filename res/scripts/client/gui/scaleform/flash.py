@@ -1,16 +1,22 @@
-import json, constants
-import GUI, _Scaleform, weakref
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/Flash.py
+from collections import defaultdict
+import json
+import GUI
+import _Scaleform
+import weakref
 from gui.Scaleform import SCALEFORM_SWF_PATH
-from debug_utils import LOG_DEBUG, LOG_CODEPOINT_WARNING, LOG_ERROR, LOG_GUI, _doLog
+from debug_utils import LOG_DEBUG, LOG_CODEPOINT_WARNING, LOG_ERROR, LOG_GUI
 
 class Flash(object):
 
-    def __init__(self, swf, className = 'Flash', args = None, path = SCALEFORM_SWF_PATH):
+    def __init__(self, swf, className='Flash', args=None, path=SCALEFORM_SWF_PATH):
         if args is None:
             args = []
-        self.__fsCbs = {}
-        self.__exCbs = {}
-        movieDefinition = _Scaleform.MovieDef(''.join([path, '/', swf]))
+        super(Flash, self).__init__()
+        self.__fsCbs = defaultdict(set)
+        self.__exCbs = defaultdict(set)
+        movieDefinition = _Scaleform.MovieDef(''.join((path, '/', swf)))
         movie = movieDefinition.createInstance()
         self.component = getattr(GUI, className)(movie, *args)
         self.component.focus = True
@@ -19,24 +25,18 @@ class Flash(object):
         self.flashSize = (2, 2)
         self.isActive = False
         movie = self.component.movie
-        movie.setFSCommandCallback(_FuncObj(self, 'handleFsCommandCallback'))
-        movie.setExternalInterfaceCallback(_FuncObj(self, 'handleExternalInterfaceCallback'))
+        movie.setFSCommandCallback(_FsCommandObj(self))
+        movie.setExternalInterfaceCallback(_ExternalInterfaceObj(self))
         return
 
     def __del__(self):
         LOG_DEBUG('Deleted: %s' % self)
 
     def __onLogGui(self, type, msg, *kargs):
-        if type == 'DEBUG' and not constants.IS_DEVELOPMENT:
-            return
-        _doLog('%s.GUI' % str(type), msg, kargs)
+        LOG_GUI('%s.GUI' % str(type), msg, kargs)
 
     def __onLogGuiFormat(self, type, msg, *kargs):
-        if type == 'DEBUG' and not constants.IS_DEVELOPMENT:
-            return
-        else:
-            _doLog('%s.GUI' % str(type), msg % kargs, None)
-            return
+        LOG_GUI('%s.GUI' % str(type), msg % kargs)
 
     @property
     def movie(self):
@@ -80,28 +80,27 @@ class Flash(object):
     def getMember(self, path):
         return getattr(self.movie, path, None)
 
-    def call(self, methodName, args = None):
+    def call(self, methodName, args=None):
         if args is None:
             args = []
         args.insert(0, methodName)
         self.movie.invoke(('call', args))
         return
 
-    def callNice(self, methodName, args = None):
+    def callNice(self, methodName, args=None):
         if args is None:
             args = []
         jsonArgs = [methodName, json.dumps(args)]
         self.movie.invoke(('callJson', jsonArgs))
         return
 
-    def respond(self, args = None):
+    def respond(self, args=None):
         if args is None:
             args = []
         self.movie.invoke(('respond', args))
         return
 
     def addFsCallback(self, command, function):
-        self.__fsCbs.setdefault(command, set())
         self.__fsCbs[command].add(function)
 
     def removeFsCallback(self, command):
@@ -111,18 +110,19 @@ class Flash(object):
             pass
 
     def addFsCallbacks(self, commands):
+        add = self.addFsCallback
         for command, function in commands.items():
-            self.addFsCallback(command, function)
+            add(command, function)
 
     def removeFsCallbacks(self, *args):
+        remove = self.removeFsCallback
         for command in args:
-            self.removeFsCallback(command)
+            remove(command)
 
     def addExternalCallback(self, command, function):
-        self.__exCbs.setdefault(command, set())
         self.__exCbs[command].add(function)
 
-    def removeExternalCallback(self, command, function = None):
+    def removeExternalCallback(self, command, function=None):
         try:
             if function is None:
                 self.__exCbs.pop(command)
@@ -134,12 +134,14 @@ class Flash(object):
         return
 
     def addExternalCallbacks(self, commands):
+        add = self.addExternalCallback
         for command, function in commands.items():
-            self.addExternalCallback(command, function)
+            add(command, function)
 
     def removeExternalCallbacks(self, *args):
+        remove = self.removeExternalCallback
         for command in args:
-            self.removeExternalCallback(command)
+            remove(command)
 
     def removeAllCallbacks(self):
         self.__fsCbs.clear()
@@ -174,15 +176,28 @@ class Flash(object):
         return result
 
 
-class _FuncObj():
+class _FsCommandObj():
 
-    def __init__(self, obj, funcName):
+    def __init__(self, obj):
         self.__weakObj = weakref.ref(obj)
-        self.__funcName = funcName
 
     def __call__(self, command, args):
-        if self.__weakObj() is not None:
-            getattr(self.__weakObj(), self.__funcName)(command, args)
+        obj = self.__weakObj()
+        if obj:
+            obj.handleFsCommandCallback(command, args)
         else:
             LOG_CODEPOINT_WARNING('weak object has been already destroyed.')
-        return
+
+
+class _ExternalInterfaceObj():
+
+    def __init__(self, obj):
+        self.__weakObj = weakref.ref(obj)
+
+    def __call__(self, command, args):
+        obj = self.__weakObj()
+        if obj:
+            obj.handleExternalInterfaceCallback(command, args)
+        else:
+            LOG_CODEPOINT_WARNING('weak object has been already destroyed.')
+# okay decompiling ./res/scripts/client/gui/scaleform/flash.pyc

@@ -1,67 +1,79 @@
-# 2013.11.15 11:26:23 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/login/EULADispatcher.py
 import ResMgr
 from debug_utils import LOG_ERROR, LOG_WARNING, LOG_CURRENT_EXCEPTION
+from gui.Scaleform.Waiting import Waiting
+from gui.Scaleform.daapi.settings.views import VIEW_ALIAS
+from gui.doc_loaders.EULAVersionLoader import EULAVersionLoader
+from gui.shared import EVENT_BUS_SCOPE
 from helpers import getClientLanguage
-from gui import VERSION_FILE_PATH, makeHtmlString, GUI_SETTINGS
-from gui.shared.events import ShowWindowEvent, CloseWindowEvent
+from gui import makeHtmlString, GUI_SETTINGS
+from gui.shared.events import CloseWindowEvent, LoadViewEvent
 from gui.Scaleform.framework.entities.EventSystemEntity import EventSystemEntity
 from Event import Event
-SHOW_LICENCE_TAG = 'showLicense'
+from adisp import async
+VERSION_TAG = 'showLicense'
 EULA_TEMPLATES_FILE_PATH = 'gui/EULA_templates.xml'
 EULA_FILE_PATH = 'text/EULA.xml'
 
 class EULADispatcher(EventSystemEntity):
     onEULAClosed = Event()
 
+    def __init__(self):
+        super(EULADispatcher, self).__init__()
+        self.serverVersion = None
+        self.isShow = False
+        self.EULACallback = None
+        self.EULAVersion = EULAVersionLoader()
+        return
+
     def _populate(self):
         EventSystemEntity._populate(self)
-        if self.isShowLicense():
-            isShowFullEULA = GUI_SETTINGS.eula.full
-            if isShowFullEULA:
-                self.__eulaText = self.__readEULAFull()
-                if not len(self.__eulaText):
-                    isShowFullEULA = False
-            if not isShowFullEULA:
-                self.__eulaText = self.__readEULAShort()
-            if len(self.__eulaText):
-                self.addListener(CloseWindowEvent.EULA_CLOSED, self.__onEulaClosed)
-                self.fireEvent(ShowWindowEvent(ShowWindowEvent.SHOW_EULA, ctx={'isFull': isShowFullEULA,
-                 'text': self.__eulaText}))
+        if self.isShow is False:
+            return
+        isShowFullEULA = GUI_SETTINGS.eula.full
+        if isShowFullEULA:
+            self.__eulaText = self.__readEULAFull()
+            if not len(self.__eulaText):
+                isShowFullEULA = False
+        if not isShowFullEULA:
+            self.__eulaText = self.__readEULAShort()
+        if len(self.__eulaText):
+            self.addListener(CloseWindowEvent.EULA_CLOSED, self.__onEulaClosed)
+            self.fireEvent(LoadViewEvent(VIEW_ALIAS.EULA_FULL if isShowFullEULA else VIEW_ALIAS.EULA, ctx={'text': self.__eulaText}), EVENT_BUS_SCOPE.LOBBY)
 
     def __onEulaClosed(self, event):
         self.onEULAClosed()
         if event.isAgree:
             self.__saveVersionFile()
 
-    def isShowLicense(self):
-        dSection = ResMgr.openSection(VERSION_FILE_PATH)
-        if dSection is None:
-            LOG_ERROR('Can not open file:', VERSION_FILE_PATH)
-            return False
+    @async
+    def processLicense(self, callback=None):
+        self.EULACallback = callback
+        from account_helpers.AccountSettings import AccountSettings, EULA_VERSION
+        from account_helpers.settings_core.SettingsCore import g_settingsCore
+        defaults = AccountSettings.getFilterDefault(EULA_VERSION)
+        filters = g_settingsCore.serverSettings.getSection(EULA_VERSION, defaults)
+        self.serverVersion = int(filters['version'])
+        self.isShow = False
+        xmlVersion = self.EULAVersion.xmlVersion
+        if self.serverVersion != xmlVersion and xmlVersion != 0:
+            self.isShow = True
+        if self.isShow:
+            Waiting.close()
+            self.create()
         else:
-            return bool(dSection.readInt(SHOW_LICENCE_TAG, 0))
+            callback(True)
 
     def __saveVersionFile(self):
-        dSection = ResMgr.openSection(VERSION_FILE_PATH)
-        if dSection is None:
-            LOG_ERROR('Can not open file:', VERSION_FILE_PATH)
-            self.__showLicense = False
-            return
-        else:
-            dSection.writeInt(SHOW_LICENCE_TAG, 0)
-            isReleaseVer = False
-            try:
-                f = open('version.xml', 'rb')
-                f.close()
-                isReleaseVer = True
-            except IOError:
-                pass
-
-            f = open('version.xml' if isReleaseVer else VERSION_FILE_PATH, 'wb')
-            f.write(dSection.asBinary)
-            f.close()
-            return
+        self.__showLicense = False
+        from account_helpers.AccountSettings import EULA_VERSION
+        from account_helpers.settings_core.SettingsCore import g_settingsCore
+        version = {'version': self.EULAVersion.xmlVersion}
+        g_settingsCore.serverSettings.setSectionSettings(EULA_VERSION, version)
+        self.serverVersion = None
+        self.EULACallback(True)
+        return
 
     def __readEULAShort(self):
         return makeHtmlString('html_templates:lobby/dialogs', 'eula', {'eulaURL': GUI_SETTINGS.eula.url.format(getClientLanguage())})
@@ -87,6 +99,15 @@ class EULADispatcher(EventSystemEntity):
                 LOG_CURRENT_EXCEPTION()
 
             return ''.join(text)
+
+    def fini(self):
+        self.removeListener(CloseWindowEvent.EULA_CLOSED, self.__onEulaClosed)
+        self.serverVersion = None
+        self.isShow = None
+        self.EULACallback = None
+        self.EULAVersion = None
+        self.destroy()
+        return
 
 
 class _TagTemplate(object):
@@ -178,7 +199,7 @@ class _LicenseXMLProcessor(object):
 
         return
 
-    def execute(self, section, processor = None, result = None):
+    def execute(self, section, processor=None, result=None):
         template = self.__templates.get(section.name)
         if result is None:
             result = []
@@ -187,6 +208,4 @@ class _LicenseXMLProcessor(object):
         else:
             result.append(section.asWideString)
         return result
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/login/euladispatcher.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:23 EST
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/login/euladispatcher.pyc

@@ -1,25 +1,20 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/tutorial/control/battle/aspects.py
 import weakref
 from helpers import aop
-from items import ITEM_TYPE_INDICES, getTypeOfCompactDescr
 
 class AmmoQuantityAspect(aop.Aspect):
 
-    def __init__(self, trigger, *args, **kwargs):
+    def __init__(self, trigger):
         super(AmmoQuantityAspect, self).__init__()
         self.__triggerRef = weakref.ref(trigger)
 
     def atCall(self, cd):
-        function = cd.function.__name__
         trigger = self.__triggerRef()
         if trigger is None:
             return
         else:
-            if function == 'updateVehicleAmmo':
-                cd, quantity, quantityInClip, _ = cd.args
-                if ITEM_TYPE_INDICES['shell'] == getTypeOfCompactDescr(cd):
-                    trigger.setAmmoLayout(cd, quantity)
-            elif function == 'shoot':
-                trigger.toggle(isOn=trigger.isOn(shoot=True))
+            trigger.toggle(isOn=trigger.isOn(shoot=True))
             return
 
     def clear(self):
@@ -57,7 +52,7 @@ class MouseScrollIgnoreAspect(aop.Aspect):
 class AmmoQuantityPointcut(aop.Pointcut):
 
     def __init__(self):
-        super(AmmoQuantityPointcut, self).__init__('Avatar', 'Avatar', '^shoot|updateVehicleAmmo$')
+        super(AmmoQuantityPointcut, self).__init__('Avatar', 'Avatar', '^shoot$')
 
 
 class AltModeTogglePointcut(aop.Pointcut):
@@ -76,3 +71,4 @@ class ArcadeCtrlMouseEventsPointcut(aop.Pointcut):
 
     def __init__(self):
         super(ArcadeCtrlMouseEventsPointcut, self).__init__('AvatarInputHandler.control_modes', 'ArcadeControlMode', '^handleMouseEvent')
+# okay decompiling ./res/scripts/client/tutorial/control/battle/aspects.pyc

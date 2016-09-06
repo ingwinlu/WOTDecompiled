@@ -1,9 +1,9 @@
-# 2013.11.15 11:25:13 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/account_helpers/Stats.py
 import AccountCommands
 import items
 from functools import partial
-from AccountSyncData import synchronizeDicts
+from diff_utils import synchronizeDicts
 from items import vehicles
 from debug_utils import *
 _VEHICLE = items.ITEM_TYPE_INDICES['vehicle']
@@ -17,10 +17,11 @@ _TANKMAN = items.ITEM_TYPE_INDICES['tankman']
 _OPTIONALDEVICE = items.ITEM_TYPE_INDICES['optionalDevice']
 _SHELL = items.ITEM_TYPE_INDICES['shell']
 _EQUIPMENT = items.ITEM_TYPE_INDICES['equipment']
-_SIMPLE_VALUE_STATS = ('credits', 'gold', 'slots', 'berths', 'freeXP', 'dossier', 'clanInfo', 'accOnline', 'accOffline', 'freeTMenLeft', 'freeVehiclesLeft', 'vehicleSellsLeft', 'captchaTriesLeft', 'hasFinPassword', 'finPswdAttemptsLeft', 'tkillIsSuspected', 'denunciationsLeft', 'tutorialsCompleted', 'battlesTillCaptcha', 'dailyPlayHours', 'playLimits', 'globalRating')
-_DICT_STATS = ('vehTypeXP', 'vehTypeLocks', 'restrictions', 'globalVehicleLocks')
+_SIMPLE_VALUE_STATS = ('credits', 'fortResource', 'gold', 'slots', 'berths', 'freeXP', 'dossier', 'clanInfo', 'accOnline', 'accOffline', 'freeTMenLeft', 'freeVehiclesLeft', 'vehicleSellsLeft', 'captchaTriesLeft', 'hasFinPassword', 'finPswdAttemptsLeft', 'tkillIsSuspected', 'denunciationsLeft', 'tutorialsCompleted', 'battlesTillCaptcha', 'dailyPlayHours', 'playLimits')
+_DICT_STATS = ('vehTypeXP', 'vehTypeLocks', 'restrictions', 'globalVehicleLocks', 'refSystem')
 _GROWING_SET_STATS = ('unlocks', 'eliteVehicles', 'multipliedXPVehs')
-_ACCOUNT_STATS = ('clanDBID', 'attrs', 'premiumExpiryTime', 'autoBanTime')
+_ACCOUNT_STATS = ('clanDBID', 'attrs', 'premiumExpiryTime', 'autoBanTime', 'globalRating')
+_CACHE_STATS = ('isFinPswdVerified', 'mayConsumeWalletResources', 'unitAcceptDeadline', 'oldVehInvIDs')
 
 class Stats(object):
 
@@ -75,16 +76,21 @@ class Stats(object):
             for stat in ('unlocks', 'eliteVehicles'):
                 if stat in economicsDiff:
                     cache.setdefault(stat, set()).update(economicsDiff[stat])
+                    cache.setdefault(('initial', stat), set()).update(economicsDiff[stat])
 
         cacheDiff = diff.get('cache', None)
         if cacheDiff is not None:
-            for stat in ('isFinPswdVerified', 'mayConsumeWalletResources'):
+            for stat in _CACHE_STATS:
                 if stat in cacheDiff:
+                    LOG_DEBUG_DEV('CACHE stat change', stat, cacheDiff[stat])
                     cache[stat] = cacheDiff[stat]
 
+            spaDiff = cacheDiff.get('SPA', None)
+            if spaDiff:
+                synchronizeDicts(spaDiff, cache.setdefault('SPA', dict()))
         return
 
-    def getCache(self, callback = None):
+    def getCache(self, callback=None):
         if self.__ignore:
             if callback is not None:
                 callback(AccountCommands.RES_NON_PLAYER, None)
@@ -93,7 +99,7 @@ class Stats(object):
             self.__syncData.waitForSync(partial(self.__onGetCacheResponse, callback))
             return
 
-    def get(self, statName, callback = None):
+    def get(self, statName, callback=None):
         if self.__ignore:
             if callback is not None:
                 callback(AccountCommands.RES_NON_PLAYER, None)
@@ -102,23 +108,23 @@ class Stats(object):
             self.__syncData.waitForSync(partial(self.__onGetResponse, statName, callback))
             return
 
-    def unlock(self, vehTypeCompDescr, unlockIdx, callback = None):
+    def unlock(self, vehTypeCompDescr, unlockIdx, callback=None):
         if self.__ignore:
             if callback is not None:
                 callback(AccountCommands.RES_NON_PLAYER)
             return
         else:
             if callback is not None:
-                proxy = lambda requestID, resultID, errorStr, ext = {}: callback(resultID)
+                proxy = lambda requestID, resultID, errorStr, ext={}: callback(resultID)
             else:
                 proxy = None
             self.__account._doCmdInt3(AccountCommands.CMD_UNLOCK, vehTypeCompDescr, unlockIdx, 0, proxy)
             return
 
-    def setCurrentVehicle(self, vehInvID, callback = None):
+    def setCurrentVehicle(self, vehInvID, callback=None):
         LOG_WARNING('Deprecated. setCurrentVehicle')
 
-    def exchange(self, gold, callback = None):
+    def exchange(self, gold, callback=None):
         if self.__ignore:
             if callback is not None:
                 callback(AccountCommands.RES_NON_PLAYER)
@@ -127,25 +133,25 @@ class Stats(object):
             self.__account.shop.getExchangeRate(partial(self.__exchange_onGetRate, gold, callback))
             return
 
-    def convertToFreeXP(self, vehTypeCompDescrs, xp, callback = None):
+    def convertToFreeXP(self, vehTypeCompDescrs, xp, callback=None, useDiscount=0):
         if self.__ignore:
             if callback is not None:
                 callback(AccountCommands.RES_NON_PLAYER)
             return
         else:
-            self.__account.shop.getFreeXPConversion(partial(self.__convertToFreeXP_onGetParameters, vehTypeCompDescrs, xp, callback))
+            self.__account.shop.getFreeXPConversion(partial(self.__convertToFreeXP_onGetParameters, vehTypeCompDescrs, xp, callback, useDiscount))
             return
 
-    def upgradeToPremium(self, days, callback = None):
+    def upgradeToPremium(self, days, arenaUniqueID, callback=None):
         if self.__ignore:
             if callback is not None:
                 callback(AccountCommands.RES_NON_PLAYER, 0)
             return
         else:
-            self.__account.shop.getPremiumCost(partial(self.__premium_onGetPremCost, days, callback))
+            self.__account.shop.getPremiumCost(partial(self.__premium_onGetPremCost, days, arenaUniqueID, callback))
             return
 
-    def buySlot(self, callback = None):
+    def buySlot(self, callback=None):
         if self.__ignore:
             if callback is not None:
                 callback(AccountCommands.RES_NON_PLAYER, 0)
@@ -154,7 +160,25 @@ class Stats(object):
             self.__account.shop.waitForSync(partial(self.__slot_onShopSynced, callback))
             return
 
-    def buyBerths(self, callback = None):
+    def buyPotapovQuestSlot(self, callback=None):
+        if self.__ignore:
+            if callback is not None:
+                callback(AccountCommands.RES_NON_PLAYER, 0)
+            return
+        else:
+            self.__account.shop.waitForSync(partial(self.__potapovQuestSlot_onShopSynced, callback))
+            return
+
+    def buyPotapovQuestTile(self, tileID, callback=None):
+        if self.__ignore:
+            if callback is not None:
+                callback(AccountCommands.RES_NON_PLAYER, 0)
+            return
+        else:
+            self.__account.shop.waitForSync(partial(self.__potapovQuestTile_onShopSynced, tileID, callback))
+            return
+
+    def buyBerths(self, callback=None):
         if self.__ignore:
             if callback is not None:
                 callback(AccountCommands.RES_NON_PLAYER, 0)
@@ -163,20 +187,20 @@ class Stats(object):
             self.__account.shop.waitForSync(partial(self.__berths_onShopSynced, callback))
             return
 
-    def setMoney(self, credits, gold = 0, freeXP = 0, callback = None):
+    def setMoney(self, credits, gold=0, freeXP=0, callback=None):
         if self.__ignore:
             if callback is not None:
                 callback(AccountCommands.RES_NON_PLAYER)
             return
         else:
             if callback is not None:
-                proxy = lambda requestID, resultID, errorStr, ext = {}: callback(resultID)
+                proxy = lambda requestID, resultID, errorStr, ext={}: callback(resultID)
             else:
                 proxy = None
             self.__account._doCmdInt3(AccountCommands.CMD_SET_MONEY, credits, gold, freeXP, proxy)
             return
 
-    def addExperience(self, vehTypeName, xp, callback = None):
+    def addExperience(self, vehTypeName, xp, callback=None):
         if self.__ignore:
             if callback is not None:
                 callback(AccountCommands.RES_NON_PLAYER)
@@ -184,7 +208,7 @@ class Stats(object):
         else:
             vehTypeCompDescr = vehicles.makeIntCompactDescrByID('vehicle', *vehicles.g_list.getIDsByName(vehTypeName))
             if callback is not None:
-                proxy = lambda requestID, resultID, errorStr, ext = {}: callback(resultID)
+                proxy = lambda requestID, resultID, errorStr, ext={}: callback(resultID)
             else:
                 proxy = None
             self.__account._doCmdInt3(AccountCommands.CMD_ADD_XP, vehTypeCompDescr, xp, 0, proxy)
@@ -197,7 +221,7 @@ class Stats(object):
             return
         else:
             if callback is not None:
-                proxy = lambda requestID, resultID, errorStr, ext = {}: callback(resultID)
+                proxy = lambda requestID, resultID, errorStr, ext={}: callback(resultID)
             else:
                 proxy = None
             self.__account._doCmdInt3(AccountCommands.CMD_UNLOCK_ALL, 0, 0, 0, proxy)
@@ -235,13 +259,13 @@ class Stats(object):
             return
         else:
             if callback is not None:
-                proxy = lambda requestID, resultID, errorStr, ext = {}: callback(resultID)
+                proxy = lambda requestID, resultID, errorStr, ext={}: callback(resultID)
             else:
                 proxy = None
             self.__account._doCmdInt3(AccountCommands.CMD_EXCHANGE, shopRev, gold, 0, proxy)
             return
 
-    def __convertToFreeXP_onGetParameters(self, vehTypeCompDescrs, xp, callback, resultID, freeXPConversion, shopRev):
+    def __convertToFreeXP_onGetParameters(self, vehTypeCompDescrs, xp, callback, useDiscount, resultID, freeXPConversion, shopRev):
         if resultID < 0:
             if callback is not None:
                 callback(resultID, None)
@@ -252,15 +276,15 @@ class Stats(object):
                 callback(AccountCommands.RES_FAILURE)
             return
         else:
-            arr = [shopRev, xp] + list(vehTypeCompDescrs)
+            arr = [shopRev, xp, useDiscount] + list(vehTypeCompDescrs)
             if callback is not None:
-                proxy = lambda requestID, resultID, errorStr, ext = {}: callback(resultID)
+                proxy = lambda requestID, resultID, errorStr, ext={}: callback(resultID)
             else:
                 proxy = None
             self.__account._doCmdIntArr(AccountCommands.CMD_FREE_XP_CONV, arr, proxy)
             return
 
-    def __premium_onGetPremCost(self, days, callback, resultID, premCost, shopRev):
+    def __premium_onGetPremCost(self, days, arenaUniqueID, callback, resultID, premCost, shopRev):
         if resultID < 0:
             if callback is not None:
                 callback(resultID, None)
@@ -268,20 +292,20 @@ class Stats(object):
         elif premCost is None:
             LOG_ERROR('Result of the getPremiumCost request is None')
             if callback is not None:
-                callback(AccountCommands.RES_FAILURE)
+                callback(AccountCommands.RES_FAILURE, None)
             return
         else:
             gold = premCost.get(days, None)
             if gold is None:
                 LOG_ERROR('Wrong days number')
                 if callback is not None:
-                    callback(AccountCommands.RES_WRONG_ARGS)
+                    callback(AccountCommands.RES_WRONG_ARGS, None)
                 return
             if callback is not None:
-                proxy = lambda requestID, resultID, errorStr, ext = {}: callback(resultID)
+                proxy = lambda requestID, resultID, errorStr, ext={}: callback(resultID, errorStr)
             else:
                 proxy = None
-            self.__account._doCmdInt3(AccountCommands.CMD_PREMIUM, shopRev, days, 0, proxy)
+            self.__account._doCmdInt3(AccountCommands.CMD_PREMIUM, shopRev, days, arenaUniqueID, proxy)
             return
 
     def __slot_onShopSynced(self, callback, resultID, shopRev):
@@ -291,10 +315,36 @@ class Stats(object):
             return
         else:
             if callback is not None:
-                proxy = lambda requestID, resultID, errorStr, ext = {}: callback(resultID)
+                proxy = lambda requestID, resultID, errorStr, ext={}: callback(resultID)
             else:
                 proxy = None
             self.__account._doCmdInt3(AccountCommands.CMD_BUY_SLOT, shopRev, 0, 0, proxy)
+            return
+
+    def __potapovQuestSlot_onShopSynced(self, callback, resultID, shopRev):
+        if resultID < 0:
+            if callback is not None:
+                callback(resultID)
+            return
+        else:
+            if callback is not None:
+                proxy = lambda requestID, resultID, errorStr, ext={}: callback(resultID)
+            else:
+                proxy = None
+            self.__account._doCmdInt3(AccountCommands.CMD_BUY_POTAPOV_QUEST_SLOT, shopRev, 0, 0, proxy)
+            return
+
+    def __potapovQuestTile_onShopSynced(self, tileID, callback, resultID, shopRev):
+        if resultID < 0:
+            if callback is not None:
+                callback(resultID)
+            return
+        else:
+            if callback is not None:
+                proxy = lambda requestID, resultID, errorStr, ext={}: callback(resultID)
+            else:
+                proxy = None
+            self.__account._doCmdInt3(AccountCommands.CMD_BUY_POTAPOV_QUEST_TILE, shopRev, tileID, 0, proxy)
             return
 
     def __berths_onShopSynced(self, callback, resultID, shopRev):
@@ -304,11 +354,9 @@ class Stats(object):
             return
         else:
             if callback is not None:
-                proxy = lambda requestID, resultID, errorStr, ext = {}: callback(resultID)
+                proxy = lambda requestID, resultID, errorStr, ext={}: callback(resultID)
             else:
                 proxy = None
             self.__account._doCmdInt3(AccountCommands.CMD_BUY_BERTHS, shopRev, 0, 0, proxy)
             return
-# okay decompyling res/scripts/client/account_helpers/stats.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:25:13 EST
+# okay decompiling ./res/scripts/client/account_helpers/stats.pyc

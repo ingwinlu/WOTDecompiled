@@ -1,14 +1,14 @@
-# 2013.11.15 11:26:39 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/managers/GuiItemsManager.py
 import weakref
-import pickle
-from debug_utils import LOG_DEBUG, LOG_WARNING
+import cPickle as pickle
+from debug_utils import LOG_WARNING
 from gui import GUI_NATIONS_ORDER_INDEX
 from gui.shared import g_itemsCache
 from gui.shared.gui_items import GUI_ITEM_TYPE
 from gui.shared.gui_items.Tankman import TankmanSkill
 from gui.shared.gui_items.Vehicle import VEHICLE_TYPES_ORDER_INDICES
-from gui.shared.gui_items.dossier.achievements import RareAchievement
+from gui.shared.gui_items.dossier.achievements.abstract import isRareAchievement
 from gui.Scaleform.framework.entities.abstract.GuiItemsManagerMeta import GuiItemsManagerMeta
 from nations import NAMES
 
@@ -151,10 +151,10 @@ class _Dossier(ItemWrapper):
             return getattr(stats, methodName)(*args)
         return super(_Dossier, self).call(methodName, *args)
 
-    def getAchievements(self, isInDossier = True):
-        dcd = pickle.dumps(self.item.dossier.makeCompDescr())
+    def getAchievements(self, isInDossier=True):
+        dcd = pickle.dumps(self.item.getDossierDescr().makeCompDescr())
         result = []
-        for section in self.item.getAchievements(isInDossier):
+        for section in self.item.getTotalStats().getAchievements(isInDossier):
             result.append([])
             for a in section:
                 result[-1].append(self._packAchievement(a, dcd))
@@ -162,39 +162,39 @@ class _Dossier(ItemWrapper):
         return result
 
     def getNearestAchievements(self):
-        dcd = pickle.dumps(self.item.dossier.makeCompDescr())
-        return [ self._packAchievement(a, dcd) for a in self.item.getNearestAchievements() ]
+        dcd = pickle.dumps(self.item.getDossierDescr().makeCompDescr())
+        return [ self._packAchievement(a, dcd) for a in self.item.getTotalStats().getNearestAchievements() ]
 
     def getSignificantAchievements(self):
-        dcd = pickle.dumps(self.item.dossier.makeCompDescr())
-        return [ self._packAchievement(a, dcd) for a in self.item.getSignificantAchievements() ]
+        dcd = pickle.dumps(self.item.getDossierDescr().makeCompDescr())
+        return [ self._packAchievement(a, dcd) for a in self.item.getTotalStats().getSignificantAchievements() ]
 
     def _getDossierType(self):
         return None
 
     def _packAchievement(self, achieve, dossierCompDescr):
-        isRare = isinstance(achieve, RareAchievement)
+        isRare = isRareAchievement(achieve)
         rareID = None
         name = achieve.name
         if isRare:
             rareID = achieve.requestImageID()
             name = 'rare%d' % achieve.rareID
         return {'name': name,
-         'value': achieve.value,
+         'value': achieve.getValue(),
          'section': achieve.getSection(),
          'type': achieve.getType(),
          'dossierCompDescr': dossierCompDescr,
          'rareIconId': rareID,
          'isRare': isRare,
          'isDone': achieve.isDone,
-         'lvlUpTotalValue': achieve.lvlUpTotalValue,
+         'lvlUpTotalValue': achieve.getLevelUpTotalValue(),
          'lvlUpValue': achieve.lvlUpValue,
          'isDossierForCurrentUser': self.itemID is None,
          'description': achieve.description,
          'userName': achieve.userName,
          'icon': achieve.icon,
          'dossierType': self._getDossierType(),
-         'isInDossier': achieve.isInDossier(achieve.name, self.item)}
+         'isInDossier': achieve.isInDossier()}
 
 
 class AccountDossierWrapper(_Dossier):
@@ -235,7 +235,7 @@ class AccountDossierWrapper(_Dossier):
 
     def getMaxXP(self):
         stats = self.item.getTotalStats()
-        return (stats.getMaxXp(), stats.getMaxXpVehicle())
+        return (stats.getMaxXP(), stats.getMaxXpVehicle())
 
     def getVehicles(self):
         return dict(((str(k), v) for k, v in self.item.getTotalStats().getVehicles().iteritems()))
@@ -256,7 +256,7 @@ class VehicleDossierWrapper(_Dossier):
         return self.item.getTotalStats().getMaxFrags()
 
     def getMaxVehicleXP(self):
-        return self.item.getTotalStats().getMaxXp()
+        return self.item.getTotalStats().getMaxXP()
 
     def _getItem(self, items, itemID):
         return items.getVehicleDossier(*itemID)
@@ -276,7 +276,7 @@ class AchievementWrapper(ItemWrapper):
         self.__isInDossier = False
         d = self.__getDossier(items, *dossierID)
         if d is not None:
-            self.__isInDossier = self.item.isInDossier(self.item.name, d.dossier)
+            self.__isInDossier = self.item.isInDossier()
         return
 
     def isInDossier(self):
@@ -289,7 +289,7 @@ class AchievementWrapper(ItemWrapper):
         achieveName, dossierID = self.itemID
         d = self.__getDossier(g_itemsCache.items, *dossierID)
         if d is not None:
-            return pickle.dumps(d.dossier.makeCompDescr())
+            return pickle.dumps(d.getDossierDescr().makeCompDescr())
         else:
             return
 
@@ -298,8 +298,8 @@ class AchievementWrapper(ItemWrapper):
         dossier = self.__getDossier(items, *dossierID)
         if dossier is not None:
             if self.__rareID is not None:
-                return dossier.getAchievement('rareAchievements').get(self.__rareID)
-            return dossier.getAchievement(achieveName)
+                return dossier.getTotalStats().getAchievement('rareAchievements').get(self.__rareID)
+            return dossier.getTotalStats().getAchievement(achieveName)
         else:
             LOG_WARNING('Unknown dossier type', itemID)
             return
@@ -336,6 +336,4 @@ class GuiItemsManager(GuiItemsManagerMeta):
 
     def _callItemMethod(self, itemTypeIdx, itemID, methodName, kargs):
         return self.__getWrapper(itemTypeIdx, itemID).call(methodName, *kargs)
-# okay decompyling res/scripts/client/gui/scaleform/managers/guiitemsmanager.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:39 EST
+# okay decompiling ./res/scripts/client/gui/scaleform/managers/guiitemsmanager.pyc

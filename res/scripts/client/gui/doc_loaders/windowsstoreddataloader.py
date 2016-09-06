@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/doc_loaders/WindowsStoredDataLoader.py
 import base64
 import cPickle
 import Settings
@@ -64,3 +66,4 @@ class WindowsStoredDataLoader(object):
                 dataSec.writeStrings('record', map(encode, records))
             Settings.g_instance.save()
             return
+# okay decompiling ./res/scripts/client/gui/doc_loaders/windowsstoreddataloader.pyc

@@ -1,19 +1,49 @@
-# 2013.11.15 11:26:25 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/meta/LobbyPageMeta.py
-from gui.Scaleform.framework.entities.DAAPIModule import DAAPIModule
+from gui.Scaleform.framework.entities.View import View
 
-class LobbyPageMeta(DAAPIModule):
+class LobbyPageMeta(View):
+    """
+    DO NOT MODIFY!
+    Generated with yaml.
+    __author__ = 'yaml_processor'
+    @extends View
+    null
+    """
 
     def moveSpace(self, x, y, delta):
+        """
+        :param x:
+        :param y:
+        :param delta:
+        :return :
+        """
         self._printOverrideError('moveSpace')
 
+    def getSubContainerType(self):
+        """
+        :return String:
+        """
+        self._printOverrideError('getSubContainerType')
+
+    def notifyCursorOver3dScene(self, isOver3dScene):
+        """
+        :param isOver3dScene:
+        :return :
+        """
+        self._printOverrideError('notifyCursorOver3dScene')
+
     def as_showHelpLayoutS(self):
+        """
+        :return :
+        """
         if self._isDAAPIInited():
             return self.flashObject.as_showHelpLayout()
 
     def as_closeHelpLayoutS(self):
+        """
+        :return :
+        """
         if self._isDAAPIInited():
             return self.flashObject.as_closeHelpLayout()
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/meta/lobbypagemeta.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:25 EST
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/meta/lobbypagemeta.pyc

@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/LightFx/LightManager.py
 import time
 from debug_utils import *
 import BigWorld
@@ -179,7 +181,7 @@ class _ChatActionsHandler:
         invitesManager = g_prbLoader.getInvitesManager()
         if invitesManager is not None:
             invitesManager.onReceivedInviteListModified += self.__onReceivedInviteListModified
-            invitesManager.onReceivedInviteListInited += self.__onReceivedInviteListModified
+            invitesManager.onInvitesListInited += self.__onReceivedInviteListModified
         g_messengerEvents.serviceChannel.onServerMessageReceived += self.__onSysMessage
         g_messengerEvents.serviceChannel.onClientMessageReceived += self.__onSysMessage
         g_messengerEvents.channels.onConnectStateChanged += self.__onConnectStateChanged
@@ -189,7 +191,7 @@ class _ChatActionsHandler:
         invitesManager = g_prbLoader.getInvitesManager()
         if invitesManager is not None:
             invitesManager.onReceivedInviteListModified -= self.__onReceivedInviteListModified
-            invitesManager.onReceivedInviteListInited -= self.__onReceivedInviteListModified
+            invitesManager.onInvitesListInited -= self.__onReceivedInviteListModified
         g_messengerEvents.serviceChannel.onServerMessageReceived -= self.__onSysMessage
         g_messengerEvents.serviceChannel.onClientMessageReceived -= self.__onSysMessage
         g_messengerEvents.channels.onConnectStateChanged -= self.__onConnectStateChanged
@@ -204,9 +206,9 @@ class _ChatActionsHandler:
         else:
             g_instance.stopLightEffect(GameLights.INVITATION_EFFECT)
 
-    def __onSysMessage(self, formatted, isPriority, notify, auxData):
+    def __onSysMessage(self, clientID, formatted, settings):
         gameGreetingName = gui.SystemMessages.SM_TYPE.GameGreeting.name()
-        if gameGreetingName not in auxData:
+        if gameGreetingName not in settings.auxData:
             GameLights.systemMessage()
 
     def __onConnectStateChanged(self, channel):
@@ -214,3 +216,4 @@ class _ChatActionsHandler:
             data = channel.getProtoData()
             if not isCurrentPlayer(data.owner) and channel.isPrivate():
                 g_instance.startLightEffect(GameLights.CHAT_CHANNEL_OPENED_EFFECT)
+# okay decompiling ./res/scripts/client/lightfx/lightmanager.pyc

@@ -1,9 +1,10 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/notification/NotificationsModel.py
 import Event
-from messenger.m_constants import PROTO_TYPE
-from messenger.proto import proto_getter
-from messenger.proto.events import g_messengerEvents
-POPUPS_STATE = 0
-LIST_STATE = 1
+from notification.NotificationsCollection import NotificationsCollection
+from notification.NotificationsCounter import NotificationsCounter
+from notification.listeners import NotificationsListeners
+from notification.settings import NOTIFICATION_STATE
 
 class NotificationsModel:
 
@@ -11,35 +12,59 @@ class NotificationsModel:
         self.__layoutSettings = {'paddingRight': 0,
          'paddingBottom': 0}
         self.__currentDisplayState = None
-        self.__notifiedMessagesCount = 0
+        self.__collection = NotificationsCollection()
+        self.__listeners = NotificationsListeners()
+        self.__counter = NotificationsCounter()
         self.onLayoutSettingsChanged = Event.Event()
         self.onDisplayStateChanged = Event.Event()
-        self.onMessageReceived = Event.Event()
+        self.onNotificationReceived = Event.Event()
+        self.onNotificationUpdated = Event.Event()
+        self.onNotificationRemoved = Event.Event()
         self.onNotifiedMessagesCountChanged = Event.Event()
-        channel = g_messengerEvents.serviceChannel
-        channel.onServerMessageReceived += self.__onMessageReceived
-        channel.onClientMessageReceived += self.__onMessageReceived
-        self.__setDisplayState(POPUPS_STATE, {})
+        self.__setDisplayState(NOTIFICATION_STATE.POPUPS, {})
         return
 
-    @proto_getter(PROTO_TYPE.BW)
-    def proto(self):
-        return None
+    @property
+    def collection(self):
+        return self.__collection
 
-    def setListDisplayState(self, data = None):
-        self.__setDisplayState(LIST_STATE, data)
+    def setListDisplayState(self, data=None):
+        self.__setDisplayState(NOTIFICATION_STATE.LIST, data)
 
-    def setPopupsDisplayState(self, data = None):
-        self.__setDisplayState(POPUPS_STATE, data)
+    def setPopupsDisplayState(self, data=None):
+        self.__setDisplayState(NOTIFICATION_STATE.POPUPS, data)
 
     def __setDisplayState(self, newState, data):
         if newState != self.__currentDisplayState:
             oldState = self.__currentDisplayState
             self.__currentDisplayState = newState
             self.onDisplayStateChanged(oldState, newState, data)
+            if newState == NOTIFICATION_STATE.LIST:
+                self.resetNotifiedMessagesCount()
 
     def getDisplayState(self):
         return self.__currentDisplayState
+
+    def addNotification(self, notification):
+        if self.__collection.addItem(notification):
+            self.onNotificationReceived(notification)
+
+    def updateNotification(self, typeID, entityID, entity, isStateChanged):
+        if self.__collection.updateItem(typeID, entityID, entity):
+            self.onNotificationUpdated(self.__collection.getItem(typeID, entityID), isStateChanged)
+
+    def removeNotification(self, typeID, entityID):
+        if self.__collection.removeItem(typeID, entityID):
+            self.onNotificationRemoved(typeID, entityID)
+
+    def removeNotificationsByType(self, typeID):
+        self.__collection.removeItemsByType(typeID)
+
+    def hasNotification(self, typeID, entityID):
+        return self.__collection.getItem(typeID, entityID) is not None
+
+    def getNotification(self, typeID, entityID):
+        return self.__collection.getItem(typeID, entityID)
 
     def setLayoutSettings(self, paddingRight, paddingBottom):
         self.__layoutSettings = {'paddingRight': paddingRight,
@@ -49,42 +74,28 @@ class NotificationsModel:
     def getLayoutSettings(self):
         return self.__layoutSettings
 
-    def __onMessageReceived(self, message, isPriority, notify, auxData):
-        self.onMessageReceived(message, isPriority, notify, auxData)
-        self.__decrementUnreadMessagesCount()
-
     def incrementNotifiedMessagesCount(self):
-        self.__notifiedMessagesCount += 1
-        self.onNotifiedMessagesCountChanged(self.__notifiedMessagesCount)
+        self.onNotifiedMessagesCountChanged(self.__counter.increment())
 
     def resetNotifiedMessagesCount(self):
-        self.__notifiedMessagesCount = 0
-        self.onNotifiedMessagesCountChanged(0)
+        self.onNotifiedMessagesCountChanged(self.__counter.reset())
 
     def decrementNotifiedMessagesCount(self):
-        self.__notifiedMessagesCount -= 1
-        self.onNotifiedMessagesCountChanged(self.__notifiedMessagesCount)
+        self.onNotifiedMessagesCountChanged(self.__counter.decrement())
 
     def getNotifiedMessagesCount(self):
-        return self.__notifiedMessagesCount
+        return self.__counter.count()
 
-    def getMessagesList(self):
-        return self.proto.serviceChannel.getServiceMessagesFullData()
-
-    def requestUnreadMessages(self):
-        self.proto.serviceChannel.fireReceiveMessageEvents()
-
-    def __decrementUnreadMessagesCount(self):
-        self.proto.serviceChannel.decrementUnreadCount()
+    def setup(self):
+        self.__collection.default()
+        self.__listeners.start(self)
 
     def cleanUp(self):
-        channel = g_messengerEvents.serviceChannel
-        channel.onServerMessageReceived -= self.__onMessageReceived
-        channel.onClientMessageReceived -= self.__onMessageReceived
+        self.__collection.clear()
+        self.__listeners.stop()
+        self.__counter.reset()
         self.onLayoutSettingsChanged.clear()
         self.onDisplayStateChanged.clear()
-        self.onMessageReceived.clear()
+        self.onNotificationReceived.clear()
         self.onNotifiedMessagesCountChanged.clear()
-
-
-g_instance = None
+# okay decompiling ./res/scripts/client/notification/notificationsmodel.pyc

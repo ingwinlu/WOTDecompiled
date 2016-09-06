@@ -1,30 +1,39 @@
-# 2013.11.15 11:26:06 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/PersonalCase.py
-import pickle
+import constants
 from adisp import async
 from CurrentVehicle import g_currentVehicle
+from gui.Scaleform.daapi.view.AchievementsUtils import AchievementsUtils
 from debug_utils import LOG_ERROR
-from gui.Scaleform.framework import AppRef
+from gui.Scaleform.locale.MENU import MENU
+from gui.Scaleform.daapi.settings.views import VIEW_ALIAS
+from gui.shared.formatters import text_styles
+from gui.shared.tooltips import ACTION_TOOLTIPS_TYPE, ACTION_TOOLTIPS_STATE
+from gui.shared.utils.functions import getViewName
+from helpers import i18n, strcmp
 from gui.prb_control.dispatcher import g_prbLoader
 from gui.prb_control.prb_helpers import GlobalListener
-from items import vehicles, tankmen
+from gui.shared.ItemsCache import CACHE_SYNC_REASON
+from items import tankmen
 from gui import TANKMEN_ROLES_ORDER_DICT, SystemMessages
 from gui.ClientUpdateManager import g_clientUpdateManager
-from gui.Scaleform.framework.entities.View import View
 from gui.Scaleform.daapi.view.meta.PersonalCaseMeta import PersonalCaseMeta
-from gui.Scaleform.daapi.view.meta.WindowViewMeta import WindowViewMeta
-from gui.shared.events import ShowWindowEvent
-from gui.shared.utils import decorators, isVehicleObserver
+from gui.shared.events import LoadViewEvent
+from gui.shared.utils import decorators, isVehicleObserver, roundByModulo
 from gui.shared.gui_items import GUI_ITEM_TYPE
 from gui.shared.gui_items.Tankman import TankmanSkill
-from gui.shared.gui_items.serializers import g_itemSerializer
+from gui.shared.gui_items.dossier import dumpDossier
+from gui.shared.gui_items.serializers import packTankman, packVehicle
 from gui.shared.gui_items.processors.tankman import TankmanDismiss, TankmanUnload, TankmanRetraining, TankmanAddSkill, TankmanChangePassport
-from gui.shared import EVENT_BUS_SCOPE, events, g_itemsCache, REQ_CRITERIA
-from helpers.i18n import makeString
+from gui.shared.utils.requesters import REQ_CRITERIA
+from gui.shared import EVENT_BUS_SCOPE, events, g_itemsCache
+from gui.shared.tooltips.formatters import packActionTooltipData
+from gui.shared.money import Money
+from account_helpers.settings_core.settings_constants import TUTORIAL
 
-class PersonalCase(View, WindowViewMeta, PersonalCaseMeta, GlobalListener, AppRef):
+class PersonalCase(PersonalCaseMeta, GlobalListener):
 
-    def __init__(self, ctx):
+    def __init__(self, ctx=None):
         super(PersonalCase, self).__init__()
         self.tmanInvID = ctx.get('tankmanID')
         self.tabIndex = ctx.get('page', -1)
@@ -35,22 +44,48 @@ class PersonalCase(View, WindowViewMeta, PersonalCaseMeta, GlobalListener, AppRe
         stats = diff.get('stats', {})
         cache = diff.get('cache', {})
         isTankmanChanged = False
-        if vehicles._TANKMAN in inventory:
-            isTankmanChanged = True
-            tankmanData = inventory[vehicles._TANKMAN].get('compDescr')
+        isTankmanVehicleChanged = False
+        if GUI_ITEM_TYPE.TANKMAN in inventory:
+            tankmanData = inventory[GUI_ITEM_TYPE.TANKMAN].get('compDescr')
             if tankmanData is not None and self.tmanInvID in tankmanData:
+                isTankmanChanged = True
                 if tankmanData[self.tmanInvID] is None:
                     return self.destroy()
+            if self.tmanInvID in inventory[GUI_ITEM_TYPE.TANKMAN].get('vehicle', {}):
+                isTankmanChanged = True
+        isVehsLockExist = 'vehsLock' in cache
+        isMoneyChanged = 'credits' in stats or 'gold' in stats or 'mayConsumeWalletResources' in cache
+        isVehicleChanged = 'unlocks' in stats or isVehsLockExist or GUI_ITEM_TYPE.VEHICLE in inventory
+        isFreeXpChanged = 'freeXP' in stats
+        if isVehicleChanged:
+            tankman = g_itemsCache.items.getTankman(self.tmanInvID)
+            if isVehsLockExist:
+                return self.destroy()
+            if tankman.isInTank:
+                vehicle = g_itemsCache.items.getVehicle(tankman.vehicleInvID)
+                if vehicle.isLocked:
+                    return self.destroy()
+                vehsDiff = inventory.get(GUI_ITEM_TYPE.VEHICLE, {})
+                isTankmanVehicleChanged = len(filter(lambda hive: vehicle.inventoryID in hive or (vehicle.inventoryID, '_r') in hive, vehsDiff.itervalues())) > 0
+        if isTankmanChanged or isTankmanVehicleChanged or isFreeXpChanged:
             self.__setCommonData()
+        if isTankmanChanged or isTankmanVehicleChanged:
             self.__setSkillsData()
             self.__setDossierData()
-        if not 'credits' in stats:
-            if not 'gold' in stats:
-                isMoneyChanged = 'mayConsumeWalletResources' in cache
-                isVehicleChanged = 'unlocks' in stats
-                (isTankmanChanged or isMoneyChanged or isVehicleChanged) and self.__setRetrainingData()
-            (isTankmanChanged or isMoneyChanged) and self.__setDocumentsData()
+        if isTankmanChanged or isMoneyChanged or isTankmanVehicleChanged:
+            self.__setRetrainingData()
+        if isTankmanChanged or isMoneyChanged:
+            self.__setDocumentsData()
         return
+
+    def _refreshData(self, reason, diff):
+        if reason != CACHE_SYNC_REASON.SHOP_RESYNC:
+            return
+        self.__setCommonData()
+        self.__setSkillsData()
+        self.__setDossierData()
+        self.__setRetrainingData()
+        self.__setDocumentsData()
 
     def onPrbFunctionalFinished(self):
         self.__setCommonData()
@@ -84,6 +119,10 @@ class PersonalCase(View, WindowViewMeta, PersonalCaseMeta, GlobalListener, AppRe
     def getDocumentsData(self):
         self.__setDocumentsData()
 
+    def openChangeRoleWindow(self):
+        ctx = {'tankmanID': self.tmanInvID}
+        self.fireEvent(events.LoadViewEvent(VIEW_ALIAS.ROLE_CHANGE, VIEW_ALIAS.ROLE_CHANGE, ctx=ctx), scope=EVENT_BUS_SCOPE.LOBBY)
+
     @decorators.process('updating')
     def dismissTankman(self, tmanInvID):
         tankman = g_itemsCache.items.getTankman(int(tmanInvID))
@@ -116,10 +155,19 @@ class PersonalCase(View, WindowViewMeta, PersonalCaseMeta, GlobalListener, AppRe
             return
 
     @decorators.process('updating')
-    def changeTankmanPassport(self, invengoryID, firstNameID, lastNameID, iconID):
+    def changeTankmanPassport(self, invengoryID, firstNameID, firstNameGroup, lastNameID, lastNameGroup, iconID, iconGroup):
+
+        def checkFlashInt(value):
+            if value == -1:
+                return None
+            else:
+                return value
+
+        firstNameID = checkFlashInt(firstNameID)
+        lastNameID = checkFlashInt(lastNameID)
+        iconID = checkFlashInt(iconID)
         tankman = g_itemsCache.items.getTankman(int(invengoryID))
-        processor = TankmanChangePassport(tankman, firstNameID, lastNameID, iconID)
-        result = yield processor.request()
+        result = yield TankmanChangePassport(tankman, firstNameID, firstNameGroup, lastNameID, lastNameGroup, iconID, iconGroup).request()
         if len(result.userMsg):
             SystemMessages.g_instance.pushI18nMessage(result.userMsg, type=result.sysMsgType)
 
@@ -132,20 +180,23 @@ class PersonalCase(View, WindowViewMeta, PersonalCaseMeta, GlobalListener, AppRe
             SystemMessages.g_instance.pushI18nMessage(result.userMsg, type=result.sysMsgType)
 
     def openExchangeFreeToTankmanXpWindow(self):
-        self.fireEvent(events.ShowWindowEvent(events.ShowWindowEvent.SHOW_EXCHANGE_FREE_TO_TANKMAN_XP_WINDOW, {'tankManId': self.tmanInvID}), EVENT_BUS_SCOPE.LOBBY)
+        self.fireEvent(events.LoadViewEvent(VIEW_ALIAS.EXCHANGE_FREE_TO_TANKMAN_XP_WINDOW, getViewName(VIEW_ALIAS.EXCHANGE_FREE_TO_TANKMAN_XP_WINDOW, self.tmanInvID), {'tankManId': self.tmanInvID}), EVENT_BUS_SCOPE.LOBBY)
 
     def dropSkills(self):
-        self.fireEvent(ShowWindowEvent(ShowWindowEvent.SHOW_TANKMAN_DROP_SKILLS_WINDOW, {'tankmanID': self.tmanInvID}))
+        self.fireEvent(LoadViewEvent(VIEW_ALIAS.TANKMAN_SKILLS_DROP_WINDOW, getViewName(VIEW_ALIAS.TANKMAN_SKILLS_DROP_WINDOW, self.tmanInvID), {'tankmanID': self.tmanInvID}), EVENT_BUS_SCOPE.LOBBY)
 
     def _populate(self):
         super(PersonalCase, self)._populate()
         g_clientUpdateManager.addCallbacks({'': self.onClientChanged})
+        g_itemsCache.onSyncCompleted += self._refreshData
         self.startGlobalListening()
+        self.setupContextHints(TUTORIAL.PERSONAL_CASE)
 
     def _dispose(self):
-        super(PersonalCase, self)._dispose()
         self.stopGlobalListening()
+        g_itemsCache.onSyncCompleted -= self._refreshData
         g_clientUpdateManager.removeObjectCallbacks(self)
+        super(PersonalCase, self)._dispose()
 
     @decorators.process('updating')
     def __setCommonData(self):
@@ -184,21 +235,40 @@ class PersonalCaseDataProvider(object):
 
     @async
     def getCommonData(self, callback):
-        """
-        Returns common personal case data for tankman, tankman's vehicles,
-        message, flags and so on.
-        """
-        tankman = g_itemsCache.items.getTankman(self.tmanInvID)
-        nativeVehicle = g_itemsCache.items.getItemByCD(tankman.vehicleNativeDescr.type.compactDescr)
+        items = g_itemsCache.items
+        tankman = items.getTankman(self.tmanInvID)
+        rate = items.shop.freeXPToTManXPRate
+        if rate:
+            toNextPrcLeft = roundByModulo(tankman.getNextLevelXpCost(), rate)
+            enoughFreeXPForTeaching = items.stats.freeXP - max(1, toNextPrcLeft / rate) >= 0
+        else:
+            enoughFreeXPForTeaching = False
+        nativeVehicle = items.getItemByCD(tankman.vehicleNativeDescr.type.compactDescr)
         currentVehicle = None
         if tankman.isInTank:
-            currentVehicle = g_itemsCache.items.getItemByCD(tankman.vehicleDescr.type.compactDescr)
+            currentVehicle = items.getItemByCD(tankman.vehicleDescr.type.compactDescr)
         isLocked, reason = self.__getTankmanLockMessage(currentVehicle)
-        callback({'tankman': g_itemSerializer.pack(tankman),
-         'currentVehicle': g_itemSerializer.pack(currentVehicle) if currentVehicle is not None else None,
-         'nativeVehicle': g_itemSerializer.pack(nativeVehicle),
+        bonuses = tankman.realRoleLevel[1]
+        modifiers = []
+        if bonuses[0]:
+            modifiers.append({'id': 'fromCommander',
+             'val': bonuses[0]})
+        if bonuses[1]:
+            modifiers.append({'id': 'fromSkills',
+             'val': bonuses[1]})
+        if bonuses[2] or bonuses[3]:
+            modifiers.append({'id': 'fromEquipment',
+             'val': bonuses[2] + bonuses[3]})
+        if bonuses[4]:
+            modifiers.append({'id': 'penalty',
+             'val': bonuses[4]})
+        callback({'tankman': packTankman(tankman),
+         'currentVehicle': packVehicle(currentVehicle) if currentVehicle is not None else None,
+         'nativeVehicle': packVehicle(nativeVehicle),
          'isOpsLocked': isLocked or g_currentVehicle.isLocked(),
-         'lockMessage': reason})
+         'lockMessage': reason,
+         'modifiers': modifiers,
+         'enoughFreeXPForTeaching': enoughFreeXPForTeaching})
         return
 
     @async
@@ -212,30 +282,36 @@ class PersonalCaseDataProvider(object):
             callback(None)
             return
         else:
-            achieves = tmanDossier.getAchievements()
+            achieves = tmanDossier.getTotalStats().getAchievements(isInDossier=True)
+            pickledDossierCompDescr = dumpDossier(tmanDossier)
             packedAchieves = []
             for sectionIdx, section in enumerate(achieves):
                 packedAchieves.append([])
                 for achievement in section:
-                    data = g_itemSerializer.pack(achievement)
-                    data['dossierType'] = GUI_ITEM_TYPE.TANKMAN_DOSSIER
-                    data['dossierCompDescr'] = pickle.dumps(tmanDossier.getDossierDescr().makeCompDescr())
-                    packedAchieves[sectionIdx].append(data)
+                    packedAchieves[sectionIdx].append(self.__packAchievement(achievement, pickledDossierCompDescr))
 
             callback({'achievements': packedAchieves,
-             'stats': tmanDossier.getStats()})
+             'stats': tmanDossier.getStats(g_itemsCache.items.getTankman(self.tmanInvID)),
+             'firstMsg': self.__makeStandardText(MENU.CONTEXTMENU_PERSONALCASE_STATS_FIRSTINFO),
+             'secondMsg': self.__makeStandardText(MENU.CONTEXTMENU_PERSONALCASE_STATS_SECONDINFO)})
             return
+
+    def __makeStandardText(self, locale):
+        return text_styles.standard(i18n.makeString(locale))
 
     @async
     def getRetrainingData(self, callback):
         items = g_itemsCache.items
         tankman = items.getTankman(self.tmanInvID)
+        nativeVehicleCD = tankman.vehicleNativeDescr.type.compactDescr
         criteria = REQ_CRITERIA.NATIONS([tankman.nationID]) | REQ_CRITERIA.UNLOCKED
         vData = items.getVehicles(criteria)
         tDescr = tankman.descriptor
-        vehiclesData = sorted(vData.values())
+        vehiclesData = vData.values()
+        if nativeVehicleCD not in vData:
+            vehiclesData.append(items.getItemByCD(nativeVehicleCD))
         result = []
-        for vehicle in vehiclesData:
+        for vehicle in sorted(vehiclesData):
             vDescr = vehicle.descriptor
             if isVehicleObserver(vDescr.type.compactDescr):
                 continue
@@ -246,83 +322,81 @@ class PersonalCaseDataProvider(object):
                      'userName': vehicle.shortUserName})
                     break
 
-        callback({'money': (items.stats.credits, items.stats.gold),
-         'tankmanCost': items.shop.tankmanCost,
+        shopPrices, action = items.shop.getTankmanCostWithDefaults()
+        callback({'money': items.stats.money,
+         'tankmanCost': shopPrices,
+         'action': action,
          'vehicles': result})
 
     @async
     def getSkillsData(self, callback):
         tankman = g_itemsCache.items.getTankman(self.tmanInvID)
-        tankmanDescr = tankman.descriptor
-        result = []
-        commonSkills = []
-        for skill in tankmen.COMMON_SKILLS:
-            if skill not in tankmanDescr.skills:
-                commonSkills.append(self.__packSkill(tankman, TankmanSkill(skill)))
-
-        result.append({'id': 'common',
-         'skills': commonSkills})
-        for role in TANKMEN_ROLES_ORDER_DICT['plain']:
-            roleSkills = tankmen.SKILLS_BY_ROLES.get(role, tuple())
-            if role not in tankman.combinedRoles:
-                continue
-            skills = []
-            for skill in roleSkills:
-                if skill not in tankmen.COMMON_SKILLS and skill not in tankmanDescr.skills:
-                    skills.append(self.__packSkill(tankman, TankmanSkill(skill)))
-
-            result.append({'id': role,
-             'skills': skills})
-
-        callback(result)
+        callback(tankman.getSkillsToLearn())
 
     @async
     def getDocumentsData(self, callback):
         items = g_itemsCache.items
-        config = tankmen.getNationConfig(items.getTankman(self.tmanInvID).nationID)
-        callback({'money': (items.stats.credits, items.stats.gold),
-         'passportChangeCost': items.shop.passportChangeCost,
-         'firstnames': self.__getDocNormalGroupValues(config, 'firstNames'),
-         'lastnames': self.__getDocNormalGroupValues(config, 'lastNames'),
-         'icons': self.__getDocNormalGroupValues(config, 'icons')})
+        tankman = items.getTankman(self.tmanInvID)
+        config = tankmen.getNationConfig(tankman.nationID)
+        if tankman.descriptor.isFemale:
+            shopPrice = items.shop.passportFemaleChangeCost
+            defaultPrice = items.shop.defaults.passportFemaleChangeCost
+        else:
+            shopPrice = items.shop.passportChangeCost
+            defaultPrice = items.shop.defaults.passportChangeCost
+        action = None
+        if shopPrice != defaultPrice:
+            action = packActionTooltipData(ACTION_TOOLTIPS_TYPE.ECONOMICS, 'passportChangeCost', True, Money(gold=shopPrice), Money(gold=defaultPrice))
+        callback({'money': items.stats.money,
+         'passportChangeCost': shopPrice,
+         'action': action,
+         'firstnames': self.__getDocGroupValues(tankman, config, 'firstNames'),
+         'lastnames': self.__getDocGroupValues(tankman, config, 'lastNames'),
+         'icons': self.__getDocGroupValues(tankman, config, 'icons', sortNeeded=False)})
+        return
 
     @staticmethod
-    def __getDocNormalGroupValues(config, groupName):
+    def __getDocGroupValues(tankman, config, subGroupName, sortNeeded=True):
         result = []
-        for group in config['normalGroups']:
-            for id in group['%sList' % groupName]:
-                result.append({'id': id,
-                 'value': config[groupName][id]})
+        isPremium, isFemale = tankman.descriptor.isPremium, tankman.descriptor.isFemale
+        groupName = 'premiumGroups' if isPremium else 'normalGroups'
+        for gIdx, group in enumerate(config[groupName]):
+            if not group['notInShop'] and group['isFemales'] == isFemale:
+                for idx in group['%sList' % subGroupName]:
+                    result.append({'id': idx,
+                     'group': gIdx,
+                     'value': config[subGroupName][idx]})
 
-        if groupName != 'icons':
-            result = sorted(result, key=lambda sortField: sortField['value'])
+        if sortNeeded:
+            result = sorted(result, key=lambda sortField: sortField['value'], cmp=lambda a, b: strcmp(unicode(a), unicode(b)))
         return result
-
-    @staticmethod
-    def __packSkill(tankman, skillItem):
-        return {'id': skillItem.name,
-         'name': skillItem.userName,
-         'desc': skillItem.shortDescription,
-         'enabled': True,
-         'tankmanID': tankman.invID,
-         'tooltip': None}
 
     @staticmethod
     def __getTankmanLockMessage(vehicle):
         if vehicle is None:
             return (False, '')
         elif vehicle.isInBattle:
-            return (False, makeString('#menu:tankmen/lockReason/inbattle'))
+            return (False, i18n.makeString('#menu:tankmen/lockReason/inbattle'))
         elif vehicle.isBroken:
-            return (False, makeString('#menu:tankmen/lockReason/broken'))
+            return (False, i18n.makeString('#menu:tankmen/lockReason/broken'))
         else:
             if g_currentVehicle.item == vehicle:
                 dispatcher = g_prbLoader.getDispatcher()
                 if dispatcher is not None:
                     permission = dispatcher.getGUIPermissions()
                     if not permission.canChangeVehicle():
-                        return (True, makeString('#menu:tankmen/lockReason/prebattle'))
+                        return (True, i18n.makeString('#menu:tankmen/lockReason/prebattle'))
             return (False, '')
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/lobby/personalcase.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:06 EST
+
+    @staticmethod
+    def __packAchievement(achieve, dossierCompDescr):
+        commonData = AchievementsUtils.getCommonAchievementData(achieve, constants.DOSSIER_TYPE.TANKMAN, dossierCompDescr)
+        commonData['counterType'] = AchievementsUtils.getCounterType(achieve)
+        return commonData
+
+    def __roundByModulo(self, targetXp, rate):
+        left_rate = targetXp % rate
+        if left_rate > 0:
+            targetXp += rate - left_rate
+        return targetXp
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/personalcase.pyc

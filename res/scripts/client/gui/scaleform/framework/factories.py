@@ -1,7 +1,9 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/framework/factories.py
 from debug_utils import LOG_ERROR, LOG_CURRENT_EXCEPTION
-from gui.Scaleform.framework.entities.DAAPIModule import DAAPIModule
+from gui.Scaleform.framework.entities.BaseDAAPIModule import BaseDAAPIModule
 from gui.Scaleform.framework.entities.View import View
-from gui.shared.events import LoadEvent
+from gui.shared.events import LoadViewEvent
 
 class EntityFactory(object):
 
@@ -16,9 +18,9 @@ class EntityFactory(object):
         clazz = settings.clazz
         alias = settings.alias
         if alias is None or not len(alias):
-            raise Exception, 'Invalid alias in settings {0}'.format(settings)
+            raise Exception('Invalid alias in settings {0}'.format(settings))
         if clazz is None:
-            raise Exception, 'Invalid class in settings {0}'.format(settings)
+            raise Exception('Invalid class in settings {0}'.format(settings))
         return
 
     def create(self, settings, *args, **kwargs):
@@ -32,24 +34,24 @@ class EntityFactory(object):
 
         return pyEntity
 
-    def initialize(self, pyEntity, gfxEntity, extra = None):
+    def initialize(self, pyEntity, gfxEntity, extra=None):
         return pyEntity
 
 
-DAAPIModuleType = type(DAAPIModule)
+DAAPIModuleType = type(BaseDAAPIModule)
 ViewEntityType = type(View)
 
 class DAAPIModuleFactory(EntityFactory):
 
     def validate(self, settings):
         super(DAAPIModuleFactory, self).validate(settings)
-        if DAAPIModule not in getattr(settings.clazz, '__mro__', tuple()):
-            raise Exception, 'Class does not extend DAAPIModule in settings {0}'.format(settings)
+        if BaseDAAPIModule not in getattr(settings.clazz, '__mro__', tuple()):
+            raise Exception('Class does not extend BaseDAAPIModule in settings {0}'.format(settings))
 
     def castType(self, clazz):
-        return type(clazz) is DAAPIModuleType
+        return isinstance(clazz, DAAPIModuleType)
 
-    def initialize(self, pyEntity, gfxEntity, extra = None):
+    def initialize(self, pyEntity, gfxEntity, extra=None):
         pyEntity.setFlashObject(gfxEntity, autoPopulate=False)
         return pyEntity
 
@@ -60,9 +62,9 @@ class ViewFactory(DAAPIModuleFactory):
         super(ViewFactory, self).validate(settings)
         url = settings.url
         if url is None or not len(url):
-            raise Exception, 'Invalid url in settings {0}'.format(settings)
+            raise Exception('Invalid url in settings {0}'.format(settings))
         if View not in getattr(settings.clazz, '__mro__', tuple()):
-            raise Exception, 'Class does not extend View in settings {0}'.format(settings)
+            raise Exception('Class does not extend View in settings {0}'.format(settings))
         return
 
     def create(self, settings, *args, **kwargs):
@@ -71,17 +73,16 @@ class ViewFactory(DAAPIModuleFactory):
             pyEntity.setSettings(settings)
         return pyEntity
 
-    def initialize(self, pyEntity, gfxEntity, extra = None):
+    def initialize(self, pyEntity, gfxEntity, extra=None):
         pyEntity = super(ViewFactory, self).initialize(pyEntity, gfxEntity)
         if extra is not None:
-            if 'token' in extra:
-                pyEntity.setToken(extra['token'])
             if 'name' in extra:
                 pyEntity.setUniqueName(extra['name'])
         return pyEntity
 
 
 class EntitiesFactories(object):
+    __slots__ = ('__settings', '__factories', '__eventToAlias', '__aliasToEvent', '__viewTypes')
 
     def __init__(self, factories):
         super(EntitiesFactories, self).__init__()
@@ -96,22 +97,33 @@ class EntitiesFactories(object):
                 self.__viewTypes[viewType] = idx
 
     def initSettings(self, settingsList):
+        result = set()
+        add = self.addSettings
         for settings in settingsList:
-            self.addSettings(settings)
+            result.add(add(settings))
+
+        return result
+
+    def clearSettings(self, aliases):
+        remove = self.removeSettings
+        for alias in aliases:
+            remove(alias)
 
     def addSettings(self, settings):
         viewType = settings.type
         if viewType not in self.__viewTypes:
-            raise Exception, 'Invalid type in settings {0}'.format(settings)
+            raise Exception('Invalid type in settings {0}'.format(settings))
         factory = self.__factories[self.__viewTypes[viewType]]
         factory.validate(settings)
         alias = settings.alias
         eventType = settings.event
+        if alias in self.__settings:
+            raise Exception('Alias {0} is already added to settings'.format(alias))
         self.__settings[alias] = settings
         if eventType is not None and len(eventType):
             self.__eventToAlias[eventType] = alias
             self.__aliasToEvent[alias] = eventType
-        return
+        return alias
 
     def removeSettings(self, alias):
         if alias in self.__settings:
@@ -136,10 +148,16 @@ class EntitiesFactories(object):
             alias = self.__eventToAlias[eventType]
         return alias
 
-    def makeLoadEvent(self, alias, ctx = None):
+    def makeLoadEvent(self, alias, ctx=None):
         event = None
         if alias in self.__aliasToEvent:
-            event = LoadEvent(self.__aliasToEvent[alias], ctx=ctx)
+            event = LoadViewEvent(alias, ctx=ctx)
+        return event
+
+    def makeShowPopoverEvent(self, alias, ctx=None):
+        event = None
+        if alias in self.__aliasToEvent:
+            event = LoadViewEvent(alias, ctx=ctx)
         return event
 
     def factory(self, alias, *args, **kwargs):
@@ -154,10 +172,11 @@ class EntitiesFactories(object):
             LOG_ERROR('Settings not found', alias)
         return (entity, factoryIdx)
 
-    def initialize(self, pyEntity, gfxEntity, factoryIdx, extra = None):
+    def initialize(self, pyEntity, gfxEntity, factoryIdx, extra=None):
         if -1 < factoryIdx < len(self.__factories):
             factory = self.__factories[factoryIdx]
             pyEntity = factory.initialize(pyEntity, gfxEntity, extra=extra)
         else:
             LOG_ERROR('Factory not found, pyEntity is not initialized', factoryIdx, pyEntity)
         return pyEntity
+# okay decompiling ./res/scripts/client/gui/scaleform/framework/factories.pyc

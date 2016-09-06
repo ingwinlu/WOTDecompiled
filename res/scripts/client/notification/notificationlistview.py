@@ -1,71 +1,66 @@
-# 2013.11.15 11:27:17 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/notification/NotificationListView.py
-from debug_utils import LOG_ERROR, LOG_DEBUG
+from debug_utils import LOG_ERROR
 from gui.Scaleform.daapi.view.meta.NotificationsListMeta import NotificationsListMeta
-from gui.Scaleform.framework.entities.View import View
+from messenger.formatters import TimeFormatter
 from notification.NotificationLayoutView import NotificationLayoutView
-from gui.shared import events
 from notification import NotificationMVC
-from helpers.links import openSecuritySettingsPage
+from notification.settings import LIST_SCROLL_STEP_FACTOR, NOTIFICATION_STATE
 
-class NotificationListView(NotificationsListMeta, View, NotificationLayoutView):
-    SCROLL_STEP_FACTOR = 10
+class NotificationListView(NotificationsListMeta, NotificationLayoutView):
 
-    def __init__(self, ctx):
-        View.__init__(self)
-        NotificationLayoutView.__init__(self, ctx.get('model'))
-        self._model.onMessageReceived += self.__onMessageReceived
-        self.__closeCallBack = ctx.get('closeCallBack')
+    def __init__(self, _):
+        super(NotificationListView, self).__init__()
+        self.setModel(NotificationMVC.g_instance.getModel())
 
-    def onMessageShowMore(self, data):
-        if hasattr(data, 'command'):
-            command = data.command
+    def onClickAction(self, typeID, entityID, action):
+        NotificationMVC.g_instance.handleAction(typeID, entityID, action)
+
+    def destroy(self):
+        if self._model.getDisplayState() == NOTIFICATION_STATE.LIST:
+            self._model.setPopupsDisplayState()
         else:
-            LOG_ERROR('Command is not defined')
-            return
-        ctx = {}
-        if hasattr(data, 'param'):
-            param = data.param
-            if hasattr(param, 'key') and hasattr(param, 'value'):
-                ctx = {param.key: param.value}
-        self.fireEvent(events.ShowWindowEvent(command, ctx))
+            LOG_ERROR('Invalid state of the Notifications Model')
+        super(NotificationListView, self).destroy()
 
-    def onSecuritySettingsLinkClick(self):
-        openSecuritySettingsPage()
+    def getMessageActualTime(self, msTime):
+        return TimeFormatter.getActualMsgTimeStr(msTime)
 
     def _populate(self):
         super(NotificationListView, self)._populate()
-        self.as_setInitDataS({'scrollStepFactor': self.SCROLL_STEP_FACTOR})
-        messagesList = self._model.getMessagesList()
-        formedList = []
-        for message, isServerMsg, flag, notify, auxData in messagesList:
-            notificationObject = self._formFullNotificationObject(message, flag, notify, auxData)
-            formedList.append(notificationObject)
-
-        self.as_setMessagesListS(formedList)
-        self.onLayoutSettingsChanged({})
-
-    def onLayoutSettingsChanged(self, settings):
-        self.as_layoutInfoS({'paddingBottom': 25,
-         'paddingRight': 0})
-
-    def __onMessageReceived(self, message, priority, notify, auxData):
-        messageObject = self._formFullNotificationObject(message, priority, notify, auxData)
-        if priority:
-            NotificationMVC.g_instance.getAlertController().showAlertMessage(messageObject)
-        self.as_appendMessageS(messageObject)
-
-    def onWindowClose(self):
-        if self.__closeCallBack:
-            self.__closeCallBack()
-        self.destroy()
+        self._model.onNotificationReceived += self.__onNotificationReceived
+        self._model.onNotificationUpdated += self.__onNotificationUpdated
+        self._model.onNotificationRemoved += self.__onNotificationRemoved
+        self.as_setInitDataS({'scrollStepFactor': LIST_SCROLL_STEP_FACTOR})
+        self.__setNotificationList()
+        self._onLayoutSettingsChanged({})
 
     def _dispose(self):
-        self._model.onMessageReceived -= self.__onMessageReceived
+        self._model.onNotificationReceived -= self.__onNotificationReceived
+        self._model.onNotificationUpdated -= self.__onNotificationUpdated
+        self._model.onNotificationRemoved -= self.__onNotificationRemoved
         self.__closeCallBack = None
         self.cleanUp()
         super(NotificationListView, self)._dispose()
         return
-# okay decompyling res/scripts/client/notification/notificationlistview.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:17 EST
+
+    def _onLayoutSettingsChanged(self, settings):
+        pass
+
+    def __setNotificationList(self):
+        self.as_setMessagesListS(map(lambda item: item.getListVO(), self._model.collection.getListIterator()))
+
+    def __onNotificationReceived(self, notification):
+        if notification.isAlert():
+            NotificationMVC.g_instance.getAlertController().showAlertMessage(notification)
+        self.as_appendMessageS(notification.getListVO())
+
+    def __onNotificationUpdated(self, notification, _):
+        if notification.isOrderChanged():
+            self.__setNotificationList()
+        else:
+            self.as_updateMessageS(notification.getListVO())
+
+    def __onNotificationRemoved(self, typeID, entityID):
+        self.__setNotificationList()
+# okay decompiling ./res/scripts/client/notification/notificationlistview.pyc

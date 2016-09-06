@@ -1,7 +1,8 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/prb_control/formatters/tooltips.py
 from CurrentVehicle import g_currentVehicle
 from debug_utils import LOG_ERROR
-from gui.prb_control import getClassLevelLimits, getLevelLimits
-from gui.prb_control import getTotalLevelLimits
+from gui.prb_control import prb_getters
 from gui.prb_control.settings import PREBATTLE_RESTRICTION
 from gui.shared.utils.functions import makeTooltip
 from helpers import i18n
@@ -27,21 +28,21 @@ def getVehicleStateInvalidTooltip(restriction):
 
 def getVehicleClassInvalidTooltip(teamsLimit, restriction):
     classTag = PREBATTLE_RESTRICTION.getVehClassRestrictions().get(restriction)
-    minLevel, maxLevel = getClassLevelLimits(teamsLimit, classTag)
+    minLevel, maxLevel = prb_getters.getClassLevelLimits(teamsLimit, classTag)
     return makeTooltip(i18n.makeString('#tooltips:redButton/disabled/{0:>s}/header'.format(restriction)), i18n.makeString('#tooltips:redButton/disabled/{0:>s}/body'.format(restriction), minLevel, maxLevel))
 
 
 def getLevelInvalidTooltip(teamLimits, restriction):
-    minLevel, maxLevel = getLevelLimits(teamLimits)
+    minLevel, maxLevel = prb_getters.getLevelLimits(teamLimits)
     return makeTooltip(i18n.makeString('#tooltips:redButton/disabled/{0:>s}/header'.format(restriction)), i18n.makeString('#tooltips:redButton/disabled/{0:>s}/body'.format(restriction), minLevel, maxLevel))
 
 
 def getTotalLevelInvalidTooltip(teamsLimit, restriction):
-    minLevel, maxLevel = getTotalLevelLimits(teamsLimit)
+    minLevel, maxLevel = prb_getters.getTotalLevelLimits(teamsLimit)
     return makeTooltip(i18n.makeString('#tooltips:redButton/disabled/{0:>s}/header'.format(restriction)), i18n.makeString('#tooltips:redButton/disabled/{0:>s}/body'.format(restriction), minLevel, maxLevel))
 
 
-def getActionDisabledTooltip(restriction, functional = None):
+def getActionDisabledTooltip(restriction, functional=None):
     if not len(restriction):
         return
     else:
@@ -65,3 +66,4 @@ def getActionDisabledTooltip(restriction, functional = None):
             else:
                 LOG_ERROR('Formatter not found', restriction)
         return tooltip
+# okay decompiling ./res/scripts/client/gui/prb_control/formatters/tooltips.pyc

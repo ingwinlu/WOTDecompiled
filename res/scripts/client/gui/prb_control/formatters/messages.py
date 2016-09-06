@@ -1,13 +1,12 @@
-# 2013.11.15 11:25:39 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/prb_control/formatters/messages.py
 from CurrentVehicle import g_currentVehicle
-from UnitBase import UNIT_ERROR
-from constants import JOIN_FAILURE_NAMES, KICK_REASON_NAMES
+from constants import JOIN_FAILURE_NAMES, KICK_REASON_NAMES, PREBATTLE_TYPE, QUEUE_TYPE
 from debug_utils import LOG_ERROR
 from gui import SystemMessages
 from gui.Scaleform.locale.SYSTEM_MESSAGES import SYSTEM_MESSAGES
-from gui.prb_control import getLevelLimits, getClassLevelLimits, getTotalLevelLimits
-from gui.prb_control.settings import REQUEST_TYPE_NAMES, PREBATTLE_RESTRICTION
+from gui.prb_control import prb_getters
+from gui.prb_control.settings import PREBATTLE_RESTRICTION, CTRL_ENTITY_TYPE
 from gui.prb_control.settings import UNIT_ERROR_NAMES, UNIT_BROWSER_ERROR_NAMES
 from gui.prb_control.settings import UNIT_ERRORS_TRANSLATE_AS_WARNINGS
 from helpers import i18n
@@ -37,11 +36,19 @@ def getPrbKickedFromQueueMessage(prbTypeName):
 
 
 def getVehicleNotPresentMessage():
-    return i18n.makeString('#menu:hangar/no_current_vehicle_selected')
+    return i18n.makeString('#system_messages:prebattle/vehicleInvalid/no_selectedVehicle')
 
 
 def getVehicleNotReadyMessage():
     return i18n.makeString('#system_messages:prebattle/vehicleInvalid/no_readyVehicle')
+
+
+def getVehicleNotSupportedMessage():
+    return i18n.makeString('#system_messages:prebattle/vehicleInvalid/vehicleNotSupported')
+
+
+def getVehicleFalloutOnlyMessage():
+    return i18n.makeString('#system_messages:prebattle/vehicleInvalid/falloutOnly')
 
 
 def getClassLimitMessage4Vehicle(teamLimits):
@@ -55,12 +62,12 @@ def getNationLimitMessage4Vehicle(teamLimits):
 
 
 def getLevelLimitMessage4Vehicle(teamLimits):
-    minLevel, maxLevel = getLevelLimits(teamLimits)
+    minLevel, maxLevel = prb_getters.getLevelLimits(teamLimits)
     return i18n.makeString('#system_messages:prebattle/vehicleInvalid/limits/level', minLevel, maxLevel)
 
 
 def getClassLevelLimitMessage4Vehicle(teamLimits):
-    minLevel, maxLevel = getClassLevelLimits(teamLimits, g_currentVehicle.item.type)
+    minLevel, maxLevel = prb_getters.getClassLevelLimits(teamLimits, g_currentVehicle.item.type)
     return i18n.makeString('#system_messages:prebattle/vehicleInvalid/limits/level', minLevel, maxLevel)
 
 
@@ -69,17 +76,19 @@ def getMinCountLimitMessage4Team(teamLimits):
 
 
 def getTotalLevelLimitMessage4Team(teamLimits):
-    minTotalLevel, maxTotalLevel = getTotalLevelLimits(teamLimits)
+    minTotalLevel, maxTotalLevel = prb_getters.getTotalLevelLimits(teamLimits)
     return i18n.makeString('#system_messages:prebattle/teamInvalid/limit/totalLevel', minTotalLevel=minTotalLevel, maxTotalLevel=maxTotalLevel)
 
 
 def getLevelLimitMessage4Team(teamLimits):
-    minLevel, maxLevel = getLevelLimits(teamLimits)
+    minLevel, maxLevel = prb_getters.getLevelLimits(teamLimits)
     return i18n.makeString('#system_messages:prebattle/teamInvalid/limits/level', minLevel=minLevel, maxLevel=maxLevel)
 
 
 _INVALID_VEHICLE_STATE = {PREBATTLE_RESTRICTION.VEHICLE_NOT_PRESENT: getVehicleNotPresentMessage,
- PREBATTLE_RESTRICTION.VEHICLE_NOT_READY: getVehicleNotReadyMessage}
+ PREBATTLE_RESTRICTION.VEHICLE_NOT_READY: getVehicleNotReadyMessage,
+ PREBATTLE_RESTRICTION.VEHICLE_NOT_SUPPORTED: getVehicleNotSupportedMessage,
+ PREBATTLE_RESTRICTION.VEHICLE_FALLOUT_ONLY: getVehicleFalloutOnlyMessage}
 _INVALID_VEHICLE_IN_TEAM = {PREBATTLE_RESTRICTION.LIMIT_CLASSES: getClassLimitMessage4Vehicle,
  PREBATTLE_RESTRICTION.LIMIT_NATIONS: getNationLimitMessage4Vehicle,
  PREBATTLE_RESTRICTION.LIMIT_LEVEL: getLevelLimitMessage4Vehicle,
@@ -88,7 +97,7 @@ _INVALID_TEAM = {PREBATTLE_RESTRICTION.LIMIT_MIN_COUNT: getMinCountLimitMessage4
  PREBATTLE_RESTRICTION.LIMIT_TOTAL_LEVEL: getTotalLevelLimitMessage4Team,
  PREBATTLE_RESTRICTION.LIMIT_LEVEL: getLevelLimitMessage4Team}
 
-def getInvalidTeamMessage(reason, functional = None):
+def getInvalidTeamMessage(reason, functional=None):
     if reason in PREBATTLE_RESTRICTION.SERVER_LIMITS:
         if reason in _INVALID_TEAM:
             if functional:
@@ -98,14 +107,21 @@ def getInvalidTeamMessage(reason, functional = None):
                 teamLimits = LIMIT_DEFAULTS
             message = _INVALID_TEAM[reason](teamLimits)
         else:
-            message = i18n.makeString('#system_messages:prebattle/teamInvalid/{0;>s}'.format(reason))
+            message = i18n.makeString('#system_messages:prebattle/teamInvalid/{0:>s}'.format(reason))
     else:
         LOG_ERROR('Reason can not be converted', reason)
         message = reason
     return message
 
 
-def getInvalidVehicleMessage(reason, functional = None):
+def getInvalidTeamServerMessage(errStr, functional=None):
+    if errStr in ('INVALID_EVENT_TEAM', 'EVENT_DISABLED'):
+        return i18n.makeString(SYSTEM_MESSAGES.PREBATTLE_TEAMINVALID_EVENT_BATTLE)
+    else:
+        return None
+
+
+def getInvalidVehicleMessage(reason, functional=None):
     if reason in _INVALID_VEHICLE_STATE:
         message = _INVALID_VEHICLE_STATE[reason]()
     elif reason in PREBATTLE_RESTRICTION.SERVER_LIMITS:
@@ -122,14 +138,6 @@ def getInvalidVehicleMessage(reason, functional = None):
         LOG_ERROR('Reason can not be converted', reason)
         message = reason
     return message
-
-
-def getRequestInCoolDownMessage(requestType, coolDown = 5.0):
-    requestName = requestType
-    if requestType in REQUEST_TYPE_NAMES:
-        requestName = REQUEST_TYPE_NAMES[requestType]
-        requestName = i18n.makeString('#system_messages:prebattle/request/name/{0:>s}'.format(requestName))
-    return i18n.makeString('#system_messages:prebattle/request/isInCoolDown', request=requestName, coolDown=coolDown)
 
 
 def getPlayerStateChangedMessage(prbName, playerInfo):
@@ -188,12 +196,23 @@ def getUnitBrowserMessage(errorCode, errorString):
     return (SystemMessages.SM_TYPE.Error, msgBody)
 
 
-def getUnitOnlineStatusChangedMessage(pInfo):
-    if pInfo.isOffline():
-        key = '#system_messages:unit/info/offlineStatus'
+def getUnitPlayerNotification(key, pInfo):
+    return i18n.makeString(SYSTEM_MESSAGES.unit_notification(key), userName=pInfo.getFullName())
+
+
+def makeEntityI18nKey(ctrlType, entityType, prefix):
+    if ctrlType in (CTRL_ENTITY_TYPE.PREBATTLE, CTRL_ENTITY_TYPE.UNIT):
+        if entityType in PREBATTLE_TYPE.SQUAD_PREBATTLES:
+            name = 'squad'
+        else:
+            name = 'rally'
+    elif ctrlType == CTRL_ENTITY_TYPE.PREQUEUE and entityType == QUEUE_TYPE.SANDBOX:
+        name = 'sandBox'
     else:
-        key = '#system_messages:unit/info/onlineStatus'
-    return i18n.makeString(key, userName=pInfo.getFullName())
-# okay decompyling res/scripts/client/gui/prb_control/formatters/messages.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:25:39 EST
+        name = 'rally'
+    return '{0}/{1}'.format(name, prefix)
+
+
+def getLeaveDisabledMessage(ctrlType, entityType):
+    return '#system_messages:{0}'.format(makeEntityI18nKey(ctrlType, entityType, 'leaveDisabled'))
+# okay decompiling ./res/scripts/client/gui/prb_control/formatters/messages.pyc

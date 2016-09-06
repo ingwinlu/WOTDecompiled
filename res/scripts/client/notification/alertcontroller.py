@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/notification/AlertController.py
 from gui import DialogsInterface
 from gui.Scaleform.daapi.view.dialogs.SystemMessageMeta import SystemMessageMeta
 from notification.BaseMessagesController import BaseMessagesController
@@ -12,12 +14,13 @@ class AlertController(BaseMessagesController):
         self.onAllAlertsClosed = Event.Event()
 
     @process
-    def showAlertMessage(self, data):
+    def showAlertMessage(self, notification):
         self.__actualDisplayingAlerts += 1
-        closeSuccess = yield DialogsInterface.showDialog(SystemMessageMeta(data))
+        yield DialogsInterface.showDialog(SystemMessageMeta(notification))
         self.__actualDisplayingAlerts -= 1
         if self.__actualDisplayingAlerts == 0:
             self.onAllAlertsClosed()
 
     def isAlertShowing(self):
         return self.__actualDisplayingAlerts > 0
+# okay decompiling ./res/scripts/client/notification/alertcontroller.pyc

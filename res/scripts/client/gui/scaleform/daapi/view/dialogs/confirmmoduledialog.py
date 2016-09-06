@@ -1,16 +1,16 @@
-# 2013.11.15 11:25:55 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/dialogs/ConfirmModuleDialog.py
 from PlayerEvents import g_playerEvents
 from adisp import process
 from debug_utils import LOG_ERROR
-from gui.Scaleform.daapi.view.meta.ConfirmModuleWindowMeta import ConfirmModuleWindowMeta
-from gui.Scaleform.daapi.view.meta.WindowViewMeta import WindowViewMeta
-from gui.Scaleform.framework.entities.View import View
+from gui.Scaleform.daapi.view.meta.ConfirmItemWindowMeta import ConfirmItemWindowMeta
+from gui.Scaleform.genConsts.CONFIRM_DIALOG_ALIASES import CONFIRM_DIALOG_ALIASES
+from gui.shared import g_itemsCache
 from gui.shared.utils import CLIP_ICON_PATH, EXTRA_MODULE_INFO
 from gui.shared.utils.requesters import ItemsRequester
 from items import vehicles
 
-class ConfirmModuleDialog(View, ConfirmModuleWindowMeta, WindowViewMeta):
+class ConfirmModuleDialog(ConfirmItemWindowMeta):
     """
     Basic implementation of window which provides operation with modules.
     """
@@ -30,7 +30,7 @@ class ConfirmModuleDialog(View, ConfirmModuleWindowMeta, WindowViewMeta):
         self.meta.onInvalidate += self._prepareAndSendData
 
     def _dispose(self):
-        g_playerEvents.onShopResync += self._onShopResync
+        g_playerEvents.onShopResync -= self._onShopResync
         if self.meta is not None:
             self.meta.onInvalidate -= self._prepareAndSendData
             self.meta.destroy()
@@ -47,36 +47,43 @@ class ConfirmModuleDialog(View, ConfirmModuleWindowMeta, WindowViewMeta):
     def _onShopResync(self):
         self._prepareAndSendData()
 
-    @process
     def _prepareAndSendData(self):
         """
         Create necessary object which expects flash component and
         pass it through DAAPI
         """
-        items = yield ItemsRequester().request()
+        items = g_itemsCache.items
         module = items.getItemByCD(self.meta.getTypeCompDescr())
         if module is not None:
-            shop = items.shop
+            shop = g_itemsCache.items.shop
             actualPrice = self.meta.getActualPrice(module)
-            if actualPrice[1] > 0 and actualPrice[0] > 0:
-                isAction = shop.isEnabledBuyingGoldShellsForCredits and module.itemTypeID == vehicles._SHELL or shop.isEnabledBuyingGoldEqsForCredits and module.itemTypeID == vehicles._EQUIPMENT
-                icon = self.__getIcon(module)
-                extraData = None
-                extraData = module.itemTypeID == vehicles._GUN and module.isClipGun() and CLIP_ICON_PATH
+            defaultPrice = self.meta.getDefaultPrice(module)
+            currency = self.meta.getCurrency(module)
+            isAction = actualPrice.isAllSet() and (shop.isEnabledBuyingGoldShellsForCredits and module.itemTypeID == vehicles._SHELL or shop.isEnabledBuyingGoldEqsForCredits and module.itemTypeID == vehicles._EQUIPMENT)
+            icon = self.__getIcon(module)
+            extraData = None
+            if module.itemTypeID == vehicles._GUN and module.isClipGun():
+                extraData = CLIP_ICON_PATH
+            action = None
+            if actualPrice != defaultPrice:
+                action = self.meta.getActionVO(module)
             resultData = {'id': self.meta.getTypeCompDescr(),
-             'type': module.itemTypeName,
              'price': actualPrice,
+             'actionPriceData': action,
              'icon': icon,
              'name': module.userName,
-             'descr': module.getShortInfo(),
-             'currency': 'credits' if actualPrice[1] == 0 else 'gold',
+             'description': module.getShortInfo(),
+             'currency': currency,
              'defaultValue': self.meta.getDefaultValue(module),
              'maxAvailableCount': self.meta.getMaxAvailableItemsCount(module),
              'isActionNow': isAction,
+             'moduleLabel': module.getGUIEmblemID(),
+             'level': module.level,
+             'linkage': CONFIRM_DIALOG_ALIASES.MODULE_ICON,
              EXTRA_MODULE_INFO: extraData}
             self.as_setDataS(resultData)
         else:
-            LOG_ERROR("Couldn't find modul with compact:", self.meta.getTypeCompDescr())
+            LOG_ERROR("Couldn't find module with given compact:", self.meta.getTypeCompDescr())
             self.onWindowClose()
         return
 
@@ -103,6 +110,4 @@ class ConfirmModuleDialog(View, ConfirmModuleWindowMeta, WindowViewMeta):
         self.meta.submit(module, count, currency)
         self._callHandler(True, self.meta.getTypeCompDescr(), count, currency)
         self.destroy()
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/dialogs/confirmmoduledialog.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:25:55 EST
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/dialogs/confirmmoduledialog.pyc

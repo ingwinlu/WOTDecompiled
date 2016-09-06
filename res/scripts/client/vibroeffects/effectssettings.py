@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/Vibroeffects/EffectsSettings.py
 import ResMgr
 
 class EffectsSettings:
@@ -77,3 +79,4 @@ class EffectsSettings:
     @staticmethod
     def getButtonEffect(buttonType):
         return EffectsSettings.__guiButtonsVibrations.get(buttonType, None)
+# okay decompiling ./res/scripts/client/vibroeffects/effectssettings.pyc

@@ -1,7 +1,9 @@
-# 2013.11.15 11:27:01 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/shared/utils/key_mapping.py
-import BigWorld, Keys
-from gui.BattleContext import g_battleContext
+import BigWorld
+import Keys
+from gui import GUI_SETTINGS
+from gui.battle_control import g_sessionProvider
 BW_TO_SCALEFORM = {Keys.KEY_NONE: 666,
  Keys.KEY_MOUSE0: 0,
  Keys.KEY_MOUSE1: 1,
@@ -132,7 +134,7 @@ SCALEFORM_TO_BW[18] = Keys.KEY_LALT
 voidSymbol = 0
 
 def getBigworldKey(scaleformKey):
-    if g_battleContext.isInBattle and scaleformKey in SCALEFORM_TO_BW_OVERRIDE:
+    if g_sessionProvider.getCtx().isInBattle and scaleformKey in SCALEFORM_TO_BW_OVERRIDE:
         return SCALEFORM_TO_BW_OVERRIDE[scaleformKey]
     return SCALEFORM_TO_BW.get(scaleformKey, voidSymbol)
 
@@ -145,10 +147,26 @@ def getBigworldKeyFromName(bigworldName):
     return bigworldName.split('KEY_')[-1]
 
 
-def getScaleformKey(bigworldKey):
-    if g_battleContext.isInBattle and bigworldKey in BW_TO_SCALEFORM_OVERRIDE:
-        return BW_TO_SCALEFORM_OVERRIDE[bigworldKey]
-    return BW_TO_SCALEFORM.get(bigworldKey, voidSymbol)
-# okay decompyling res/scripts/client/gui/shared/utils/key_mapping.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:02 EST
+if GUI_SETTINGS.useAS3Battle:
+
+    def getBigworldKey(scaleformKey):
+        return SCALEFORM_TO_BW.get(scaleformKey, voidSymbol)
+
+
+    def getScaleformKey(bigworldKey):
+        return BW_TO_SCALEFORM.get(bigworldKey, voidSymbol)
+
+
+else:
+
+    def getBigworldKey(scaleformKey):
+        if g_sessionProvider.getCtx().isInBattle and scaleformKey in SCALEFORM_TO_BW_OVERRIDE:
+            return SCALEFORM_TO_BW_OVERRIDE[scaleformKey]
+        return SCALEFORM_TO_BW.get(scaleformKey, voidSymbol)
+
+
+    def getScaleformKey(bigworldKey):
+        if g_sessionProvider.getCtx().isInBattle and bigworldKey in BW_TO_SCALEFORM_OVERRIDE:
+            return BW_TO_SCALEFORM_OVERRIDE[bigworldKey]
+        return BW_TO_SCALEFORM.get(bigworldKey, voidSymbol)
+# okay decompiling ./res/scripts/client/gui/shared/utils/key_mapping.pyc

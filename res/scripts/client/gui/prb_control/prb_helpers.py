@@ -1,24 +1,40 @@
-# 2013.11.15 11:25:45 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/prb_control/prb_helpers.py
-from gui.prb_control.dispatcher import g_prbLoader
-from gui.prb_control.functional.interfaces import IPrbListener, IUnitListener
+from gui.prb_control.functional.interfaces import IPrbListener, IUnitListener, IPreQueueListener
 from gui.prb_control.functional.interfaces import IGlobalListener
 
 class prbDispatcherProperty(property):
 
-    def __get__(self, obj, objType = None):
+    def __get__(self, obj, objType=None):
+        from gui.prb_control.dispatcher import g_prbLoader
         return g_prbLoader.getDispatcher()
+
+
+class prbPeripheriesHandlerProperty(property):
+
+    def __get__(self, obj, objType=None):
+        from gui.prb_control.dispatcher import g_prbLoader
+        return g_prbLoader.getPeripheriesHandler()
 
 
 class prbInvitesProperty(property):
 
-    def __get__(self, obj, objType = None):
+    def __get__(self, obj, objType=None):
+        from gui.prb_control.dispatcher import g_prbLoader
         return g_prbLoader.getInvitesManager()
+
+
+class prbAutoInvitesProperty(property):
+
+    def __get__(self, obj, objType=None):
+        from gui.prb_control.dispatcher import g_prbLoader
+        return g_prbLoader.getAutoInvitesNotifier()
 
 
 class prbFunctionalProperty(property):
 
-    def __get__(self, obj, objType = None):
+    def __get__(self, obj, objType=None):
+        from gui.prb_control.dispatcher import g_prbLoader
         dispatcher = g_prbLoader.getDispatcher()
         functional = None
         if dispatcher is not None:
@@ -26,9 +42,21 @@ class prbFunctionalProperty(property):
         return functional
 
 
+class preQueueFunctionalProperty(property):
+
+    def __get__(self, obj, objType=None):
+        from gui.prb_control.dispatcher import g_prbLoader
+        dispatcher = g_prbLoader.getDispatcher()
+        functional = None
+        if dispatcher is not None:
+            functional = dispatcher.getPreQueueFunctional()
+        return functional
+
+
 class unitFunctionalProperty(property):
 
-    def __get__(self, obj, objType = None):
+    def __get__(self, obj, objType=None):
+        from gui.prb_control.dispatcher import g_prbLoader
         dispatcher = g_prbLoader.getDispatcher()
         functional = None
         if dispatcher is not None:
@@ -55,6 +83,27 @@ class PrbListener(IPrbListener):
         dispatcher = self.prbDispatcher
         if dispatcher:
             dispatcher.getPrbFunctional().removeListener(self)
+
+
+class QueueListener(IPreQueueListener):
+
+    @prbDispatcherProperty
+    def prbDispatcher(self):
+        return None
+
+    @preQueueFunctionalProperty
+    def preQueueFunctional(self):
+        return None
+
+    def startQueueListening(self):
+        dispatcher = self.prbDispatcher
+        if dispatcher:
+            dispatcher.getPreQueueFunctional().addListener(self)
+
+    def stopQueueListening(self):
+        dispatcher = self.prbDispatcher
+        if dispatcher:
+            dispatcher.getPreQueueFunctional().removeListener(self)
 
 
 class UnitListener(IUnitListener):
@@ -92,13 +141,15 @@ class GlobalListener(IGlobalListener):
     def unitFunctional(self):
         return None
 
+    @preQueueFunctionalProperty
+    def preQueueFunctional(self):
+        return None
+
     def startGlobalListening(self):
         if self.prbDispatcher:
-            self.prbDispatcher.addGlobalListener(self)
+            self.prbDispatcher.addListener(self)
 
     def stopGlobalListening(self):
         if self.prbDispatcher:
-            self.prbDispatcher.removeGlobalListener(self)
-# okay decompyling res/scripts/client/gui/prb_control/prb_helpers.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:25:45 EST
+            self.prbDispatcher.removeListener(self)
+# okay decompiling ./res/scripts/client/gui/prb_control/prb_helpers.pyc

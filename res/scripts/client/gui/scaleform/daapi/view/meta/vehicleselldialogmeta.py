@@ -1,47 +1,96 @@
-# 2013.11.15 11:26:27 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/meta/VehicleSellDialogMeta.py
-from gui.Scaleform.framework.entities.DAAPIModule import DAAPIModule
+from gui.Scaleform.framework.entities.abstract.AbstractWindowView import AbstractWindowView
 
-class VehicleSellDialogMeta(DAAPIModule):
-
-    def getDialogSettings(self):
-        self._printOverrideError('getDialogSettings')
+class VehicleSellDialogMeta(AbstractWindowView):
+    """
+    DO NOT MODIFY!
+    Generated with yaml.
+    __author__ = 'yaml_processor'
+    @extends AbstractWindowView
+    null
+    """
 
     def setDialogSettings(self, isOpen):
+        """
+        :param isOpen:
+        :return :
+        """
         self._printOverrideError('setDialogSettings')
 
     def sell(self, vehicleData, shells, eqs, optDevices, inventory, isDismissCrew):
+        """
+        :param vehicleData:
+        :param shells:
+        :param eqs:
+        :param optDevices:
+        :param inventory:
+        :param isDismissCrew:
+        :return :
+        """
         self._printOverrideError('sell')
 
     def setUserInput(self, value):
+        """
+        :param value:
+        :return :
+        """
         self._printOverrideError('setUserInput')
 
-    def setResultCredit(self, value):
+    def setResultCredit(self, isGold, value):
+        """
+        :param isGold:
+        :param value:
+        :return :
+        """
         self._printOverrideError('setResultCredit')
 
-    def as_setDataS(self, vehicle, modules, shells, removePrice, gold):
+    def checkControlQuestion(self, dismiss):
+        """
+        :param dismiss:
+        :return :
+        """
+        self._printOverrideError('checkControlQuestion')
+
+    def as_setDataS(self, data):
+        """
+        :param data:
+        :return :
+        """
         if self._isDAAPIInited():
-            return self.flashObject.as_setData(vehicle, modules, shells, removePrice, gold)
+            return self.flashObject.as_setData(data)
 
     def as_checkGoldS(self, gold):
+        """
+        :param gold:
+        :return :
+        """
         if self._isDAAPIInited():
             return self.flashObject.as_checkGold(gold)
 
     def as_visibleControlBlockS(self, value):
+        """
+        :param value:
+        :return :
+        """
         if self._isDAAPIInited():
             return self.flashObject.as_visibleControlBlock(value)
 
     def as_enableButtonS(self, value):
+        """
+        :param value:
+        :return :
+        """
         if self._isDAAPIInited():
             return self.flashObject.as_enableButton(value)
 
-    def as_setCtrlQuestionS(self, value):
+    def as_setControlQuestionDataS(self, isGold, value, question):
+        """
+        :param isGold:
+        :param value:
+        :param question:
+        :return :
+        """
         if self._isDAAPIInited():
-            return self.flashObject.as_setCtrlQuestion(value)
-
-    def as_setControlNumberS(self, value):
-        if self._isDAAPIInited():
-            return self.flashObject.as_setControlNumber(value)
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/meta/vehicleselldialogmeta.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:27 EST
+            return self.flashObject.as_setControlQuestionData(isGold, value, question)
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/meta/vehicleselldialogmeta.pyc

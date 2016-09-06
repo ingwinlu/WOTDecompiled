@@ -1,39 +1,23 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/tutorial/control/context.py
 from abc import ABCMeta, abstractmethod
 from tutorial.control import TutorialProxyHolder
-from tutorial.logger import LOG_MEMORY
-__all__ = ['StartReqs',
- 'BonusesRequester',
- 'SoundPlayer',
- 'GlobalStorage']
+from tutorial.logger import LOG_MEMORY, LOG_ERROR
+__all__ = ('StartReqs', 'BonusesRequester', 'SoundPlayer', 'GlobalStorage')
 
 class StartReqs(object):
-    __meta__ = ABCMeta
-
-    def __init__(self, loader, ctx):
-        super(StartReqs, self).__init__()
-        self._loader = loader
-        self._ctx = ctx
 
     def __del__(self):
         LOG_MEMORY('StartReqs deleted: {0:>s}'.format(self))
 
-    def _clear(self):
-        self._loader = None
-        self._ctx = None
-        return
-
-    def _flush(self):
-        args = (self._loader, self._ctx)
-        self._clear()
-        return args
-
-    @abstractmethod
     def isEnabled(self):
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
-    def process(self):
-        pass
+    def prepare(self, ctx):
+        raise NotImplementedError
+
+    def process(self, descriptor, ctx):
+        raise NotImplementedError
 
 
 class BonusesRequester(TutorialProxyHolder):
@@ -52,14 +36,14 @@ class BonusesRequester(TutorialProxyHolder):
     def isStillRunning(self):
         return False
 
-    def getChapter(self, chapterID = None):
+    def getChapter(self, chapterID=None):
         chapter = self._data
         if chapterID is not None and len(chapterID):
-            chapter = self._tutorial._descriptor.getChapter(chapterID)
+            chapter = self._descriptor.getChapter(chapterID)
         return chapter
 
     @abstractmethod
-    def request(self, chapterID = None):
+    def request(self, chapterID=None):
         pass
 
 
@@ -91,14 +75,14 @@ class SoundPlayer(object):
         return self._enabled
 
     @abstractmethod
-    def play(self, event, sndID = None):
+    def play(self, event, sndID=None):
         pass
 
     @abstractmethod
     def stop(self):
         pass
 
-    def isPlaying(self, event, sndID = None):
+    def isPlaying(self, event, sndID=None):
         return False
 
     def goToNextChapter(self):
@@ -107,7 +91,7 @@ class SoundPlayer(object):
 
 class NoSound(SoundPlayer):
 
-    def play(self, event, sndID = None):
+    def play(self, event, sndID=None):
         pass
 
     def stop(self):
@@ -116,7 +100,9 @@ class NoSound(SoundPlayer):
 
 class GLOBAL_VAR(object):
     LAST_HISTORY_ID = '_TutorialLastHistoryID'
-    ALL = [LAST_HISTORY_ID]
+    SERVICE_MESSAGES_IDS = '_TutorialServiceMessagesIDs'
+    PLAYER_VEHICLE_NAME = '_TutorialPlayerVehicleName'
+    ALL = (LAST_HISTORY_ID, SERVICE_MESSAGES_IDS, PLAYER_VEHICLE_NAME)
 
 
 class GLOBAL_FLAG(object):
@@ -124,10 +110,12 @@ class GLOBAL_FLAG(object):
     SHOW_HISTORY = '_TutorialShowHistory'
     HISTORY_NOT_AVAILABLE = '_TutorialHistoryNotAvailable'
     IN_QUEUE = '_InTutorialQueue'
-    ALL = [IS_FLAGS_RESET,
+    ALL_BONUSES_RECEIVED = '_AllBonusesReceived'
+    ALL = (IS_FLAGS_RESET,
      SHOW_HISTORY,
      HISTORY_NOT_AVAILABLE,
-     IN_QUEUE]
+     IN_QUEUE,
+     ALL_BONUSES_RECEIVED)
 
 
 class GlobalStorage(object):
@@ -148,7 +136,7 @@ class GlobalStorage(object):
     def __set__(self, _, value):
         self.__storage[self.attribute] = value
 
-    def __get__(self, instance, owner = None):
+    def __get__(self, instance, owner=None):
         if instance is None:
             return self
         else:
@@ -156,6 +144,14 @@ class GlobalStorage(object):
 
     def value(self):
         return self.__storage[self.attribute]
+
+    @classmethod
+    def setFlags(cls, flags):
+        for flag, value in flags.iteritems():
+            if flag not in GLOBAL_FLAG.ALL:
+                LOG_ERROR('It is not global flag', flag)
+                continue
+            cls.__storage[flag] = value
 
     @classmethod
     def clearFlags(cls):
@@ -167,7 +163,12 @@ class GlobalStorage(object):
     def clearVars(cls):
         for var in GLOBAL_VAR.ALL:
             if var in cls.__storage:
-                cls.__storage[var] = cls.__default[var]
+                if var in cls.__default:
+                    cls.__storage[var] = cls.__default[var]
+                else:
+                    cls.__storage[var] = None
+
+        return
 
     @classmethod
     def all(cls):
@@ -197,3 +198,4 @@ class ClientCtx(object):
 
     def makeRecord(self):
         pass
+# okay decompiling ./res/scripts/client/tutorial/control/context.pyc

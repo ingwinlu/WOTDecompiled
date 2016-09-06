@@ -1,10 +1,12 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/DebugView.py
 import BigWorld
 import GUI
 from gui import g_guiResetters
 
 class DebugView():
 
-    def __init__(self, textureName = '', parentGUI = None):
+    def __init__(self, textureName='', parentGUI=None):
         self.__listKeynames = []
         self.__dictItems = {}
         self.__bAutoUpdate = False
@@ -72,7 +74,7 @@ class DebugView():
     def getAutoUpdate(self):
         return self.__bAutoUpdate
 
-    def setAlign(self, value, index = None):
+    def setAlign(self, value, index=None):
         if index is None:
             self.__align = [bool(value[0]),
              bool(value[1]),
@@ -82,13 +84,13 @@ class DebugView():
             self.__align[index] = bool(value)
         return
 
-    def getAlign(self, index = None):
+    def getAlign(self, index=None):
         if index is None:
             return list(self.__align)
         else:
             return self.__align[index]
 
-    def setMargin(self, value, index = None):
+    def setMargin(self, value, index=None):
         if index is None:
             self.__margin = [float(value[0]),
              float(value[1]),
@@ -98,7 +100,7 @@ class DebugView():
             self.__margin[index] = float(value)
         return
 
-    def getMargin(self, index = None):
+    def getMargin(self, index=None):
         if index is None:
             return list(self.__margin)
         else:
@@ -213,8 +215,6 @@ class DebugView():
             self.update()
 
     def swapLines(self, keyname1, keyname2):
-        if deltaLine == 0:
-            return
         try:
             ind1 = self.__listKeynames.index(keyname1)
             ind2 = self.__listKeynames.index(keyname2)
@@ -298,7 +298,7 @@ class DebugView():
 
 class DebugViewItem():
 
-    def __init__(self, name = '', value = '', divider = ' = '):
+    def __init__(self, name='', value='', divider=' = '):
         self.__name = str(name)
         self.__value = str(value)
         self.__divider = str(divider)
@@ -315,7 +315,7 @@ class DebugViewItem():
         self._guiName.text = self.__name + self.__divider
 
     def getName(self):
-        return self._name
+        return self.__name
 
     def setValue(self, value):
         self.__value = str(value)
@@ -406,14 +406,12 @@ class DebugViewItem():
 
     def _rebuild(self):
         saved_font2 = self.getFont()
-        saved_colour2 = self.getColour()
-        saved_materialFX2 = self.getMaterialFX()
+        saved_colour2 = ((255.0, 255.0, 255.0, 255.0), (255.0, 255.0, 255.0, 255.0))
         saved_position2 = self._getPosition()
         saved_visible = self.getVisible()
         self.__createGUI()
         self.setFont(saved_font2)
         self.setColour(saved_colour2)
-        self.setMaterialFX(saved_materialFX2)
         self._setPosition(saved_position2)
         self.setVisible(saved_visible)
 
@@ -426,8 +424,8 @@ class DebugViewItem():
         self._guiValue.verticalAnchor = 'TOP'
 
     def __destroyGUI(self):
-        raise self._guiName.parent is None or AssertionError
-        raise self._guiValue.parent is None or AssertionError
+        assert self._guiName.parent is None
+        assert self._guiValue.parent is None
         GUI.delRoot(self._guiName)
         self._guiName = None
         GUI.delRoot(self._guiValue)
@@ -435,7 +433,7 @@ class DebugViewItem():
         return
 
 
-def LU2BW(point3d, parent = None):
+def LU2BW(point3d, parent=None):
     if parent is None:
         sizeX = -2.0
         sizeY = 2.0
@@ -443,3 +441,4 @@ def LU2BW(point3d, parent = None):
         sizeX, sizeY = parent.size
         sizeX = -sizeX
     return (sizeX * 0.5 + point3d[0], sizeY * 0.5 - point3d[1], point3d[2])
+# okay decompiling ./res/scripts/client/gui/debugview.pyc

@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/helpers/sgmllib3.py
 """A parser for SGML, using the derived class as a static DTD."""
 import _markupbase
 import re
@@ -22,7 +24,7 @@ class SGMLParseError(RuntimeError):
 class SGMLParser(_markupbase.ParserBase):
     entity_or_charref = re.compile('&(?:([a-zA-Z][-.a-zA-Z0-9]*)|#([0-9]+))(;?)')
 
-    def __init__(self, verbose = 0):
+    def __init__(self, verbose=0):
         """Initialize and reset this instance."""
         self.verbose = verbose
         self.reset()
@@ -227,8 +229,8 @@ class SGMLParser(_markupbase.ParserBase):
                 if not rest:
                     attrvalue = attrname
                 else:
-                    if attrvalue[:1] == "'" == attrvalue[-1:] or attrvalue[:1] == '"' == attrvalue[-1:]:
-                        attrvalue = attrvalue[1:-1]
+                    if not attrvalue[:1] == "'" == attrvalue[-1:]:
+                        attrvalue = attrvalue[:1] == '"' == attrvalue[-1:] and attrvalue[1:-1]
                     attrvalue = self.entity_or_charref.sub(self._convert_ref, attrvalue)
                 attrs.append((attrname.lower(), attrvalue))
                 k = match.end(0)
@@ -302,18 +304,18 @@ class SGMLParser(_markupbase.ParserBase):
                 if self.stack[i] == tag:
                     found = i
 
-        while len(self.stack) > found:
-            tag = self.stack[-1]
-            try:
-                method = getattr(self, 'end_' + tag)
-            except AttributeError:
-                method = None
+            while len(self.stack) > found:
+                tag = self.stack[-1]
+                try:
+                    method = getattr(self, 'end_' + tag)
+                except AttributeError:
+                    method = None
 
-            if method:
-                self.handle_endtag(tag, method)
-            else:
-                self.unknown_endtag(tag)
-            del self.stack[-1]
+                if method:
+                    self.handle_endtag(tag, method)
+                else:
+                    self.unknown_endtag(tag)
+                del self.stack[-1]
 
         return
 
@@ -401,3 +403,4 @@ class SGMLParser(_markupbase.ParserBase):
 
     def unknown_entityref(self, ref):
         pass
+# okay decompiling ./res/scripts/client/helpers/sgmllib3.pyc

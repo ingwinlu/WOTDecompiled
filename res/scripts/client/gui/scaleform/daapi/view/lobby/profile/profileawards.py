@@ -1,37 +1,44 @@
-# 2013.11.15 11:26:10 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/profile/ProfileAwards.py
-from gui.Scaleform.daapi.view.lobby.profile.ProfileAchievementSection import ProfileAchievementSection
-from gui.Scaleform.daapi.view.lobby.profile.ProfileUtils import ProfileUtils
 from gui.Scaleform.daapi.view.meta.ProfileAwardsMeta import ProfileAwardsMeta
 from gui.Scaleform.locale.PROFILE import PROFILE
 from web_stubs import i18n
-from gui.shared.gui_items.dossier.stats import AccountTotalStatsBlock
+from gui.Scaleform.daapi.view.AchievementsUtils import AchievementsUtils
+from gui.shared.utils.RareAchievementsCache import IMAGE_TYPE
+from gui.shared.gui_items.dossier import dumpDossier
 
-class ProfileAwards(ProfileAchievementSection, ProfileAwardsMeta):
+class ProfileAwards(ProfileAwardsMeta):
 
     def __init__(self, *args):
-        ProfileAchievementSection.__init__(self, *args)
-        ProfileAwardsMeta.__init__(self)
+        super(ProfileAwards, self).__init__(*args)
         self.__achievementsFilter = PROFILE.SECTION_AWARDS_DROPDOWN_LABELS_ALL
+
+    def setFilter(self, data):
+        self.__achievementsFilter = data
+        self.invokeUpdate()
+
+    @classmethod
+    def _getTotalStatsBlock(cls, dossier):
+        return dossier.getTotalStats()
 
     def _sendAccountData(self, targetData, accountDossier):
         super(ProfileAwards, self)._sendAccountData(targetData, accountDossier)
-        achievements = accountDossier.getAchievements(None)
+        achievements = targetData.getAchievements()
         totalItemsList = []
         for block in achievements:
             totalItemsList.append(len(block))
 
         if self.__achievementsFilter == PROFILE.SECTION_AWARDS_DROPDOWN_LABELS_INPROCESS:
-            achievements = accountDossier.getAchievements(True)
+            achievements = targetData.getAchievements(isInDossier=True)
         elif self.__achievementsFilter == PROFILE.SECTION_AWARDS_DROPDOWN_LABELS_NONE:
-            achievements = accountDossier.getAchievements(False)
+            achievements = targetData.getAchievements(isInDossier=False)
         packedList = []
         for achievementBlockList in achievements:
-            packedList.append(ProfileUtils.packAchievementList(achievementBlockList, accountDossier, self._userID is None))
+            packedList.append(AchievementsUtils.packAchievementList(achievementBlockList, accountDossier.getDossierType(), dumpDossier(accountDossier), self._userID is None))
 
         self.as_responseDossierS(self._battlesType, {'achievementsList': packedList,
          'totalItemsList': totalItemsList,
-         'battlesCount': targetData.getBattlesCount()})
+         'battlesCount': targetData.getBattlesCount()}, '', '')
         return
 
     def _populate(self):
@@ -40,20 +47,21 @@ class ProfileAwards(ProfileAchievementSection, ProfileAwardsMeta):
                                'selectedItem': self.__achievementsFilter}}
         self.as_setInitDataS(initData)
 
-    def __packProviderItem(self, key):
-        return {'label': i18n.makeString(key),
-         'key': key}
-
-    def setFilter(self, data):
-        self.__achievementsFilter = data
-        self.invokeUpdate()
-
-    def requestData(self, data):
-        self.request(self._userID)
+    def _onRareImageReceived(self, imgType, rareID, imageData):
+        if imgType == IMAGE_TYPE.IT_67X71:
+            stats = self._getNecessaryStats()
+            achievement = stats.getAchievement(('rareAchievements', rareID))
+            if achievement is not None:
+                image_id = achievement.getSmallIcon()[6:]
+                self.as_setRareAchievementDataS(rareID, image_id)
+        return
 
     def _dispose(self):
         self._disposeRequester()
         super(ProfileAwards, self)._dispose()
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/lobby/profile/profileawards.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:10 EST
+
+    @staticmethod
+    def __packProviderItem(key):
+        return {'label': i18n.makeString(key),
+         'key': key}
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/profile/profileawards.pyc

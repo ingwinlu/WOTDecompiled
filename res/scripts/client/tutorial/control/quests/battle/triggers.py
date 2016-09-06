@@ -1,0 +1,69 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/tutorial/control/quests/battle/triggers.py
+from gui.battle_control import g_sessionProvider
+from tutorial.control.triggers import TriggerWithValidateVar
+
+class UseItemsTrigger(TriggerWithValidateVar):
+
+    def run(self):
+        self.isRunning = True
+        if not self.isSubscribed:
+            self.isSubscribed = True
+            eqCtrl = g_sessionProvider.shared.equipments
+            if eqCtrl is not None:
+                eqCtrl.onEquipmentUpdated += self.__onEquipmentUpdated
+        self.toggle(isOn=self.isOn())
+        return
+
+    def isOn(self, result=False):
+        return result
+
+    def __onEquipmentUpdated(self, intCD, item):
+        conditionVar = self.getVar()
+        itemsList = conditionVar.get('items', [])
+        if intCD in itemsList and item.getQuantity() == 0:
+            self.toggle(isOn=self.isOn(True))
+
+    def clear(self):
+        eqCtrl = g_sessionProvider.shared.equipments
+        if eqCtrl is not None:
+            eqCtrl.onEquipmentUpdated -= self.__onEquipmentUpdated
+        self.isSubscribed = False
+        self.isRunning = False
+        return
+
+
+class InstallItemsTrigger(TriggerWithValidateVar):
+
+    def run(self):
+        self.isRunning = True
+        if not self.isSubscribed:
+            self.isSubscribed = True
+            eqCtrl = g_sessionProvider.shared.equipments
+            if eqCtrl is not None:
+                eqCtrl.onEquipmentUpdated += self.__onEquipmentAdded
+        self.toggle(isOn=self.isOn())
+        return
+
+    def isOn(self):
+        eqCtrl = g_sessionProvider.shared.equipments
+        if eqCtrl is not None:
+            conditionVar = self.getVar()
+            itemsList = conditionVar.get('items', [])
+            for eqCD in itemsList:
+                if eqCtrl.hasEquipment(eqCD):
+                    return True
+
+        return False
+
+    def __onEquipmentAdded(self, *args):
+        self.toggle(isOn=self.isOn())
+
+    def clear(self):
+        eqCtrl = g_sessionProvider.shared.equipments
+        if eqCtrl is not None:
+            eqCtrl.onEquipmentUpdated -= self.__onEquipmentAdded
+        self.isSubscribed = False
+        self.isRunning = False
+        return
+# okay decompiling ./res/scripts/client/tutorial/control/quests/battle/triggers.pyc

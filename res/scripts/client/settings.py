@@ -1,7 +1,8 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/Settings.py
 import BigWorld
 g_instance = None
 KEY_UPDATE_URL = 'updateUrl'
-KEY_FAKE_MODEL = 'fakeModel'
 KEY_CONTROL_MODE = 'controlMode'
 KEY_LOGIN_INFO = 'loginInfo'
 KEY_SCREEN_SIZE = 'screenSize'
@@ -13,14 +14,19 @@ APPLICATION_CLOSE_DELAY = 'closeApplicationDelay'
 KEY_MESSENGER_PREFERENCES = 'messengerPrefs'
 KEY_LOGINPAGE_PREFERENCES = 'loginPage'
 KEY_ACCOUNT_SETTINGS = 'accounts'
+KEY_COMMAND_MAPPING = 'commandMapping'
 KEY_SHOW_STARTUP_MOVIE = 'showStartupMovie'
-KEY_ENABLE_VOIP = 'enableVoIP'
 KEY_VOIP_DEVICE = 'captureDevice'
 KEY_VIBRATION = 'vibration'
 KEY_ENABLE_EDGE_DETECT_AA = 'enableEdgeDetectAA'
 KEY_ENABLE_MORTEM_POST_EFFECT_OLD = 'enableMortemPostEffect'
 KEY_ENABLE_MORTEM_POST_EFFECT = 'enablePostMortemEffect'
 KEY_WINDOWS_STORED_DATA = 'windowsStoredData'
+KEY_FOV = 'fov'
+KEY_GUI_NOTIFY_INFO = 'guiNotifyInfo'
+KEY_DYNAMIC_FOV = 'dynamicFov'
+KEY_DYNAMIC_FOV_ENABLED = 'dynamicFovEnabled'
+INTRO_VIDEO_VERSION = 'introVideoVersion'
 
 class Settings(object):
 
@@ -31,3 +37,4 @@ class Settings(object):
 
     def save(self):
         BigWorld.savePreferences()
+# okay decompiling ./res/scripts/client/settings.pyc

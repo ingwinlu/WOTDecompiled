@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/messenger/doc_loaders/colors_schemes.py
 from messenger.doc_loaders import _xml_helpers
 
 def _readColors(xmlCtx, section, colorsNames, defName):
@@ -50,3 +52,4 @@ def load(xmlCtx, section, messengerSettings):
             _readColorScheme(ctx, subSec, colorScheme)
 
     return
+# okay decompiling ./res/scripts/client/messenger/doc_loaders/colors_schemes.pyc

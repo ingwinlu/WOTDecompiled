@@ -1,19 +1,18 @@
-from debug_utils import LOG_ERROR
-__author__ = 'i_maliavko'
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/VehicleInfoWindow.py
+from gui.shared.items_parameters import formatters
 from items import tankmen
 from helpers import i18n
-from adisp import process
-from gui.Scaleform.Waiting import Waiting
-from gui.Scaleform.framework.entities.View import View
+from debug_utils import LOG_ERROR
+from gui.shared import g_itemsCache
 from gui.Scaleform.daapi.view.meta.VehicleInfoMeta import VehicleInfoMeta
-from gui.Scaleform.daapi.view.meta.WindowViewMeta import WindowViewMeta
-from gui.shared.utils.requesters import ItemsRequester
 
-class VehicleInfoWindow(View, VehicleInfoMeta, WindowViewMeta):
+class VehicleInfoWindow(VehicleInfoMeta):
 
-    def __init__(self, vehicleDescr):
+    def __init__(self, ctx=None):
         super(VehicleInfoWindow, self).__init__()
-        self.vehicleDescr = vehicleDescr
+        vehicleCompactDescr = ctx.get('vehicleCompactDescr', 0)
+        self.vehicleCompactDescr = vehicleCompactDescr
 
     def onCancelClick(self):
         self.destroy()
@@ -21,13 +20,10 @@ class VehicleInfoWindow(View, VehicleInfoMeta, WindowViewMeta):
     def onWindowClose(self):
         self.destroy()
 
-    @process
     def getVehicleInfo(self):
-        Waiting.show('updating')
-        items = yield ItemsRequester().request()
-        vehicle = items.getItemByCD(self.vehicleDescr.type.compactDescr)
+        vehicle = g_itemsCache.items.getItemByCD(self.vehicleCompactDescr)
         if vehicle is None:
-            LOG_ERROR('There is error while showing vehicle info window: ', self.vehicleDescr.type.compactDescr)
+            LOG_ERROR('There is error while showing vehicle info window: ', self.vehicleCompactDescr)
             return
         else:
             params = vehicle.getParams()
@@ -40,6 +36,7 @@ class VehicleInfoWindow(View, VehicleInfoMeta, WindowViewMeta):
                 tankmenParams.append({'tankmanType': i18n.convert(tankmen.getSkillsConfig()[role].get('userString', '')),
                  'value': tankmanLabel})
 
+            paramsList = formatters.getFormattedParamsList(vehicle.descriptor, params['parameters'], excludeRelative=True)
             info = {'vehicleName': vehicle.longUserName,
              'vehicleDiscription': vehicle.fullDescription,
              'vehicleImage': vehicle.icon,
@@ -48,9 +45,9 @@ class VehicleInfoWindow(View, VehicleInfoMeta, WindowViewMeta):
              'vehicleElite': vehicle.isElite,
              'vehicleType': vehicle.type,
              'VehicleInfoPropsData': [ {'name': n,
-                                      'value': v} for n, v in params['parameters'] ],
+                                      'value': v} for n, v in paramsList ],
              'VehicleInfoBaseData': params['base'],
              'VehicleInfoCrewData': tankmenParams}
             self.as_setVehicleInfoS(info)
-            Waiting.hide('updating')
             return
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/vehicleinfowindow.pyc

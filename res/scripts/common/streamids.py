@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/common/streamIDs.py
 STREAM_ID_CHAT_MIN = 1
 STREAM_ID_CHAT_MAX = 99
 CHAT_INITIALIZATION_ID = 50
@@ -7,7 +9,7 @@ STREAM_ID_ACCOUNT_CMDS_MAX = 30000
 
 class RangeStreamIDCallbacks(object):
 
-    def __init__(self, rangeFactor = 100):
+    def __init__(self, rangeFactor=100):
         self.__callbacks = dict()
         self.__rangeFactor = int(rangeFactor)
 
@@ -69,3 +71,4 @@ if __name__ == '__main__':
     outStreamIdCB(201)
     outStreamIdCB(299)
     outStreamIdCB(300)
+# okay decompiling ./res/scripts/common/streamids.pyc

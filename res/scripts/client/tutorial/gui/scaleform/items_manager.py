@@ -1,5 +1,8 @@
-from gui.Scaleform.framework import VIEW_TYPE, AppRef
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/tutorial/gui/Scaleform/items_manager.py
+from gui.Scaleform.framework import ViewTypes
 from gui.Scaleform.framework.managers.containers import ExternalCriteria
+from gui.app_loader.decorators import sf_lobby
 from tutorial import LOG_WARNING
 
 class AttributeCriteria(ExternalCriteria):
@@ -19,14 +22,18 @@ class AttributeCriteria(ExternalCriteria):
         return nextAttr
 
 
-class ItemsManager(AppRef):
+class ItemsManager(object):
 
     def __init__(self):
         super(ItemsManager, self).__init__()
 
+    @sf_lobby
+    def app(self):
+        return None
+
     def findTargetByCriteria(self, targetPath, valuePath, value):
         result = None
-        if targetPath == VIEW_TYPE.DIALOG:
+        if targetPath == ViewTypes.TOP_WINDOW:
             result = self.__findDialog(valuePath, value)
         else:
             LOG_WARNING('Dialogs supported only')
@@ -34,7 +41,8 @@ class ItemsManager(AppRef):
 
     def __findDialog(self, path, value):
         result = None
-        view = self.app.containerManager.getView(VIEW_TYPE.DIALOG, criteria=AttributeCriteria(path, value))
+        view = self.app.containerManager.getView(ViewTypes.TOP_WINDOW, criteria=AttributeCriteria(path, value))
         if view is not None:
-            result = (VIEW_TYPE.DIALOG, view.uniqueName)
+            result = (ViewTypes.TOP_WINDOW, view.uniqueName)
         return result
+# okay decompiling ./res/scripts/client/tutorial/gui/scaleform/items_manager.pyc

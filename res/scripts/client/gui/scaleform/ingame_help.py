@@ -1,9 +1,12 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/ingame_help.py
 from account_helpers.AccountSettings import AccountSettings
-import BigWorld, ResMgr
+import BigWorld
+import ResMgr
 import CommandMapping
 import constants
 from debug_utils import LOG_DEBUG, LOG_ERROR
-from gui import VERSION_FILE_PATH
+from helpers import VERSION_FILE_PATH
 from gui.Scaleform.windows import UIInterface
 
 class IngameHelp(object):
@@ -86,7 +89,7 @@ class IngameHelpLobbyDelegator(UIInterface):
     def isRequiredToShow(self):
         return self.__ingameHelp.isRequiredToShow()
 
-    def showIngameHelp(self, callback = None):
+    def showIngameHelp(self, callback=None):
         self.__ingameHelp.buildCmdMapping()
         self.__ingameHelp._writeVersionForCurrentPlayer()
         self.__callback = callback
@@ -100,3 +103,4 @@ class IngameHelpLobbyDelegator(UIInterface):
 
     def onClose(self, _):
         self.closeIngameHelp()
+# okay decompiling ./res/scripts/client/gui/scaleform/ingame_help.pyc

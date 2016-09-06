@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/Vibroeffects/Controllers/SwitchController.py
 import BigWorld
 from Vibroeffects import VibroManager
 from debug_utils import *
@@ -17,3 +19,4 @@ class SwitchController:
             VibroManager.g_instance.startEffect(self.__effect)
         else:
             VibroManager.g_instance.stopEffect(self.__effect)
+# okay decompiling ./res/scripts/client/vibroeffects/controllers/switchcontroller.pyc

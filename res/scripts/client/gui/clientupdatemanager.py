@@ -1,4 +1,4 @@
-# 2013.11.15 11:25:33 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/ClientUpdateManager.py
 import inspect
 
@@ -30,7 +30,7 @@ class _ClientUpdateManager(object):
     def removeCallback(self, diffpath, handler):
         self.__unsubscribeHandler(handler, diffpath)
 
-    def removeObjectCallbacks(self, obj_instance, force = False):
+    def removeObjectCallbacks(self, obj_instance, force=False):
         removed = set(filter(lambda key: inspect.ismethod(key) and key.__self__ is obj_instance, self.__handlers.iterkeys()))
         if force:
             for item in removed:
@@ -60,7 +60,7 @@ class _ClientUpdateManager(object):
         else:
             for key in diffpath.split(self.EVENT_TYPE_DELIMITER):
                 key = (key[:-2], '_r') if key.endswith('_r') else (key if not key.isdigit() else int(key))
-                if type(diff_ptr) != dict or key not in diff_ptr:
+                if not isinstance(diff_ptr, dict) or key not in diff_ptr:
                     return (False, None)
                 diff_ptr = diff_ptr[key]
 
@@ -76,6 +76,4 @@ class _ClientUpdateManager(object):
 
 
 g_clientUpdateManager = _ClientUpdateManager()
-# okay decompyling res/scripts/client/gui/clientupdatemanager.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:25:34 EST
+# okay decompiling ./res/scripts/client/gui/clientupdatemanager.pyc

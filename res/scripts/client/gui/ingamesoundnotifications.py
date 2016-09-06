@@ -1,14 +1,17 @@
-# 2013.11.15 11:25:35 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/IngameSoundNotifications.py
+from collections import namedtuple
 import BigWorld
 import ResMgr
 import BattleReplay
 from functools import partial
 from debug_utils import *
-from Vehicle import Vehicle
+import SoundGroups
+import WWISE
 
 class IngameSoundNotifications(object):
     __CFG_SECTION_PATH = 'gui/sound_notifications.xml'
+    QueueItem = namedtuple('QueueItem', ('soundPath', 'time', 'minTimeBetweenEvents', 'idToBind', 'checkFn', 'soundPos'))
 
     def __init__(self):
         self.__readConfig()
@@ -34,7 +37,7 @@ class IngameSoundNotifications(object):
         self.__isEnabled = False
         return
 
-    def cancel(self, eventName, continuePlaying = True):
+    def cancel(self, eventName, continuePlaying=True):
         for category in ('fx', 'voice'):
             eventDesc = self.__events[eventName].get(category, None)
             if eventDesc is not None:
@@ -50,11 +53,11 @@ class IngameSoundNotifications(object):
 
         return
 
-    def play(self, eventName, vehicleIdToBind = None):
+    def play(self, eventName, vehicleIdToBind=None, checkFn=None, eventPos=None):
         replayCtrl = BattleReplay.g_replayCtrl
         if replayCtrl.isPlaying and replayCtrl.isTimeWarpInProgress:
             return
-        elif not self.__isEnabled or BigWorld.isWindowVisible() == False:
+        elif not self.__isEnabled or BigWorld.isWindowVisible() is False:
             return
         else:
             event = self.__events.get(eventName, None)
@@ -73,13 +76,13 @@ class IngameSoundNotifications(object):
                             idToBind = BigWorld.player().vehicle.id
                     soundPath = soundDesc['sound']
                     minTimeBetweenEvents = soundDesc['minTimeBetweenEvents']
-                    queueItem = (soundPath,
-                     time + soundDesc['timeout'],
-                     minTimeBetweenEvents,
-                     idToBind)
+                    queueItem = IngameSoundNotifications.QueueItem(soundPath, time + soundDesc['timeout'], minTimeBetweenEvents, idToBind, checkFn, eventPos)
                     if rules == 0:
                         try:
-                            BigWorld.playSound(soundDesc['sound'])
+                            if eventPos is not None:
+                                SoundGroups.g_instance.playCameraOriented(soundDesc['sound'], eventPos)
+                            else:
+                                SoundGroups.g_instance.playSound2D(soundDesc['sound'])
                         except:
                             pass
 
@@ -127,7 +130,6 @@ class IngameSoundNotifications(object):
 
     def __clearQueue(self, category):
         if self.__activeEvents[category] is not None:
-            self.__activeEvents[category]['sound'].stop()
             self.__activeEvents[category] = None
         self.__soundQueues[category] = []
         return
@@ -136,7 +138,13 @@ class IngameSoundNotifications(object):
         if self.__activeEvents is None:
             return
         else:
-            if sound.state.find('playing') != -1:
+            if WWISE.enabled:
+                if sound.isPlaying:
+                    BigWorld.callback(0.01, lambda : self.__onSoundEnd(category, sound))
+                else:
+                    self.__activeEvents[category] = None
+                    BigWorld.callback(0.01, partial(self.__playFirstFromQueue, category))
+            elif sound.state.find('playing') != -1:
                 BigWorld.callback(0.01, lambda : self.__onSoundEnd(category, sound))
             else:
                 self.__activeEvents[category] = None
@@ -148,37 +156,30 @@ class IngameSoundNotifications(object):
             return
         else:
             queue = self.__soundQueues[category]
-            succes = False
             time = BigWorld.time()
-            while not succes and len(queue) > 0:
-                soundPath, timeout, minTimeBetweenEvents, vehicleIdToBind = queue[0]
-                del queue[0]
-                if vehicleIdToBind is not None:
-                    vehicles = BigWorld.player().arena.vehicles
-                    vehicleInfo = vehicles.get(vehicleIdToBind)
-                    if vehicleInfo is None or not vehicleInfo['isAlive']:
+            while 1:
+                if len(queue) > 0:
+                    soundPath, timeout, minTimeBetweenEvents, vehicleIdToBind, checkFn, sndPos = queue[0]
+                    del queue[0]
+                    if vehicleIdToBind is not None:
+                        vehicles = BigWorld.player().arena.vehicles
+                        vehicleInfo = vehicles.get(vehicleIdToBind)
+                        if vehicleInfo is None or not vehicleInfo['isAlive']:
+                            continue
+                    if checkFn is not None and not checkFn():
                         continue
-                if time > timeout:
-                    continue
-                succes = True
-                try:
-                    sound = BigWorld.playSound(soundPath)
-                    if sound is None:
-                        succes = False
-                except:
-                    succes = False
-
-                if not succes:
-                    LOG_ERROR('Failed to load sound %s' % soundPath)
-
-            if succes:
-                if sound.duration == 0:
-                    LOG_WARNING('Sound notification %s has zero duration and was skipped' % soundPath)
-                    BigWorld.callback(0.01, partial(self.__playFirstFromQueue, category))
-                else:
-                    sound.setCallback('EVENTFINISHED', partial(self.__onSoundEnd, category))
+                    if time > timeout:
+                        continue
+                    if sndPos is not None:
+                        sound = SoundGroups.g_instance.getCameraOriented(soundPath, sndPos)
+                    else:
+                        sound = SoundGroups.g_instance.getSound2D(soundPath)
+                    sound is not None and sound.setCallback(partial(self.__onSoundEnd, category))
+                    sound.play()
                     self.__activeEvents[category] = {'sound': sound,
                      'soundPath': soundPath}
+                return
+
             return
 
     def __readConfig(self):
@@ -189,7 +190,7 @@ class IngameSoundNotifications(object):
             for category in ('fx', 'voice'):
                 soundSec = eventSec[category]
                 if soundSec is not None:
-                    event[category] = {'sound': soundSec.readString('sound'),
+                    event[category] = {'sound': soundSec.readString('wwsound'),
                      'playRules': soundSec.readInt('playRules'),
                      'timeout': soundSec.readFloat('timeout', 3.0),
                      'minTimeBetweenEvents': soundSec.readFloat('minTimeBetweenEvents', 0),
@@ -214,66 +215,9 @@ class ComplexSoundNotifications(object):
         self.__isAimingEnded = isEnded
 
     def notifyEnemySpotted(self, isPlural):
-        self.__ingameSoundNotifications.cancel('enemy_sighted_for_team', True)
+        self.__ingameSoundNotifications.cancel('`p`p', True)
         if isPlural:
             self.__ingameSoundNotifications.play('enemies_sighted')
         else:
             self.__ingameSoundNotifications.play('enemy_sighted')
-
-
-class __SightNotifications(object):
-    NOTIFICATION_DELAY = 2.0
-    ENEMY_SIGHTED_SOUND = ''
-    ENEMIES_SIGHTED_SOUND = ''
-    SIGHTED_ENEMY_KILLED_SOUND = ''
-    SIGHTED_ENEMIES_KILLED_SOUND = ''
-
-    def __init__(self, ingameSoundNotifications):
-        self.__ingameSoundNotifications = ingameSoundNotifications
-        self.__enemySightedCallbackId = None
-        self.__isOneSighted = True
-        self.__sightedEnemyKilledCallbackId = None
-        self.__isOneKilled = True
-        return
-
-    def destroy(self):
-        if self.__enemySightedCallbackId is not None:
-            BigWorld.cancelCallback(self.__enemySightedCallbackId)
-        if self.__sightedEnemyKilledCallbackId is not None:
-            BigWorld.cancelCallback(self.__sightedEnemyKilledCallbackId)
-        return
-
-    def __playEnemySighted(self):
-        self.__enemySightedCallbackId = None
-        if self.__isOneSighted:
-            self.__ingameSoundNotifications.play(SightNotifications.ENEMY_SIGHTED_SOUND)
-        else:
-            self.__ingameSoundNotifications.play(SightNotifications.ENEMIES_SIGHTED_SOUND)
-        return
-
-    def notifyEnemySighted(self):
-        if self.__enemySightedCallbackId is None:
-            self.__enemySightedCallbackId = BigWorld.callback(SightNotifications.NOTIFICATION_DELAY, self.__playEnemySighted)
-            self.__isOneSighted = True
-        else:
-            self.__isOneSighted = False
-        return
-
-    def __playSightedEnemyKilled(self):
-        self.__sightedEnemyKilledCallbackId = None
-        if self.____isOneKilled:
-            self.__ingameSoundNotifications.play(SightNotifications.ENEMY_SIGHTED_SOUND)
-        else:
-            self.__ingameSoundNotifications.play(SightNotifications.ENEMIES_SIGHTED_SOUND)
-        return
-
-    def notifySightedEnemyKilled(self):
-        if self.__sightedEnemyKilledCallbackId is None:
-            self.__sightedEnemyKilledCallbackId = BigWorld.callback(SightNotifications.NOTIFICATION_DELAY, self.__playSightedEnemyKilled)
-            self.____isOneKilled = True
-        else:
-            self.____isOneKilled = False
-        return
-# okay decompyling res/scripts/client/gui/ingamesoundnotifications.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:25:36 EST
+# okay decompiling ./res/scripts/client/gui/ingamesoundnotifications.pyc

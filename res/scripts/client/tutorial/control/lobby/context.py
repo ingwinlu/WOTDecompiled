@@ -1,62 +1,9 @@
-# 2013.11.15 11:27:21 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/tutorial/control/lobby/context.py
 import BigWorld
-from AccountCommands import RES_TUTORIAL_DISABLED, RES_SUCCESS
-import dossiers2
+from AccountCommands import RES_TUTORIAL_DISABLED
 from tutorial.control import context
-from tutorial.logger import LOG_DEBUG, LOG_ERROR
-
-class LobbyStartReqs(context.StartReqs):
-
-    def isEnabled(self):
-        return not self._ctx.cache.isFinished() or self._ctx.restart
-
-    def process(self):
-        BigWorld.player().stats.get('tutorialsCompleted', self.__cb_onGetTutorialsCompleted)
-
-    def __cb_onGetTutorialsCompleted(self, resultID, completed):
-        ctx = self._ctx
-        loader = self._loader
-        if resultID < RES_SUCCESS:
-            LOG_ERROR('Server return error on request tutorialsCompleted', resultID, completed)
-            loader._clear()
-            self._clear()
-            return
-        ctx.bonusCompleted = completed
-        cache = ctx.cache
-        if loader.tutorial._descriptor.areAllBonusesReceived(completed):
-            cache.setFinished(True).write()
-            loader._clear()
-            self._clear()
-            return
-        if cache.isRefused():
-            self._clear()
-            if ctx.restart and not ctx.isInPrebattle:
-                loader.tutorial.restart(ctx)
-            else:
-                loader.tutorial.pause(ctx)
-            return
-        if cache.isEmpty() and not completed:
-            BigWorld.player().stats.get('dossier', self.__cb_onGetDossier)
-        else:
-            self._clear()
-            if not cache.isAfterBattle():
-                cache.setAfterBattle(loader.isAfterBattle)
-            loader._doRun(ctx)
-
-    def __cb_onGetDossier(self, resultID, dossierCD):
-        loader, ctx = self._flush()
-        if resultID < RES_SUCCESS:
-            LOG_ERROR('Server return error on request dossier', resultID, dossierCD)
-            loader._clear()
-            return
-        dossierDescr = dossiers2.getAccountDossierDescr(dossierCD)
-        if not dossierDescr['a15x15']['battlesCount']:
-            loader._doRun(ctx)
-        else:
-            ctx.cache.setFinished(True).write()
-            loader._clear()
-
+from tutorial.logger import LOG_ERROR, LOG_REQUEST
 
 class LobbyBonusesRequester(context.BonusesRequester):
 
@@ -67,7 +14,7 @@ class LobbyBonusesRequester(context.BonusesRequester):
     def isStillRunning(self):
         return not self._isReceived
 
-    def request(self, chapterID = None):
+    def request(self, chapterID=None):
         chapter = self.getChapter(chapterID=chapterID)
         if chapter is None:
             LOG_ERROR('Chapter not found', chapterID)
@@ -76,21 +23,21 @@ class LobbyBonusesRequester(context.BonusesRequester):
             LOG_ERROR('Chapter has not bonus.')
             return
         elif chapter.isBonusReceived(self._completed):
-            LOG_ERROR('Bonus already received.')
+            LOG_ERROR('Bonus already is received.')
             return
         else:
             bonusID = chapter.getBonusID()
             self._isReceived = False
             waitingID = chapter.getBonusMessage()
-            if not len(waitingID):
+            if not waitingID:
                 waitingID = 'request-bonus'
             self._gui.showWaiting(waitingID)
-            LOG_DEBUG('completeTutorial', bonusID)
+            LOG_REQUEST('Sends request on adding tutorial bonuses to the server', bonusID)
             BigWorld.player().completeTutorial(bonusID, lambda resultID: self.__cb_onCompleteTutorial(bonusID, waitingID, resultID))
             return
 
     def __cb_onCompleteTutorial(self, bonusID, waitingID, resultID):
-        if self._tutorial is not None and not self._tutorial._tutorialStopped:
+        if self._tutorial is not None and not self._tutorial.isStopped():
             self._gui.hideWaiting(waitingID)
         self._isReceived = True
         if resultID < 0:
@@ -99,15 +46,13 @@ class LobbyBonusesRequester(context.BonusesRequester):
                 errorKey = '#tutorial:messages/tutorial-disabled'
             else:
                 errorKey = '#tutorial:messages/request-bonus-failed'
-            if self._tutorial is not None and not self._tutorial._tutorialStopped:
+            if self._tutorial is not None and not self._tutorial.isStopped():
                 self._gui.showI18nMessage(errorKey, msgType='Error')
                 self._gui.hideWaiting()
                 self._tutorial.stop()
             return
         else:
-            LOG_DEBUG('Received bonus', bonusID)
+            LOG_REQUEST('Player has been received bonuses', bonusID)
             self._completed |= 1 << bonusID
             return
-# okay decompyling res/scripts/client/tutorial/control/lobby/context.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:21 EST
+# okay decompiling ./res/scripts/client/tutorial/control/lobby/context.pyc

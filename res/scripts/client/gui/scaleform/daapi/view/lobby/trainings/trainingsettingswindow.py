@@ -1,23 +1,23 @@
-# 2013.11.15 11:26:22 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/trainings/TrainingSettingsWindow.py
 import ArenaType
-from adisp import process
+from account_helpers import gameplay_ctx
 from gui.Scaleform.daapi.view.lobby.trainings import formatters
-from gui.prb_control.dispatcher import g_prbLoader
-from gui.prb_control.context import TrainingSettingsCtx
+from gui.prb_control.context.prb_ctx import TrainingSettingsCtx
 from debug_utils import LOG_ERROR, LOG_CURRENT_EXCEPTION
-from gui.Scaleform.framework.entities.View import View
-from gui.Scaleform.daapi.view.meta.WindowViewMeta import WindowViewMeta
 from gui.Scaleform.daapi.view.meta.TrainingWindowMeta import TrainingWindowMeta
-from gui.prb_control.settings import REQUEST_TYPE
+from gui.prb_control.prb_helpers import prbFunctionalProperty
+from gui.prb_control.prb_getters import getTrainingBattleRoundLimits
 from helpers import i18n
+from gui.shared import g_itemsCache
+from gui.shared import events, EVENT_BUS_SCOPE
 
 class ArenasCache(object):
 
     def __init__(self):
         self.__cache = []
         for arenaTypeID, arenaType in ArenaType.g_cache.iteritems():
-            if arenaType.explicitRequestOnly:
+            if arenaType.explicitRequestOnly or not gameplay_ctx.isCreationEnabled(arenaType.gameplayName):
                 continue
             try:
                 nameSuffix = '' if arenaType.gameplayName == 'ctf' else i18n.makeString('#arenas:type/%s/name' % arenaType.gameplayName)
@@ -41,49 +41,60 @@ class ArenasCache(object):
         return self.__cache
 
 
-class TrainingSettingsWindow(View, WindowViewMeta, TrainingWindowMeta):
+class TrainingSettingsWindow(TrainingWindowMeta):
 
-    def __init__(self, ctx):
+    def __init__(self, ctx=None):
         super(TrainingSettingsWindow, self).__init__()
-        self.__settingsCtx = ctx.get('settings', TrainingSettingsCtx())
+        self.__isCreateRequest = ctx.get('isCreateRequest', False)
         self.__arenasCache = ArenasCache()
 
-    @process
-    def __createTrainingRoom(self):
-        self.__settingsCtx.setWaitingID('prebattle/create')
-        yield g_prbLoader.getDispatcher().create(self.__settingsCtx)
-
-    @process
-    def __changeTrainingRoom(self):
-        self.__settingsCtx.setWaitingID('prebattle/change_settings')
-        yield g_prbLoader.getDispatcher().sendPrbRequest(self.__settingsCtx)
+    @prbFunctionalProperty
+    def prbFunctional(self):
+        return None
 
     def onWindowClose(self):
-        if self.__settingsCtx is not None:
-            self.__settingsCtx.clear()
-            self.__settingsCtx = None
         self.destroy()
-        return
+
+    def _populate(self):
+        super(TrainingSettingsWindow, self)._populate()
+        self.as_setDataS(self.getInfo(), self.getMapsData())
 
     def getMapsData(self):
         return self.__arenasCache.cache
 
     def getInfo(self):
-        return {'description': self.__settingsCtx.getComment(),
-         'timeout': self.__settingsCtx.getRoundLen() / 60,
-         'arena': self.__settingsCtx.getArenaTypeID(),
-         'privacy': not self.__settingsCtx.isOpened(),
-         'create': self.__settingsCtx.getRequestType() is REQUEST_TYPE.CREATE}
+        settings = TrainingSettingsCtx()
+        if not self.__isCreateRequest:
+            settings = settings.fetch(self.prbFunctional.getSettings())
+        if g_itemsCache.isSynced():
+            accountAttrs = g_itemsCache.items.stats.attributes
+        else:
+            accountAttrs = 0
+        _, maxBound = getTrainingBattleRoundLimits(accountAttrs)
+        info = {'description': settings.getComment(),
+         'timeout': settings.getRoundLen() / 60,
+         'arena': settings.getArenaTypeID(),
+         'privacy': not settings.isOpened(),
+         'create': self.__isCreateRequest,
+         'canMakeOpenedClosed': True,
+         'canChangeComment': True,
+         'canChangeArena': True,
+         'maxBattleTime': maxBound / 60}
+        if not self.__isCreateRequest:
+            permissions = self.prbFunctional.getPermissions()
+            info['canMakeOpenedClosed'] = permissions.canMakeOpenedClosed()
+            info['canChangeComment'] = permissions.canChangeComment()
+            info['canChangeArena'] = permissions.canChangeArena()
+        return info
 
     def updateTrainingRoom(self, arena, roundLength, isPrivate, comment):
-        self.__settingsCtx.setArenaTypeID(arena)
-        self.__settingsCtx.setRoundLen(roundLength * 60)
-        self.__settingsCtx.setOpened(not isPrivate)
-        self.__settingsCtx.setComment(comment)
-        if self.__settingsCtx.getRequestType() is REQUEST_TYPE.CREATE:
-            self.__createTrainingRoom()
+        if self.__isCreateRequest:
+            settings = TrainingSettingsCtx(isRequestToCreate=True)
         else:
-            self.__changeTrainingRoom()
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/lobby/trainings/trainingsettingswindow.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:22 EST
+            settings = TrainingSettingsCtx(isRequestToCreate=False)
+        settings.setArenaTypeID(arena)
+        settings.setRoundLen(roundLength * 60)
+        settings.setOpened(not isPrivate)
+        settings.setComment(comment)
+        self.fireEvent(events.TrainingSettingsEvent(events.TrainingSettingsEvent.UPDATE_TRAINING_SETTINGS, ctx={'settings': settings}), scope=EVENT_BUS_SCOPE.LOBBY)
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/trainings/trainingsettingswindow.pyc

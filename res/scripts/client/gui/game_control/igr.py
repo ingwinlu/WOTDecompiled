@@ -1,13 +1,14 @@
-# 2013.11.15 11:25:35 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/game_control/IGR.py
 import Event
 import constants
-from debug_utils import LOG_DEBUG
 from PlayerEvents import g_playerEvents
+from gui.game_control.controllers import Controller
 
-class IGRController(object):
+class IGRController(Controller):
 
-    def __init__(self):
+    def __init__(self, proxy):
+        super(IGRController, self).__init__(proxy)
         self.__xpFactor = 1.0
         self.__roomType = constants.IGR_TYPE.NONE
         self.onIgrTypeChanged = Event.Event()
@@ -18,14 +19,15 @@ class IGRController(object):
     def fini(self):
         g_playerEvents.onIGRTypeChanged -= self.__onIGRTypeChanged
         self.onIgrTypeChanged.clear()
+        super(IGRController, self).fini()
 
-    def start(self, ctx = None):
-        data = ctx or {}.get('igrData', {})
+    def onLobbyStarted(self, ctx=None):
+        data = (ctx or {}).get('igrData', {})
         self.__roomType = data.get('roomType', constants.IGR_TYPE.NONE)
         self.__xpFactor = data.get('igrXPFactor', 1.0)
         self.onIgrTypeChanged(self.__roomType, self.__xpFactor)
 
-    def clear(self):
+    def onDisconnected(self):
         self.__xpFactor = 1.0
         self.__roomType = constants.IGR_TYPE.NONE
 
@@ -42,6 +44,4 @@ class IGRController(object):
             self.__xpFactor = xpFactor
         self.onIgrTypeChanged(self.__roomType, self.__xpFactor)
         return
-# okay decompyling res/scripts/client/gui/game_control/igr.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:25:35 EST
+# okay decompiling ./res/scripts/client/gui/game_control/igr.pyc

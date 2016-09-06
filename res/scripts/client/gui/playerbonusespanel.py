@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/PlayerBonusesPanel.py
 import BigWorld
 from gui import DebugMonitorView
 from gui import DEPTH_OF_PlayerBonusesPanel
@@ -45,3 +47,4 @@ class PlayerBonusesPanel(object):
         result.setMargin((0.04, 0.04, 0.04, 0.04))
         result.setVisible(True)
         return result
+# okay decompiling ./res/scripts/client/gui/playerbonusespanel.pyc

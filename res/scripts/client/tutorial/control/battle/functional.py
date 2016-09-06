@@ -1,27 +1,26 @@
-# 2013.11.15 11:27:20 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/tutorial/control/battle/functional.py
 import time
 import weakref
 import BigWorld
 import Math
 import TriggersManager
-from account_helpers.AccountSettings import AccountSettings
 from constants import ARENA_PERIOD
 from PlayerEvents import g_playerEvents
+from gui.battle_control import g_sessionProvider, avatar_getter
 from tutorial import g_tutorialWeaver
 from tutorial.control.battle import aspects
 from tutorial.control.battle.context import BattleClientCtx
 from tutorial.control.battle.context import ExtendedBattleClientCtx
-from tutorial.control.context import SOUND_EVENT
-from tutorial.control.functional import FunctionalEffect, FunctionalScene, FunctionalChapterInfo, FunctionalConditions, FunctionalShowDialogEffect
+from tutorial.control.context import SOUND_EVENT, GlobalStorage, GLOBAL_VAR
+from tutorial.control.functional import FunctionalEffect, FunctionalScene
+from tutorial.control.functional import FunctionalChapterInfo
+from tutorial.control.functional import FunctionalConditions
+from tutorial.control.functional import FunctionalShowDialogEffect
 from tutorial.data.chapter import ChapterProgress
-from tutorial.logger import LOG_ERROR, LOG_DEBUG, LOG_CURRENT_EXCEPTION, LOG_REQUEST
-
-def _leaveArena():
-    player = BigWorld.player()
-    if hasattr(player, 'leaveArena'):
-        player.leaveArena()
-
+from tutorial.gui import GUI_EFFECT_NAME
+from tutorial.logger import LOG_ERROR, LOG_DEBUG, LOG_CURRENT_EXCEPTION
+from tutorial.logger import LOG_REQUEST
 
 class _IMarker(object):
 
@@ -32,39 +31,23 @@ class _IMarker(object):
         pass
 
 
-class IDirectionIndicator(object):
-
-    def track(self, position):
-        pass
-
-    def setShape(self, shape):
-        pass
-
-    def setDistance(self, distance):
-        pass
-
-    def setPosition(self, position):
-        pass
-
-    def remove(self):
-        pass
-
-
 class _DirectionIndicatorCtrl(_IMarker):
 
     def __init__(self, indicator, shapes, position):
         super(_DirectionIndicatorCtrl, self).__init__()
         self.__shapes = shapes
         shape = self.__shapes[0]
-        if AccountSettings.getSettings('isColorBlind'):
+        from account_helpers.settings_core.SettingsCore import g_settingsCore
+        if g_settingsCore.getSetting('isColorBlind'):
             shape = self.__shapes[1]
         self.__indicator = indicator
         self.__indicator.setShape(shape)
-        self.__indicator.track(position)
-        from account_helpers.SettingsCore import g_settingsCore
+        if position is not None:
+            self.__indicator.track(position)
         g_settingsCore.onSettingsChanged += self.__as_onSettingsChanged
+        return
 
-    def update(self, distance, position = None):
+    def update(self, distance, position=None):
         self.__indicator.setDistance(distance)
         if position is not None:
             self.__indicator.setPosition(position)
@@ -75,7 +58,7 @@ class _DirectionIndicatorCtrl(_IMarker):
         if self.__indicator is not None:
             self.__indicator.remove()
         self.__indicator = None
-        from account_helpers.SettingsCore import g_settingsCore
+        from account_helpers.settings_core.SettingsCore import g_settingsCore
         g_settingsCore.onSettingsChanged -= self.__as_onSettingsChanged
         return
 
@@ -91,7 +74,7 @@ class _DirectionIndicatorCtrl(_IMarker):
 
 class _AimMarker(_IMarker):
 
-    def __init__(self, typeID, triggerID, marker2D, marker3D, dIndicator = None):
+    def __init__(self, typeID, triggerID, marker2D, marker3D, dIndicator=None):
         self.__typeID = typeID
         self.__triggerID = triggerID
         self.__marker2D = marker2D
@@ -120,7 +103,7 @@ class _AimMarker(_IMarker):
 
 class _AreaMarker(_AimMarker):
 
-    def __init__(self, typeID, triggerID, worldMarker2D, minimapMarker2D, worldMarker3D, groundMarker3D, dIndicator = None):
+    def __init__(self, typeID, triggerID, worldMarker2D, minimapMarker2D, worldMarker3D, groundMarker3D, dIndicator=None):
         super(_AreaMarker, self).__init__(typeID, triggerID, worldMarker2D, worldMarker3D, dIndicator)
         self.__groundMarker = groundMarker3D
         self.__minimapMarker = minimapMarker2D
@@ -167,21 +150,25 @@ class _StaticWorldMarker2D(_IMarker):
 
 class _StaticMinimapMarker2D(_IMarker):
 
-    def __init__(self, markerID, minimap, data, position):
+    def __init__(self, markerID, minimap, position):
         super(_StaticMinimapMarker2D, self).__init__()
-        self.__minimapRef = weakref.ref(minimap)
-        self.__handle = minimap.addBackEntry(markerID, data.get('entry-name'), position[:], data.get('entry-type'))
+        if markerID and minimap.addTarget(markerID, position[:]):
+            self.__markerID = markerID
+            self.__minimap = weakref.ref(minimap)
+        else:
+            self.__markerID = ''
+            self.__minimap = lambda : None
 
     def update(self):
         pass
 
     def clear(self):
-        LOG_DEBUG('_StaticMinimapMarker2D.clear', self.__handle)
-        minimap = self.__minimapRef()
-        if minimap is not None and self.__handle:
-            minimap.removeBackEntry(self.__handle)
-        self.__minimapRef = None
-        self.__handle = None
+        LOG_DEBUG('_StaticMinimapMarker2D.clear', self.__markerID)
+        minimap = self.__minimap()
+        if minimap is not None and self.__markerID:
+            minimap.delTarget(self.__markerID)
+        self.__markerID = ''
+        self.__minimap = None
         return
 
 
@@ -228,21 +215,20 @@ class _StaticObjectMarker3D(_IMarker):
 
 class _VehicleMarker(_IMarker):
 
-    def __init__(self, vehicleID, minimap, period, dIndicator = None):
+    def __init__(self, vehicleID, period, dIndicator=None):
         super(_VehicleMarker, self).__init__()
         self.__vehicleID = vehicleID
-        self.__minimapRef = weakref.ref(minimap)
         self.__period = period
         self.__nextTime = BigWorld.time()
         self.__dIndicator = dIndicator
 
     def update(self, manager):
-        minimap = self.__minimapRef()
+        feedback = g_sessionProvider.shared.feedback
         vehicle = BigWorld.entities.get(self.__vehicleID)
-        if vehicle is not None and vehicle.isStarted and not vehicle.isPlayer:
+        if vehicle is not None and vehicle.isStarted and not vehicle.isPlayerVehicle:
             if self.__nextTime <= BigWorld.time():
-                if minimap is not None:
-                    minimap.showActionMarker(self.__vehicleID, 'attack')
+                if feedback is not None:
+                    feedback.showActionMarker(self.__vehicleID, mMarker='attack')
                 self.__nextTime = BigWorld.time() + self.__period
             if self.__dIndicator is not None:
                 vPosition = vehicle.position
@@ -256,7 +242,6 @@ class _VehicleMarker(_IMarker):
             self.__dIndicator.clear()
         self.__dIndicator = None
         self.__vehicleID = -1
-        self.__minimapRef = None
         self.__period = -1
         return
 
@@ -311,9 +296,8 @@ class FunctionalShowMarker(FunctionalEffect):
         typeID = data.getTypeID()
         entityID = self._tutorial.getVars().get(data.getVarRef())
         marker = None
-        root = self._gui.getGuiRoot()
-        vMarkers = getattr(root, 'vMarkersManager', None)
-        minimap = getattr(root, 'minimap', None)
+        vMarkers = self._gui.getMarkersManager()
+        minimap = self._gui.getMinimapPlugin()
         if vMarkers is None:
             LOG_ERROR('Markers manager is not defined')
             return
@@ -326,7 +310,7 @@ class FunctionalShowMarker(FunctionalEffect):
             elif typeID is TriggersManager.TRIGGER_TYPE.AREA:
                 marker = self.__make4Area(typeID, entityID, vMarkers, minimap, data)
             elif typeID is TriggersManager.TRIGGER_TYPE.AIM_AT_VEHICLE:
-                marker = self.__make4Vehicle(entityID, vMarkers, minimap, data)
+                marker = self.__make4Vehicle(entityID, data)
             return marker
 
     def __make4Aim(self, typeID, triggerID, vMarkers, data):
@@ -342,7 +326,7 @@ class FunctionalShowMarker(FunctionalEffect):
                 return
             indicatorCtrl = None
             if data.isIndicatorCreate():
-                indicator = self._gui._getDirectionIndicator()
+                indicator = self._gui.getDirectionIndicator()
                 if indicator is None:
                     LOG_ERROR('Directional indicator not found')
                 else:
@@ -362,30 +346,31 @@ class FunctionalShowMarker(FunctionalEffect):
                 return
             indicatorCtrl = None
             if data.isIndicatorCreate():
-                indicator = self._gui._getDirectionIndicator()
+                indicator = self._gui.getDirectionIndicator()
                 if indicator is None:
                     LOG_ERROR('Directional indicator not found', triggerID)
                 else:
                     indicatorCtrl = _DirectionIndicatorCtrl(indicator, ('green', 'green'), position)
-            return _AreaMarker(typeID, triggerID, _StaticWorldMarker2D(vMarkers, data.getWorldData(), position, distance), _StaticMinimapMarker2D(data.getID(), minimap, data.getMinimapData(), position), _StaticObjectMarker3D(data.getModelData(), position), _StaticObjectMarker3D(data.getGroundData(), position), indicatorCtrl)
+            return _AreaMarker(typeID, triggerID, _StaticWorldMarker2D(vMarkers, data.getWorldData(), position, distance), _StaticMinimapMarker2D(data.getID(), minimap, position), _StaticObjectMarker3D(data.getModelData(), position), _StaticObjectMarker3D(data.getGroundData(), position), indicatorCtrl)
 
-    def __make4Vehicle(self, vehicleID, _, minimap, data):
+    def __make4Vehicle(self, vehicleID, data):
         if vehicleID is None:
             LOG_ERROR('Vehicle not found', vehicleID)
             return
         else:
             vehicle = BigWorld.entities.get(vehicleID)
-            if vehicle is None:
-                LOG_ERROR('Vehicle not found', vehicleID)
-                return
+            if vehicle is not None:
+                position = vehicle.position
+            else:
+                position = None
             indicatorCtrl = None
             if data.isIndicatorCreate():
-                indicator = self._gui._getDirectionIndicator()
+                indicator = self._gui.getDirectionIndicator()
                 if indicator is None:
                     LOG_ERROR('Directional indicator not found')
                 else:
-                    indicatorCtrl = _DirectionIndicatorCtrl(indicator, ('red', 'purple'), vehicle.position)
-            return _VehicleMarker(vehicleID, minimap, data.getPeriod(), indicatorCtrl)
+                    indicatorCtrl = _DirectionIndicatorCtrl(indicator, ('red', 'purple'), position)
+            return _VehicleMarker(vehicleID, data.getPeriod(), indicatorCtrl)
 
 
 class FunctionalRemoveMarker(FunctionalEffect):
@@ -406,8 +391,14 @@ class FunctionalNextTaskEffect(FunctionalEffect):
             flag = None
             if flagID is not None:
                 flag = self._tutorial.getFlags().isActiveFlag(flagID)
-            if self._gui.playEffect('NextTask', [task.getID(), task.getText(), flag]):
-                self._sound.play(SOUND_EVENT.TASK_FAILED if flag is False else SOUND_EVENT.TASK_COMPLETED)
+                if flag:
+                    soundID = SOUND_EVENT.TASK_COMPLETED
+                else:
+                    soundID = SOUND_EVENT.TASK_FAILED
+            else:
+                soundID = SOUND_EVENT.TASK_COMPLETED
+            if self._gui.playEffect(GUI_EFFECT_NAME.NEXT_TASK, [task.getID(), task.getText(), flag]):
+                self._sound.play(soundID)
         else:
             LOG_ERROR('Task not found', self._effect.getTargetID())
         return
@@ -418,13 +409,22 @@ class FunctionalShowHintEffect(FunctionalEffect):
     def triggerEffect(self):
         hint = self.getTarget()
         if hint is not None:
-            if self._gui.playEffect('ShowHint', hint.getData()):
+            data = [hint.getID(), hint.getText()]
+            data.extend(self._getImagePaths(hint))
+            if self._gui.playEffect(GUI_EFFECT_NAME.SHOW_HINT, data):
                 speakID = hint.getSpeakID()
                 if speakID is not None and len(speakID):
                     self._sound.play(SOUND_EVENT.SPEAKING, sndID=speakID)
         else:
             LOG_ERROR('Hint not found', self._effect.getTargetID())
         return
+
+    def _getImagePaths(self, hint):
+        if hint.hasImageRef():
+            image = self._data.getHasIDEntity(hint.getImage())
+        else:
+            image = hint.getImage()
+        return image.getImagePaths(self._tutorial.getVars())
 
 
 class FunctionalTeleportEffect(FunctionalEffect):
@@ -460,15 +460,19 @@ class FunctionalTeleportEffect(FunctionalEffect):
 class FunctionalDisableCameraZoomEffect(FunctionalEffect):
     CAMERA_START_DIST = 20
 
+    def __init__(self, effect):
+        super(FunctionalDisableCameraZoomEffect, self).__init__(effect)
+        self._cameraUpdatePointIdx = -1
+
     def triggerEffect(self):
         weaver = g_tutorialWeaver
         if weaver.findPointcut(aspects.AltModeTogglePointcut) is -1:
             weaver.weave(pointcut=aspects.AltModeTogglePointcut, avoid=True)
         if weaver.findPointcut(aspects.ArcadeCtrlMouseEventsPointcut) is -1:
-            weaver.weave(pointcut=aspects.ArcadeCtrlMouseEventsPointcut, aspects=[aspects.MouseScrollIgnoreAspect])
+            weaver.weave(pointcut=aspects.ArcadeCtrlMouseEventsPointcut, aspects=(aspects.MouseScrollIgnoreAspect,))
         if weaver.findPointcut(aspects.CameraUpdatePointcut) is -1:
             BigWorld.player().inputHandler.ctrl.camera.setCameraDistance(self.CAMERA_START_DIST)
-            self._cameraUpdatePointIdx = weaver.weave(pointcut=aspects.CameraUpdatePointcut, aspects=[aspects.CameraZoomModeIgnoreAspect])
+            self._cameraUpdatePointIdx = weaver.weave(pointcut=aspects.CameraUpdatePointcut, aspects=(aspects.CameraZoomModeIgnoreAspect,))
 
 
 class FunctionalEnableCameraZoomEffect(FunctionalEffect):
@@ -499,10 +503,10 @@ class FunctionalNextChapterEffect(FunctionalEffect):
         if exitEntity is not None:
             self.__nextChapter = exitEntity.getNextChapter()
             if self.__nextChapter is None or not len(self.__nextChapter):
-                self.__nextChapter = self._tutorial._descriptor.getNextChapterID(BattleClientCtx.fetch().completed)
+                self.__nextChapter = self._descriptor.getNextChapterID(BattleClientCtx.fetch().completed)
             if self.__nextChapter is None:
                 LOG_DEBUG('Next chapter not found')
-                self._tutorial._funcScene.setExit(exitEntity)
+                self._funcScene.setExit(exitEntity)
                 return
             delay = exitEntity.getNextDelay()
             if self._tutorial._currentChapter != self.__nextChapter:
@@ -540,11 +544,10 @@ class FunctionalShowBattleDialogEffect(FunctionalShowDialogEffect):
 class FunctionalShowGreeting(FunctionalEffect):
 
     def triggerEffect(self):
-        arena = getattr(BigWorld.player(), 'arena', None)
-        if arena is not None and arena.period in [ARENA_PERIOD.WAITING, ARENA_PERIOD.PREBATTLE]:
+        if g_sessionProvider.arenaVisitor.isArenaNotStarted():
             greeting = self.getTarget()
             if greeting is not None:
-                if self._gui.playEffect('ShowGreeting', greeting.getData()):
+                if self._gui.playEffect(GUI_EFFECT_NAME.SHOW_GREETING, greeting.getData()):
                     speakID = greeting.getSpeakID()
                     if speakID is not None:
                         self._sound.play(SOUND_EVENT.SPEAKING, sndID=speakID)
@@ -556,10 +559,9 @@ class FunctionalShowGreeting(FunctionalEffect):
         return False
 
     def isStillRunning(self):
-        arena = getattr(BigWorld.player(), 'arena', None)
-        if arena is not None:
-            result = arena.period in [ARENA_PERIOD.WAITING, ARENA_PERIOD.PREBATTLE]
-            result or self._gui.stopEffect('ShowGreeting', self._effect.getTargetID())
+        result = g_sessionProvider.arenaVisitor.isArenaNotStarted()
+        if not result:
+            self._gui.stopEffect(GUI_EFFECT_NAME.SHOW_GREETING, self._effect.getTargetID())
         return result
 
 
@@ -567,7 +569,7 @@ class FunctionalRefuseTrainingEffect(FunctionalEffect):
 
     def triggerEffect(self):
         self._cache.setRefused(True).write()
-        _leaveArena()
+        avatar_getter.leaveArena()
 
     def isStillRunning(self):
         return True
@@ -580,7 +582,7 @@ class FunctionalBattleChapterInfo(FunctionalChapterInfo):
 
     def __init__(self):
         super(FunctionalBattleChapterInfo, self).__init__()
-        chapter = self._tutorial._data
+        chapter = self._data
         chapterID = chapter.getID()
         self._progress = []
         self._stepMask = -1
@@ -594,7 +596,7 @@ class FunctionalBattleChapterInfo(FunctionalChapterInfo):
                 self._progress.append((func, ok))
 
         self._gui.setChapterInfo(chapter.getTitle(), chapter.getDescription())
-        descriptor = self._tutorial._descriptor
+        descriptor = self._descriptor
         chapterIdx = descriptor.getChapterIdx(chapterID)
         localCtx = BattleClientCtx.fetch().setChapterIdx(chapterIdx)
         self._gui.setTrainingPeriod(descriptor.getChapterIdx(chapterID), descriptor.getNumberOfChapters())
@@ -604,7 +606,6 @@ class FunctionalBattleChapterInfo(FunctionalChapterInfo):
     def invalidate(self):
         offset = 0
         mask = 0
-        bit = 0
         for conditions, wasOk in self._progress:
             ok = conditions.allConditionsOk()
             if ok:
@@ -622,6 +623,7 @@ class FunctionalBattleChapterInfo(FunctionalChapterInfo):
 
 
 class FunctionalBattleScene(FunctionalScene):
+    _vehTypeName = GlobalStorage(GLOBAL_VAR.PLAYER_VEHICLE_NAME, None)
 
     def __init__(self, scene):
         super(FunctionalBattleScene, self).__init__(scene)
@@ -635,7 +637,15 @@ class FunctionalBattleScene(FunctionalScene):
         arena = getattr(BigWorld.player(), 'arena', None)
         if arena is not None and arena.period is ARENA_PERIOD.BATTLE:
             self.__requestRequiredData()
-        self._updateScene(playEffects=False)
+        if self._vehTypeName is None:
+            vehType = getattr(BigWorld.player(), 'vehicleTypeDescriptor', None)
+            if vehType is not None:
+                self._vehTypeName = vehType.name
+            else:
+                LOG_ERROR('Player\\s vehicle not found')
+        for item in self._scene.getGuiItems():
+            self._gui.setItemProps(item.getTargetID(), item.getProps(), revert=False)
+
         self._gui.show()
         return
 
@@ -660,7 +670,7 @@ class FunctionalBattleScene(FunctionalScene):
                 return
             _MarkersStorage.updateMarkers(tManager)
         if self._arenaFinished and self.__isDelayPerformed():
-            _leaveArena()
+            avatar_getter.leaveArena()
         return
 
     def setExit(self, exitEntity):
@@ -704,7 +714,5 @@ class FunctionalBattleScene(FunctionalScene):
         elif period is ARENA_PERIOD.AFTERBATTLE:
             self._arenaFinished = True
             if self.__isDelayPerformed():
-                _leaveArena()
-# okay decompyling res/scripts/client/tutorial/control/battle/functional.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:27:21 EST
+                avatar_getter.leaveArena()
+# okay decompiling ./res/scripts/client/tutorial/control/battle/functional.pyc

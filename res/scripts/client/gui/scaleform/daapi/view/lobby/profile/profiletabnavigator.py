@@ -1,4 +1,4 @@
-# 2013.11.15 11:26:11 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/daapi/view/lobby/profile/ProfileTabNavigator.py
 from gui.Scaleform.daapi.view.lobby.profile.ProfileSection import ProfileSection
 from gui.Scaleform.daapi.view.meta.ProfileTabNavigatorMeta import ProfileTabNavigatorMeta
@@ -10,7 +10,11 @@ class ProfileTabNavigator(ProfileTabNavigatorMeta):
         self.__userName = args[0]
         self.__userID = args[1]
         self.__databaseID = args[2]
-        self.__initInfo = args[3]
+        self.__navigatorOwnInitInfo = args[3]
+        self.__selectedData = None
+        if len(args) > 4 and args[4]:
+            self.__selectedData = args[4]
+        return
 
     def invokeUpdate(self):
         for component in self.components.itervalues():
@@ -18,11 +22,9 @@ class ProfileTabNavigator(ProfileTabNavigatorMeta):
                 component.invokeUpdate()
 
     def _populate(self):
-        self.as_setInitDataS(self.__initInfo)
         super(ProfileTabNavigator, self)._populate()
+        self.as_setInitDataS(self.__navigatorOwnInitInfo)
 
     def registerFlashComponent(self, component, alias, *args):
-        super(ProfileTabNavigator, self).registerFlashComponent(component, alias, self.__userName, self.__userID, self.__databaseID)
-# okay decompyling res/scripts/client/gui/scaleform/daapi/view/lobby/profile/profiletabnavigator.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:26:11 EST
+        super(ProfileTabNavigator, self).registerFlashComponent(component, alias, self.__userName, self.__userID, self.__databaseID, self.__selectedData)
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/lobby/profile/profiletabnavigator.pyc

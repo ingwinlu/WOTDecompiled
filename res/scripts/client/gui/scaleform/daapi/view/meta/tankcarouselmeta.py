@@ -1,42 +1,91 @@
-from gui.Scaleform.framework.entities.DAAPIModule import DAAPIModule
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/gui/Scaleform/daapi/view/meta/TankCarouselMeta.py
+from gui.Scaleform.framework.entities.BaseDAAPIComponent import BaseDAAPIComponent
 
-class TankCarouselMeta(DAAPIModule):
+class TankCarouselMeta(BaseDAAPIComponent):
+    """
+    DO NOT MODIFY!
+    Generated with yaml.
+    __author__ = 'yaml_processor'
+    @extends BaseDAAPIComponent
+    null
+    """
 
-    def showVehicleInfo(self, vehicleId):
-        self._printOverrideError('showVehicleInfo')
+    def selectVehicle(self, id):
+        """
+        :param id:
+        :return :
+        """
+        self._printOverrideError('selectVehicle')
 
-    def toResearch(self, compactDescr):
-        self._printOverrideError('toResearch')
-
-    def vehicleSell(self, inventoryId):
-        self._printOverrideError('vehicleSell')
-
-    def vehicleChange(self, vehicleInventoryId):
-        self._printOverrideError('vehicleChange')
+    def buyTank(self):
+        """
+        :return :
+        """
+        self._printOverrideError('buyTank')
 
     def buySlot(self):
+        """
+        :return :
+        """
         self._printOverrideError('buySlot')
 
-    def buyTankClick(self):
-        self._printOverrideError('buyTankClick')
+    def setFilter(self, id):
+        """
+        :param id:
+        :return :
+        """
+        self._printOverrideError('setFilter')
 
-    def setVehiclesFilter(self, nation, tankType, ready):
-        self._printOverrideError('setVehiclesFilter')
+    def resetFilters(self):
+        """
+        :return :
+        """
+        self._printOverrideError('resetFilters')
 
-    def favoriteVehicle(self, compact, isFavorite):
-        self._printOverrideError('favoriteVehicle')
-
-    def getVehicleTypeProvider(self):
-        self._printOverrideError('getVehicleTypeProvider')
-
-    def as_vehiclesResponseS(self, param):
+    def as_getDataProviderS(self):
+        """
+        :return Object:
+        """
         if self._isDAAPIInited():
-            return self.flashObject.as_vehiclesResponse(param)
+            return self.flashObject.as_getDataProvider()
 
-    def as_setCarouselFilterS(self, filter):
+    def as_setCarouselFilterS(self, data):
+        """
+        :param data:
+        :return :
+        """
         if self._isDAAPIInited():
-            return self.flashObject.as_setCarouselFilter(filter)
+            return self.flashObject.as_setCarouselFilter(data)
 
-    def as_changeVehicleByCompDescrS(self, compDescr):
+    def as_initCarouselFilterS(self, data):
+        """
+        :param data:
+        :return :
+        """
         if self._isDAAPIInited():
-            return self.flashObject.as_changeVehicleByCompDescr(compDescr)
+            return self.flashObject.as_initCarouselFilter(data)
+
+    def as_showCounterS(self, countText, isAttention):
+        """
+        :param countText:
+        :param isAttention:
+        :return :
+        """
+        if self._isDAAPIInited():
+            return self.flashObject.as_showCounter(countText, isAttention)
+
+    def as_hideCounterS(self):
+        """
+        :return :
+        """
+        if self._isDAAPIInited():
+            return self.flashObject.as_hideCounter()
+
+    def as_blinkCounterS(self):
+        """
+        :return :
+        """
+        if self._isDAAPIInited():
+            return self.flashObject.as_blinkCounter()
+# okay decompiling ./res/scripts/client/gui/scaleform/daapi/view/meta/tankcarouselmeta.pyc

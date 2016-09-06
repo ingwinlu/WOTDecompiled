@@ -1,5 +1,9 @@
-import BigWorld, Math
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/post_processing/post_effect_controllers.py
+import BigWorld
+import Math
 import Event
+from PostProcessing.Effects import DepthOfField
 from PostProcessing.Effects import *
 from debug_utils import *
 
@@ -71,5 +75,6 @@ class DofEffectManualDistanceCtrl(IEffectController):
         offset = 2.5
         zNear = (distance - offset) * farPlane
         zFar = (distance + offset) * farPlane
-        DepthOfFieldUnit.zNear.set(zNear, 0.1, True)
-        DepthOfFieldUnit.zFar.set(zFar, 0.1, True)
+        DepthOfField.zNear.set(zNear, 0.1, True)
+        DepthOfField.zFar.set(zFar, 0.1, True)
+# okay decompiling ./res/scripts/client/post_processing/post_effect_controllers.pyc

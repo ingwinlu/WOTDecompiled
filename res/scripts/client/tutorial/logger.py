@@ -1,3 +1,5 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/tutorial/logger.py
 from constants import IS_DEVELOPMENT
 from debug_utils import _doLog, LOG_CURRENT_EXCEPTION
 
@@ -40,3 +42,4 @@ def LOG_REQUEST(msg, *args):
 
 
 __all__ = ('LOG_DEBUG', 'LOG_WARNING', 'LOG_ERROR', 'LOG_MEMORY', 'LOG_REQUEST', 'LOG_CURRENT_EXCEPTION')
+# okay decompiling ./res/scripts/client/tutorial/logger.pyc

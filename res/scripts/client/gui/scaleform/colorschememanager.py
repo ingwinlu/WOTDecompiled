@@ -1,8 +1,8 @@
-# 2013.11.15 11:25:50 EST
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
 # Embedded file name: scripts/client/gui/Scaleform/ColorSchemeManager.py
 import types
-from account_helpers.AccountSettings import AccountSettings
-import BigWorld, Math, ResMgr
+import Math
+import ResMgr
 from debug_utils import LOG_ERROR, LOG_WARNING
 from windows import UIInterface
 
@@ -44,7 +44,7 @@ class _ColorSchemeManager(UIInterface):
     def populateUI(self, proxy):
         UIInterface.populateUI(self, proxy)
         self.uiHolder.addExternalCallbacks({self.GET_COLORS: self.onGetColors})
-        from account_helpers.SettingsCore import g_settingsCore
+        from account_helpers.settings_core.SettingsCore import g_settingsCore
         g_settingsCore.onSettingsChanged += self.__onAccountSettingsChange
         self.update()
         self.inited = True
@@ -53,7 +53,7 @@ class _ColorSchemeManager(UIInterface):
         self.inited = False
         if self.uiHolder is not None:
             self.uiHolder.removeExternalCallbacks(self.GET_COLORS)
-        from account_helpers.SettingsCore import g_settingsCore
+        from account_helpers.settings_core.SettingsCore import g_settingsCore
         g_settingsCore.onSettingsChanged -= self.__onAccountSettingsChange
         UIInterface.dispossessUI(self)
         return
@@ -62,7 +62,8 @@ class _ColorSchemeManager(UIInterface):
         self.__notifyFlash()
 
     def update(self):
-        isColorBlind = AccountSettings.getSettings('isColorBlind')
+        from account_helpers.settings_core.SettingsCore import g_settingsCore
+        isColorBlind = g_settingsCore.getSetting('isColorBlind')
         self.__colorGroup = 'color_blind' if isColorBlind else 'default'
         self.__notifyFlash()
 
@@ -114,7 +115,7 @@ class _ColorSchemeManager(UIInterface):
                             LOG_ERROR('schemeGroup tag requires to delete a "default" tag. Failed Tag:\n' + str(baseHash))
                         return baseHash
                     for subKey in insertingSection.keys():
-                        if subKey not in baseHash.keys() or not type(baseHash[subKey]) == types.DictType:
+                        if subKey not in baseHash.keys() or not isinstance(baseHash[subKey], types.DictType):
                             baseHash[subKey] = insertingSection[subKey]
                         else:
                             baseHash[subKey].update(insertingSection[subKey])
@@ -192,7 +193,7 @@ class _ColorSchemeManager(UIInterface):
         self.call('colorSchemeManager.setColors', args)
 
     @classmethod
-    def getColorGroup(cls, isColorBlind = False):
+    def getColorGroup(cls, isColorBlind=False):
         if isColorBlind:
             return 'color_blind'
         return 'default'
@@ -202,7 +203,7 @@ class _ColorSchemeManager(UIInterface):
         return cls.__colors.get(schemeName)
 
     @classmethod
-    def getSubScheme(cls, schemeName, isColorBlind = False):
+    def getSubScheme(cls, schemeName, isColorBlind=False):
         scheme = cls.getScheme(schemeName)
         if scheme is not None:
             group = cls.getColorGroup(isColorBlind=isColorBlind)
@@ -217,6 +218,10 @@ class _ColorSchemeManager(UIInterface):
         return sub
 
     @classmethod
+    def getRGBA(cls, schemeName, isColorBlind=False):
+        return cls.getSubScheme(schemeName, isColorBlind)['rgba']
+
+    @classmethod
     def _makeRGB(cls, subScheme):
         rgba = subScheme.get('rgba', (0, 0, 0))
         return (int(rgba[0]) << 16) + (int(rgba[1]) << 8) + (int(rgba[2]) << 0)
@@ -224,6 +229,4 @@ class _ColorSchemeManager(UIInterface):
     @classmethod
     def _makeAdjustTuple(cls, subScheme):
         return subScheme['adjust']['offset'].tuple()
-# okay decompyling res/scripts/client/gui/scaleform/colorschememanager.pyc 
-# decompiled 1 files: 1 okay, 0 failed, 0 verify failed
-# 2013.11.15 11:25:51 EST
+# okay decompiling ./res/scripts/client/gui/scaleform/colorschememanager.pyc

@@ -1,9 +1,13 @@
+# Python bytecode 2.7 (62211) disassembled from Python 2.7
+# Embedded file name: scripts/client/messenger/proto/bw/cooldown.py
 from chat_shared import isOperationInCooldown, CHAT_COMMANDS, getOperationCooldownPeriod
 import chat_shared
 from debug_utils import LOG_ERROR
-from helpers import i18n
+from helpers import i18n, html
+from gui.Scaleform.locale.INGAME_GUI import INGAME_GUI as I18N_INGAME_GUI
+from messenger.formatters.users_messages import getBroadcastIsInCoolDownMessage
 from messenger.m_constants import MESSENGER_I18N_FILE
-BROADCAST_COOL_DOWN_MESSAGE = i18n.makeString('#%s:client/error/broadcastInCooldown' % MESSENGER_I18N_FILE, getOperationCooldownPeriod(CHAT_COMMANDS.broadcast))
+BROADCAST_COOL_DOWN_MESSAGE = getBroadcastIsInCoolDownMessage(getOperationCooldownPeriod(CHAT_COMMANDS.broadcast))
 _battleChatShortcuts = (CHAT_COMMANDS.HELPME.name(),
  CHAT_COMMANDS.FOLLOWME.name(),
  CHAT_COMMANDS.ATTACK.name(),
@@ -15,8 +19,12 @@ _battleChatShortcuts = (CHAT_COMMANDS.HELPME.name(),
  CHAT_COMMANDS.TURNBACK.name(),
  CHAT_COMMANDS.HELPMEEX.name(),
  CHAT_COMMANDS.SUPPORTMEWITHFIRE.name(),
- CHAT_COMMANDS.RELOADINGGUN.name(),
+ CHAT_COMMANDS.RELOADING_READY.name(),
+ CHAT_COMMANDS.RELOADING_UNAVAILABLE.name(),
  CHAT_COMMANDS.STOP.name())
+_reloadingChatCommandsWithParams = {CHAT_COMMANDS.RELOADINGGUN.name(): ('rTime',),
+ CHAT_COMMANDS.RELOADING_CASSETE.name(): ('rTime', 'ammoQuantityLeft'),
+ CHAT_COMMANDS.RELOADING_READY_CASSETE.name(): ('ammoInCassete',)}
 _moderationChatCommands = (CHAT_COMMANDS.CHGCHNLNAME.name(),
  CHAT_COMMANDS.GREETING.name(),
  CHAT_COMMANDS.BAN.name(),
@@ -48,17 +56,28 @@ def getOperationCooldownPeriodEx(operationName):
     return result
 
 
-def getOperationInCooldownMsg(operation, period):
+def getBattleCommandExample(msgText):
+    result = msgText.split('/', 1)
+    if len(result) > 1:
+        i18nKey = I18N_INGAME_GUI.chat_example(result[1])
+        if i18nKey is not None:
+            i18nName = html.escape(i18n.makeString(i18nKey))
+        else:
+            i18nName = msgText
+    else:
+        i18nName = i18n.makeString(msgText)
+    return i18nName
+
+
+def getOperationInCooldownMsg(operation, period, params=None):
     if operation in _battleChatShortcuts:
         command = CHAT_COMMANDS.lookup(operation)
-        args = []
-        for index in range(command.argsCnt):
-            key = '#%s:command/%s/arg%d' % (MESSENGER_I18N_FILE, operation, index)
-            args.append(i18n.makeString(key))
-
-        operationName = i18n.makeString(command.msgText, *args)
+        operationName = getBattleCommandExample(command.msgText)
     elif operation in _moderationChatCommands:
         operationName = operation
+    elif operation in _reloadingChatCommandsWithParams:
+        command = CHAT_COMMANDS.lookup(operation)
+        operationName = getBattleCommandExample(command.msgText)
     else:
         operationKey = '#%s:command/%s' % (MESSENGER_I18N_FILE, operation)
         operationName = i18n.makeString(operationKey)
@@ -69,3 +88,4 @@ def getOperationInCooldownMsg(operation, period):
     else:
         message = i18n.makeString('#%s:client/error/commandInCooldown/unlimited' % MESSENGER_I18N_FILE, operationName)
     return message
+# okay decompiling ./res/scripts/client/messenger/proto/bw/cooldown.pyc
